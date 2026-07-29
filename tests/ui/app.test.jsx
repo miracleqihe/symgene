@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, test, vi } from 'vitest';
-import { App } from '../../src/main.jsx';
+import { App } from '../../src/app/App.jsx';
 import { createStoredData, seedStoredData } from './fixtures.js';
 
 async function renderApp({ canEdit = false, enter = true } = {}) {
