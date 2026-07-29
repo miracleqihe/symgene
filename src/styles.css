@@ -117,11 +117,11 @@ button { cursor: pointer; }
 }
 .disorder-category { padding: 18px 0 8px; border-bottom: 1px solid var(--line); }
 .disorder-category-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 0 8px 9px; }
-.disorder-category-head strong { color: var(--ink); font-size: 12px; line-height: 1.55; }
-.disorder-category-head small { color: var(--cyan-deep); font-family: 'DM Mono', monospace; font-size: 10px; }
-.disorder-index-panel .index-list button { padding-top: 10px; padding-bottom: 10px; }
-.disorder-index-panel .index-list button span { font-size: 12px; }
-.case-detail, .detail-panel { scroll-margin-top: 92px; }
+.disorder-category-head strong { color: var(--ink); font-size: 13px; font-weight:700; line-height: 1.55; }
+.disorder-category-head small { color: var(--cyan-deep); font-family: 'DM Mono', monospace; font-size: 11px; font-weight:600; }
+.disorder-index-panel .index-list button { padding-top: 12px; padding-bottom: 12px; }
+.disorder-index-panel .index-list button span { font-size: 14px; }
+.case-detail, .detail-panel { scroll-margin-top: 92px; font-weight:500; }
 
 @media (max-width: 720px) {
   .index-panel { max-height: none; overflow: visible; position: static; }
