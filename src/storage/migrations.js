@@ -51,17 +51,6 @@ export function mergeWithSeed(savedData, seedData, deletedIds = createDeletedIds
   }));
 }
 
-export function inferLegacyDeletedIds(legacyData, legacySeedData) {
-  const deletedIds = createDeletedIds();
-  DATA_COLLECTIONS.forEach((type) => {
-    const savedIds = new Set((legacyData[type] || []).map((item) => item?.id).filter(Boolean));
-    deletedIds[type] = (legacySeedData?.[type] || [])
-      .map((item) => item.id)
-      .filter((id) => !savedIds.has(id));
-  });
-  return deletedIds;
-}
-
 export function validateEnvelope(envelope) {
   const errors = [];
   if (!isObject(envelope)) {
@@ -120,7 +109,6 @@ export function isCurrentEnvelopeRaw(rawValue) {
 }
 
 export function migrateKnowledge(rawValue, seedData, {
-  legacySeedData = seedData,
   now = new Date(),
   seedVersion = SEED_VERSION
 } = {}) {
@@ -154,6 +142,13 @@ export function migrateKnowledge(rawValue, seedData, {
     if (!isObject(stored.data)) {
       return { ok: false, errors: [{ field: 'data', message: '实际数据必须是对象' }] };
     }
+    const missingCollection = DATA_COLLECTIONS.find((type) => !Array.isArray(stored.data[type]));
+    if (missingCollection) {
+      return {
+        ok: false,
+        errors: [{ field: `data.${missingCollection}`, message: `${missingCollection} 必须是数组` }]
+      };
+    }
     savedData = stored.data;
     deletedIds = createDeletedIds(stored.deletedIds);
   } else {
@@ -169,7 +164,7 @@ export function migrateKnowledge(rawValue, seedData, {
       };
     }
     savedData = Object.fromEntries(DATA_COLLECTIONS.map((type) => [type, stored[type]]));
-    deletedIds = inferLegacyDeletedIds(savedData, legacySeedData);
+    deletedIds = createDeletedIds();
   }
 
   const mergedData = mergeWithSeed(savedData, seedData, deletedIds);

@@ -124,7 +124,6 @@ export function parseKnowledgeImport(text, {
     data: value.data,
     deletedIds: value.deletedIds
   }), seedData, {
-    legacySeedData: seedData,
     now,
     seedVersion: SEED_VERSION
   });

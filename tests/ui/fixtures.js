@@ -1,3 +1,6 @@
+import { cloneSeed } from '../../src/data.js';
+import { SCHEMA_VERSION, SEED_VERSION } from '../../src/storage/constants.js';
+
 export const STORAGE_KEY = 'symgene-wiki-data-v1';
 
 export function createStoredData() {
@@ -65,6 +68,19 @@ export function createStoredData() {
 }
 
 export function seedStoredData(data = createStoredData()) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  const seedData = cloneSeed();
+  const deletedIds = Object.fromEntries(
+    Object.entries(seedData).map(([type, items]) => {
+      const savedIds = new Set(data[type].map((item) => item.id));
+      return [type, items.map((item) => item.id).filter((id) => !savedIds.has(id))];
+    })
+  );
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    schemaVersion: SCHEMA_VERSION,
+    seedVersion: SEED_VERSION,
+    savedAt: '2026-07-29T12:00:00.000Z',
+    data,
+    deletedIds
+  }));
   return data;
 }

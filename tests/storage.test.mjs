@@ -7,7 +7,8 @@ import {
 } from '../src/storage/constants.js';
 import {
   createEnvelope,
-  migrateKnowledge
+  migrateKnowledge,
+  validateEnvelope
 } from '../src/storage/migrations.js';
 import {
   deleteEntry,
@@ -47,6 +48,24 @@ function stored(storage) {
 function currentStorage(data = makeSeed()) {
   const envelope = createEnvelope(data, { savedAt: NOW.toISOString() });
   return new MemoryStorage([[STORAGE_KEY, JSON.stringify(envelope)]]);
+}
+
+class ControlledStorage extends MemoryStorage {
+  constructor(entries = []) {
+    super(entries);
+    this.failBackupWrites = false;
+    this.failPrimaryWrites = false;
+  }
+
+  setItem(key, value) {
+    if (this.failBackupWrites && String(key).startsWith(BACKUP_KEY_PREFIX)) {
+      throw new Error('backup write denied');
+    }
+    if (this.failPrimaryWrites && String(key) === STORAGE_KEY) {
+      throw new Error('primary write denied');
+    }
+    super.setItem(key, value);
+  }
 }
 
 function entryId(type, suffix) {
@@ -149,6 +168,67 @@ test('19 重复删除不会产生重复 tombstone', () => {
   assert.deepEqual(twice.deletedIds.resources, ['resource-extra']);
 });
 
+test('19b 删除有关联案例的疾病抛出 dependency-conflict 并报告关联详情', () => {
+  const seed = makeSeed();
+  let error;
+  try {
+    deleteEntry(createEnvelope(seed), 'disorders', 'disorder-core', seed, { now: NOW });
+  } catch (caught) {
+    error = caught;
+  }
+  assert.equal(error?.code, 'dependency-conflict');
+  assert.equal(error?.type, 'disorders');
+  assert.equal(error?.id, 'disorder-core');
+  assert.equal(error?.relatedType, 'cases');
+  assert.equal(error?.relatedCount, 2);
+  assert.deepEqual(error?.relatedIds, ['case-core', 'case-extra']);
+});
+
+test('19c dependency-conflict 不改变原 envelope、疾病、案例或 tombstone', () => {
+  const seed = makeSeed();
+  const envelope = createEnvelope(seed);
+  const before = clone(envelope);
+  assert.throws(
+    () => deleteEntry(envelope, 'disorders', 'disorder-core', seed, { now: NOW }),
+    { code: 'dependency-conflict' }
+  );
+  assert.deepEqual(envelope, before);
+  assert.ok(envelope.data.disorders.some((item) => item.id === 'disorder-core'));
+  assert.deepEqual(
+    envelope.data.cases.filter((item) => item.disorderId === 'disorder-core').map((item) => item.id),
+    ['case-core', 'case-extra']
+  );
+  assert.deepEqual(envelope.deletedIds.disorders, []);
+  assert.deepEqual(envelope.deletedIds.cases, []);
+});
+
+test('19d 无关联的自定义疾病仍可删除且不生成 tombstone', () => {
+  const seed = makeSeed();
+  const envelope = upsertEntry(
+    createEnvelope(seed),
+    'disorders',
+    customEntry('disorders'),
+    { now: NOW }
+  );
+  const result = deleteEntry(envelope, 'disorders', 'disorder-custom', seed, { now: NOW });
+  assert.ok(!result.data.disorders.some((item) => item.id === 'disorder-custom'));
+  assert.deepEqual(result.deletedIds.disorders, []);
+});
+
+test('19e 无关联的种子疾病仍可删除并生成疾病 tombstone', () => {
+  const seed = makeSeed();
+  const result = deleteEntry(
+    createEnvelope(seed),
+    'disorders',
+    'disorder-extra',
+    seed,
+    { now: NOW }
+  );
+  assert.ok(!result.data.disorders.some((item) => item.id === 'disorder-extra'));
+  assert.deepEqual(result.deletedIds.disorders, ['disorder-extra']);
+  assert.deepEqual(result.deletedIds.cases, []);
+});
+
 test('20 重置恢复种子并清除自定义新增和 tombstone', () => {
   const seed = makeSeed();
   let envelope = upsertEntry(createEnvelope(seed), 'resources', customEntry('resources'), { now: NOW });
@@ -181,6 +261,102 @@ test('25 多次合并新种子不会生成重复 ID', () => {
   );
   const second = migrateKnowledge(JSON.stringify(first.envelope), nextSeed, { now: NOW });
   assert.equal(second.envelope.data.resources.filter((item) => item.id === 'resource-new-seed').length, 1);
+});
+
+for (const [type, id] of [
+  ['drugs', 'drug-extra'],
+  ['disorders', 'disorder-extra'],
+  ['cases', 'case-extra'],
+  ['resources', 'resource-extra']
+]) {
+  test(`25 legacy format 缺少 ${type} new seed entry must not infer deletion`, () => {
+    const seed = makeSeed();
+    const legacyData = clone(seed);
+    legacyData[type] = legacyData[type].filter((item) => item.id !== id);
+    const result = migrateKnowledge(JSON.stringify(makeLegacy(legacyData)), seed, { now: NOW });
+    assert.equal(result.ok, true);
+    assert.ok(result.envelope.data[type].some((item) => item.id === id));
+    assert.ok(!result.envelope.deletedIds[type].includes(id));
+  });
+}
+
+test('25e legacy format 用户自定义条目在补充 new seed entry 后继续保留', () => {
+  const seed = makeSeed();
+  const legacyData = clone(seed);
+  legacyData.resources = [
+    legacyData.resources[0],
+    customEntry('resources')
+  ];
+  const result = migrateKnowledge(JSON.stringify(makeLegacy(legacyData)), seed, { now: NOW });
+  assert.ok(result.envelope.data.resources.some((item) => item.id === 'resource-custom'));
+  assert.ok(result.envelope.data.resources.some((item) => item.id === 'resource-extra'));
+});
+
+test('25f legacy format 同 ID 用户修改优先于当前 new seed entry 内容', () => {
+  const seed = makeSeed();
+  const legacyData = clone(seed);
+  legacyData.drugs[0].name = '用户保留值';
+  legacyData.drugs = [legacyData.drugs[0]];
+  const result = migrateKnowledge(JSON.stringify(makeLegacy(legacyData)), seed, { now: NOW });
+  assert.equal(
+    result.envelope.data.drugs.find((item) => item.id === 'drug-core').name,
+    '用户保留值'
+  );
+  assert.ok(result.envelope.data.drugs.some((item) => item.id === 'drug-extra'));
+});
+
+test('25g legacy format must not infer deletion：迁移后的 deletedIds 全部为空', () => {
+  const seed = makeSeed();
+  const legacyData = Object.fromEntries(
+    Object.entries(seed).map(([type, items]) => [type, [items[0]]])
+  );
+  const result = migrateKnowledge(JSON.stringify(makeLegacy(legacyData)), seed, { now: NOW });
+  assert.deepEqual(result.envelope.deletedIds, {
+    drugs: [],
+    disorders: [],
+    cases: [],
+    resources: []
+  });
+});
+
+test('25h legacy format 迁移后新执行的删除会生成 tombstone', () => {
+  const seed = makeSeed();
+  const migrated = migrateKnowledge(
+    JSON.stringify(makeLegacy({ ...clone(seed), resources: [seed.resources[0]] })),
+    seed,
+    { now: NOW }
+  );
+  const deleted = deleteEntry(
+    migrated.envelope,
+    'resources',
+    'resource-extra',
+    seed,
+    { now: NOW }
+  );
+  assert.deepEqual(deleted.deletedIds.resources, ['resource-extra']);
+});
+
+test('25i legacy format 第二次读取不会重复加入 new seed entry', () => {
+  const seed = makeSeed();
+  const first = migrateKnowledge(
+    JSON.stringify(makeLegacy({ ...clone(seed), resources: [seed.resources[0]] })),
+    seed,
+    { now: NOW }
+  );
+  const second = migrateKnowledge(JSON.stringify(first.envelope), seed, { now: NOW });
+  assert.equal(second.envelope.data.resources.filter((item) => item.id === 'resource-extra').length, 1);
+  assert.equal(second.needsWrite, false);
+});
+
+test('25j legacy format new seed entry 合并结果通过正式 envelope 验证器', () => {
+  const seed = makeSeed();
+  const result = migrateKnowledge(
+    JSON.stringify(makeLegacy({ ...clone(seed), cases: [seed.cases[0]] })),
+    seed,
+    { now: NOW }
+  );
+  assert.equal(result.ok, true);
+  assert.deepEqual(validateEnvelope(result.envelope), []);
 });
 
 test('26 迁移写入前创建旧数据的逐字备份', () => {
@@ -236,9 +412,97 @@ test('31 无效备份不能覆盖当前数据', () => {
   const rawBefore = storage.getItem(STORAGE_KEY);
   const key = `${BACKUP_KEY_PREFIX}invalid`;
   storage.setItem(key, '{broken');
+  const backupsBefore = listBackups(storage);
   assert.throws(
     () => restoreBackup(storage, key, makeSeed(), { now: NOW }),
     { code: 'backup-invalid' }
+  );
+  assert.equal(storage.getItem(STORAGE_KEY), rawBefore);
+  assert.deepEqual(listBackups(storage), backupsBefore);
+});
+
+test('31b 无效 envelope 备份恢复失败且不改变主存储或备份列表', () => {
+  const storage = currentStorage();
+  const rawBefore = storage.getItem(STORAGE_KEY);
+  const key = createBackup(storage, JSON.stringify({
+    schemaVersion: 2,
+    seedVersion: 11,
+    savedAt: NOW.toISOString(),
+    data: { drugs: [], disorders: [], cases: [], resources: 'invalid' },
+    deletedIds: { drugs: [], disorders: [], cases: [], resources: [] }
+  }), { now: new Date('2026-07-28T00:00:00.000Z') });
+  const backupsBefore = listBackups(storage);
+  assert.throws(
+    () => restoreBackup(storage, key, makeSeed(), { now: NOW }),
+    { code: 'backup-invalid' }
+  );
+  assert.equal(storage.getItem(STORAGE_KEY), rawBefore);
+  assert.deepEqual(listBackups(storage), backupsBefore);
+});
+
+test('31c 已有五份备份时无效恢复不会新增、淘汰或重排备份', () => {
+  const storage = currentStorage();
+  let invalidKey;
+  for (let index = 0; index < BACKUP_RETENTION_LIMIT; index += 1) {
+    const rawValue = index === 0 ? '{broken' : JSON.stringify(createEnvelope(makeSeed()));
+    const key = createBackup(storage, rawValue, {
+      now: new Date(Date.parse('2026-07-28T00:00:00.000Z') + index * 1000)
+    });
+    if (index === 0) invalidKey = key;
+  }
+  const rawBefore = storage.getItem(STORAGE_KEY);
+  const backupsBefore = listBackups(storage);
+  assert.throws(
+    () => restoreBackup(storage, invalidKey, makeSeed(), { now: NOW }),
+    { code: 'backup-invalid' }
+  );
+  assert.equal(storage.getItem(STORAGE_KEY), rawBefore);
+  assert.deepEqual(listBackups(storage), backupsBefore);
+  assert.equal(listBackups(storage).length, BACKUP_RETENTION_LIMIT);
+});
+
+test('31d 当前状态备份创建失败时不写入有效恢复目标', () => {
+  const seed = makeSeed();
+  const current = upsertEntry(
+    createEnvelope(seed),
+    'resources',
+    customEntry('resources'),
+    { now: NOW }
+  );
+  const storage = new ControlledStorage([[STORAGE_KEY, JSON.stringify(current)]]);
+  const targetKey = createBackup(
+    storage,
+    JSON.stringify(createEnvelope(seed, { savedAt: '2026-07-28T00:00:00.000Z' })),
+    { now: new Date('2026-07-28T00:00:00.000Z') }
+  );
+  const rawBefore = storage.getItem(STORAGE_KEY);
+  storage.failBackupWrites = true;
+  assert.throws(
+    () => restoreBackup(storage, targetKey, seed, { now: NOW }),
+    { code: 'backup-write-failed' }
+  );
+  assert.equal(storage.getItem(STORAGE_KEY), rawBefore);
+});
+
+test('31e 恢复目标写入失败时主存储不变且恢复前备份仍存在', () => {
+  const seed = makeSeed();
+  const current = upsertEntry(
+    createEnvelope(seed),
+    'resources',
+    customEntry('resources'),
+    { now: NOW }
+  );
+  const rawBefore = JSON.stringify(current);
+  const storage = new ControlledStorage([[STORAGE_KEY, rawBefore]]);
+  const targetKey = createBackup(
+    storage,
+    JSON.stringify(createEnvelope(seed, { savedAt: '2026-07-28T00:00:00.000Z' })),
+    { now: new Date('2026-07-28T00:00:00.000Z') }
+  );
+  storage.failPrimaryWrites = true;
+  assert.throws(
+    () => restoreBackup(storage, targetKey, seed, { now: NOW }),
+    { code: 'storage-write-failed' }
   );
   assert.equal(storage.getItem(STORAGE_KEY), rawBefore);
   assert.ok(listBackups(storage).some((backup) => storage.getItem(backup.key) === rawBefore));

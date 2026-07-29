@@ -12,10 +12,11 @@ import {
 } from './migrations.js';
 
 export class KnowledgeStorageError extends Error {
-  constructor(code, message, cause) {
+  constructor(code, message, cause, details = {}) {
     super(message, cause ? { cause } : undefined);
     this.name = 'KnowledgeStorageError';
     this.code = code;
+    Object.assign(this, details);
   }
 }
 
@@ -122,7 +123,6 @@ export function writeKnowledge(storage, envelope) {
 }
 
 export function readKnowledge(storage, seedData, {
-  legacySeedData = seedData,
   now = new Date(),
   seedVersion = SEED_VERSION
 } = {}) {
@@ -162,7 +162,6 @@ export function readKnowledge(storage, seedData, {
   }
 
   const migration = migrateKnowledge(rawValue, seedData, {
-    legacySeedData,
     now,
     seedVersion
   });
@@ -211,23 +210,21 @@ export function replaceKnowledge(storage, envelope, { now = new Date() } = {}) {
 }
 
 export function restoreBackup(storage, backupKey, seedData, {
-  legacySeedData = seedData,
   now = new Date(),
   seedVersion = SEED_VERSION
 } = {}) {
   const rawValue = readBackupRaw(storage, backupKey);
+  const migration = migrateKnowledge(rawValue, seedData, {
+    now,
+    seedVersion
+  });
+  if (!migration.ok || validateEnvelope(migration.envelope).length) {
+    throw new KnowledgeStorageError('backup-invalid', '该备份未通过完整性校验，未执行恢复。');
+  }
   const currentRaw = storage.getItem(STORAGE_KEY);
   const currentBackupKey = currentRaw == null
     ? null
     : createBackup(storage, currentRaw, { now });
-  const migration = migrateKnowledge(rawValue, seedData, {
-    legacySeedData,
-    now,
-    seedVersion
-  });
-  if (!migration.ok) {
-    throw new KnowledgeStorageError('backup-invalid', '该备份未通过完整性校验，未执行恢复。');
-  }
   writeKnowledge(storage, migration.envelope);
   return { envelope: migration.envelope, backupKey: currentBackupKey };
 }

@@ -15,9 +15,7 @@ const STORAGE_ERROR_MESSAGE = '本地保存失败，请检查浏览器存储权�
 
 function initializeKnowledge() {
   const seedData = cloneSeed();
-  const result = readKnowledge(window.localStorage, seedData, {
-    legacySeedData: seedData
-  });
+  const result = readKnowledge(window.localStorage, seedData);
   return { ...result, seedData };
 }
 
@@ -114,7 +112,16 @@ export function useLocalKnowledge({ onSaved } = {}) {
         '词条已删除'
       );
     } catch (error) {
-      setStorageError(STORAGE_ERROR_MESSAGE);
+      if (error?.code === 'dependency-conflict') {
+        const item = envelope.data[type].find((entry) => entry.id === id);
+        const label = item?.name || item?.title || '该疾病';
+        setStorageError(
+          `无法删除“${label}”：仍有 ${error.relatedCount} 个关联案例。`
+          + '请先删除这些案例，或将它们改绑到其他疾病。'
+        );
+      } else {
+        setStorageError(STORAGE_ERROR_MESSAGE);
+      }
       warnStorageError(error);
       return false;
     }
@@ -129,9 +136,7 @@ export function useLocalKnowledge({ onSaved } = {}) {
 
   function restoreLocalBackup(backupKey) {
     return recoverWith(
-      () => restoreBackup(window.localStorage, backupKey, initial.seedData, {
-        legacySeedData: initial.seedData
-      }),
+      () => restoreBackup(window.localStorage, backupKey, initial.seedData),
       '本地备份已恢复'
     );
   }

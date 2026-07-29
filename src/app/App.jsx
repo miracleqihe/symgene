@@ -22,6 +22,7 @@ export function App({ canEdit = CAN_EDIT } = {}) {
   const [editor, setEditor] = useState(null);
   const [mobileNav, setMobileNav] = useState(false);
   const [toast, setToast] = useState('');
+  const [operationError, setOperationError] = useState('');
   const [entered, setEntered] = useState(false);
   const [localDataOpen, setLocalDataOpen] = useState(false);
   const searchInputRef = useRef(null);
@@ -37,7 +38,12 @@ export function App({ canEdit = CAN_EDIT } = {}) {
     saveEntry,
     seedData,
     storageError
-  } = useLocalKnowledge({ onSaved: setToast });
+  } = useLocalKnowledge({
+    onSaved(message) {
+      setOperationError('');
+      setToast(message);
+    }
+  });
 
   useSearchShortcut({
     enabled: entered,
@@ -56,7 +62,16 @@ export function App({ canEdit = CAN_EDIT } = {}) {
   }, [toast]);
 
   useEffect(() => {
-    if (storageError) setToast('');
+    if (!operationError) return undefined;
+    const timer = window.setTimeout(() => setOperationError(''), 5000);
+    return () => window.clearTimeout(timer);
+  }, [operationError]);
+
+  useEffect(() => {
+    if (storageError) {
+      setToast('');
+      setOperationError('');
+    }
   }, [storageError]);
 
   const counts = useMemo(() => ({
@@ -95,6 +110,18 @@ export function App({ canEdit = CAN_EDIT } = {}) {
   }
 
   function deleteItem(type, item) {
+    setOperationError('');
+    if (type === 'disorders') {
+      const relatedCases = data.cases.filter((entry) => entry.disorderId === item.id);
+      if (relatedCases.length) {
+        setToast('');
+        setOperationError(
+          `无法删除“${item.name || item.title}”：仍有 ${relatedCases.length} 个关联案例。`
+          + '请先删除这些案例，或将它们改绑到其他疾病。'
+        );
+        return;
+      }
+    }
     if (!window.confirm('确定删除“' + (item.name || item.title) + '”吗？')) return;
     if (removeEntry(type, item.id)) setSelected(null);
   }
@@ -198,7 +225,10 @@ export function App({ canEdit = CAN_EDIT } = {}) {
           onRestore={restoreLocalBackup}
         />
       )}
-      <Toast message={storageError || toast} error={Boolean(storageError)} />
+      <Toast
+        message={storageError || operationError || toast}
+        error={Boolean(storageError || operationError)}
+      />
     </div>
   );
 }

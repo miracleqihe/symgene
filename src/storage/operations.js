@@ -46,6 +46,24 @@ export function deleteEntry(envelope, type, id, seedData, {
   now = new Date()
 } = {}) {
   ensureType(type);
+  if (type === 'disorders') {
+    const relatedCases = envelope.data.cases.filter((item) => item.disorderId === id);
+    if (relatedCases.length) {
+      throw new KnowledgeStorageError(
+        'dependency-conflict',
+        '无法删除仍有关联案例的疾病。',
+        undefined,
+        {
+          type,
+          id,
+          relatedType: 'cases',
+          relatedCount: relatedCases.length,
+          relatedIds: relatedCases.map((item) => item.id)
+        }
+      );
+    }
+  }
+
   const data = Object.fromEntries(DATA_COLLECTIONS.map((collection) => [
     collection,
     envelope.data[collection].map((item) => ({ ...item }))
@@ -63,19 +81,6 @@ export function deleteEntry(envelope, type, id, seedData, {
         ? disorder.relatedDrugIds.filter((drugId) => drugId !== id)
         : disorder.relatedDrugIds
     }));
-  }
-
-  if (type === 'disorders') {
-    const relatedCaseIds = data.cases
-      .filter((item) => item.disorderId === id)
-      .map((item) => item.id);
-    data.cases = data.cases.filter((item) => item.disorderId !== id);
-    relatedCaseIds.forEach((caseId) => {
-      if (seedData.cases.some((item) => item.id === caseId)
-        && !deletedIds.cases.includes(caseId)) {
-        deletedIds.cases.push(caseId);
-      }
-    });
   }
 
   return buildEnvelope(envelope, data, deletedIds, now);

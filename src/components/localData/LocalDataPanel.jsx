@@ -132,7 +132,7 @@ export function LocalDataPanel({
   function restore(backup) {
     const confirmed = window.confirm([
       '确认恢复这份自动备份吗？',
-      '恢复前会再次备份当前数据，目标备份也会先经过完整性校验。'
+      '目标备份会先经过完整性校验；通过后才会再次备份当前数据并恢复。'
     ].join('\n'));
     if (!confirmed) return;
     if (!onRestore(backup.key)) {
@@ -177,7 +177,8 @@ export function LocalDataPanel({
 
         <div className="local-data-content">
           <p className="local-data-note">
-            这些工具只处理本浏览器内的数据，不会上传到网络。导入、恢复和重置前均会验证并备份当前状态。
+            这些工具只处理本浏览器内的数据，不会上传到网络。恢复会先验证目标备份；
+            验证通过后，导入、恢复和重置才会备份当前状态并写入。
           </p>
           <div className="local-data-actions">
             <button type="button" className="secondary-button" onClick={exportCurrent}>

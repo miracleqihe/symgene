@@ -3,16 +3,35 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, test, vi } from 'vitest';
 import { App } from '../../src/app/App.jsx';
-import { createStoredData, seedStoredData } from './fixtures.js';
+import { createStoredData, seedStoredData, STORAGE_KEY } from './fixtures.js';
 
-async function renderApp({ canEdit = false, enter = true } = {}) {
-  seedStoredData();
+async function renderApp({
+  canEdit = false,
+  enter = true,
+  storedData = createStoredData(),
+  beforeRender
+} = {}) {
+  seedStoredData(storedData);
+  beforeRender?.();
   const user = userEvent.setup();
   const result = render(<App canEdit={canEdit} />);
   if (enter) {
     await user.click(screen.getByRole('button', { name: /进入知识库/ }));
   }
   return { user, ...result };
+}
+
+function dataWithUnrelatedDisorder() {
+  const data = createStoredData();
+  data.disorders.push({
+    id: 'disorder-unrelated',
+    name: '虚构无案例疾病',
+    category: '虚构测试分类',
+    summary: '仅用于本地删除保护测试。',
+    source: '公开测试来源',
+    relatedDrugIds: []
+  });
+  return data;
 }
 
 function navButton(name) {
@@ -285,5 +304,75 @@ describe('本地保存', () => {
     await user.click(screen.getByRole('button', { name: /舍曲林/ }));
     await user.click(screen.getByRole('button', { name: '删除词条' }));
     expect(screen.getByRole('heading', { name: '舍曲林', level: 2 })).toBeVisible();
+  });
+
+  test('有关联案例的疾病删除在普通确认前被阻止且疾病和案例保持不变', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const { user } = await renderApp({ canEdit: true });
+    const rawBefore = window.localStorage.getItem(STORAGE_KEY);
+    await openPage(user, '疾病科普');
+    await user.click(screen.getByRole('button', { name: /抑郁障碍/ }));
+    await user.click(screen.getByRole('button', { name: '删除词条' }));
+
+    expect(confirm).not.toHaveBeenCalled();
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      '无法删除“抑郁障碍”：仍有 1 个关联案例'
+    );
+    expect(screen.queryByText('词条已删除')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '抑郁障碍', level: 2 })).toBeVisible();
+    expect(window.localStorage.getItem(STORAGE_KEY)).toBe(rawBefore);
+
+    await openPage(user, '案例分析');
+    expect(screen.getByRole('button', { name: /持续低落与早醒案例/ })).toBeVisible();
+    await openPage(user, '疾病科普');
+    expect(screen.getByRole('button', { name: /抑郁障碍/ })).toBeVisible();
+  });
+
+  test('无关联疾病仍走正常确认且用户取消时保持不变', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const { user } = await renderApp({
+      canEdit: true,
+      storedData: dataWithUnrelatedDisorder()
+    });
+    await openPage(user, '疾病科普');
+    await user.click(screen.getByRole('button', { name: /虚构无案例疾病/ }));
+    await user.click(screen.getByRole('button', { name: '删除词条' }));
+
+    expect(confirm).toHaveBeenCalledWith('确定删除“虚构无案例疾病”吗？');
+    expect(screen.getByRole('heading', { name: '虚构无案例疾病', level: 2 })).toBeVisible();
+    expect(screen.queryByText('词条已删除')).not.toBeInTheDocument();
+  });
+
+  test('无关联疾病确认后仍可正常删除', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const { user } = await renderApp({
+      canEdit: true,
+      storedData: dataWithUnrelatedDisorder()
+    });
+    await openPage(user, '疾病科普');
+    await user.click(screen.getByRole('button', { name: /虚构无案例疾病/ }));
+    await user.click(screen.getByRole('button', { name: '删除词条' }));
+
+    expect(await screen.findByText('词条已删除')).toBeVisible();
+    expect(screen.queryByRole('button', { name: /虚构无案例疾病/ })).not.toBeInTheDocument();
+  });
+
+  test('无效自动备份恢复不显示成功提示', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { user } = await renderApp({
+      canEdit: true,
+      beforeRender() {
+        window.localStorage.setItem(
+          'symgene-wiki-backup-9999-12-31T23-59-59.999Z',
+          '{broken'
+        );
+      }
+    });
+    await user.click(screen.getByRole('button', { name: '本地数据' }));
+    await user.click(screen.getAllByRole('button', { name: '恢复' })[0]);
+
+    expect(await screen.findByText('备份恢复失败，当前数据未改变。')).toBeVisible();
+    expect(screen.queryByText('本地备份已恢复')).not.toBeInTheDocument();
   });
 });
