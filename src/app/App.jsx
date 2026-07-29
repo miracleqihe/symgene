@@ -23,7 +23,7 @@ export function App({ canEdit = CAN_EDIT } = {}) {
   const [toast, setToast] = useState('');
   const [entered, setEntered] = useState(false);
   const searchInputRef = useRef(null);
-  const { data, storageError, updateData } = useLocalKnowledge({ onSaved: setToast });
+  const { data, storageError, saveEntry, removeEntry } = useLocalKnowledge({ onSaved: setToast });
 
   useSearchShortcut({
     enabled: entered,
@@ -74,30 +74,15 @@ export function App({ canEdit = CAN_EDIT } = {}) {
 
   function saveEditor(nextItem) {
     const type = editor.type;
-    updateData((current) => {
-      const list = current[type] || [];
-      const found = list.some((item) => item.id === nextItem.id);
-      return {
-        ...current,
-        [type]: found
-          ? list.map((item) => item.id === nextItem.id ? nextItem : item)
-          : [nextItem, ...list]
-      };
-    }, '已保存到本地浏览器');
-    setSelected(nextItem);
-    setEditor(null);
+    if (saveEntry(type, nextItem)) {
+      setSelected(nextItem);
+      setEditor(null);
+    }
   }
 
   function deleteItem(type, item) {
     if (!window.confirm('确定删除“' + (item.name || item.title) + '”吗？')) return;
-    updateData(
-      (current) => ({
-        ...current,
-        [type]: current[type].filter((entry) => entry.id !== item.id)
-      }),
-      '词条已删除'
-    );
-    setSelected(null);
+    if (removeEntry(type, item.id)) setSelected(null);
   }
 
   if (!entered) return <WelcomePage onEnter={() => setEntered(true)} />;
