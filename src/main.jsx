@@ -36,7 +36,9 @@ function sanitizeData(value) {
     : normalizedSavedDrugs;
   const mergedDisorders = isLegacy ? seed.disorders : (next.disorders || seed.disorders);
   const mergedCases = isLegacy ? seed.cases : (next.cases || seed.cases);
-  const savedResources = (next.resources || []).filter((item) => !item.localPath && !String(item.source || '').startsWith('raw/'));
+  const savedResources = (next.resources || []).filter((item) =>
+    !item.localPath && /^https?:\/\//i.test(String(item.url || ''))
+  );
   const mergedResources = isLegacy
     ? [...savedResources, ...seed.resources.filter((item) => !savedResources.some((saved) => saved.id === item.id))]
     : savedResources;
@@ -67,11 +69,49 @@ function App() {
   const [editor, setEditor] = useState(null);
   const [mobileNav, setMobileNav] = useState(false);
   const [toast, setToast] = useState('');
+  const [storageError, setStorageError] = useState('');
   const [entered, setEntered] = useState(false);
+  const searchInputRef = useRef(null);
+  const focusFrameRef = useRef(null);
+  const pendingStorageToastRef = useRef('');
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      setStorageError('');
+      if (pendingStorageToastRef.current) {
+        setToast(pendingStorageToastRef.current);
+      }
+    } catch (error) {
+      setToast('');
+      setStorageError('本地保存失败，请检查浏览器存储权限或复制当前内容。');
+      if (import.meta.env.DEV) {
+        console.warn('无法将 Sym Gen 数据写入本地存储。', error);
+      }
+    } finally {
+      pendingStorageToastRef.current = '';
+    }
   }, [data]);
+
+  useEffect(() => {
+    function focusSearch(event) {
+      if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'k' || !entered) return;
+      event.preventDefault();
+      setActivePage('home');
+      setSelected(null);
+      setMobileNav(false);
+      if (focusFrameRef.current) window.cancelAnimationFrame(focusFrameRef.current);
+      focusFrameRef.current = window.requestAnimationFrame(() => {
+        searchInputRef.current?.focus();
+        focusFrameRef.current = null;
+      });
+    }
+    window.addEventListener('keydown', focusSearch);
+    return () => {
+      window.removeEventListener('keydown', focusSearch);
+      if (focusFrameRef.current) window.cancelAnimationFrame(focusFrameRef.current);
+    };
+  }, [entered]);
 
   useEffect(() => {
     if (!toast) return undefined;
@@ -117,6 +157,7 @@ function App() {
 
   function saveEditor(nextItem) {
     const type = editor.type;
+    pendingStorageToastRef.current = '已保存到本地浏览器';
     setData((current) => {
       const list = current[type] || [];
       const found = list.some((item) => item.id === nextItem.id);
@@ -124,14 +165,13 @@ function App() {
     });
     setSelected(nextItem);
     setEditor(null);
-    setToast('已保存到本地浏览器');
   }
 
   function deleteItem(type, item) {
     if (!window.confirm('确定删除“' + (item.name || item.title) + '”吗？')) return;
+    pendingStorageToastRef.current = '词条已删除';
     setData((current) => ({ ...current, [type]: current[type].filter((entry) => entry.id !== item.id) }));
     setSelected(null);
-    setToast('词条已删除');
   }
 
   return (
@@ -157,7 +197,7 @@ function App() {
         </aside>
 
         <main className="main-content">
-          {activePage === 'home' && <HomePage data={data} counts={counts} onNavigate={go} onOpen={openItem} query={query} setQuery={setQuery} searchResults={searchResults} />}
+          {activePage === 'home' && <HomePage data={data} counts={counts} onNavigate={go} onOpen={openItem} query={query} setQuery={setQuery} searchResults={searchResults} searchInputRef={searchInputRef} />}
           {activePage === 'drugs' && <ListPage type="drugs" data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} />}
           {activePage === 'disorders' && <ListPage type="disorders" data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} />}
           {activePage === 'cases' && <CasesPage data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} onOpenDisorder={(disorder) => openItem('disorders', disorder)} />}
@@ -165,8 +205,9 @@ function App() {
         </main>
       </div>
 
-      {editor && <EditorModal editor={editor} disorders={data.disorders} onClose={() => setEditor(null)} onSave={saveEditor} />}
+      {CAN_EDIT && editor && <EditorModal editor={editor} disorders={data.disorders} onClose={() => setEditor(null)} onSave={saveEditor} />}
       {toast && <div className="toast"><Sparkles size={16} />{toast}</div>}
+      {storageError && <div className="toast"><CircleHelp size={16} />{storageError}</div>}
     </div>
   );
 }
@@ -196,7 +237,7 @@ function NavIcon({ id }) {
   return <Library {...props} />;
 }
 
-function HomePage({ data, counts, onNavigate, onOpen, query, setQuery, searchResults }) {
+function HomePage({ data, counts, onNavigate, onOpen, query, setQuery, searchResults, searchInputRef }) {
   return <div className="page home-page page-enter">
     <section className="hero">
       <div className="hero-image" aria-hidden="true" />
@@ -215,7 +256,7 @@ function HomePage({ data, counts, onNavigate, onOpen, query, setQuery, searchRes
       <p>把你的感受、持续时间、睡眠变化和对生活的影响写下来。心鉴会先整理疾病线索与相似案例，再展示关联的治疗和药物资料；结果不是诊断，也不能替代面对面的专业评估。</p>
     </section>
 
-    <DescriptionSearch query={query} setQuery={setQuery} results={searchResults} onOpen={onOpen} />
+    <DescriptionSearch query={query} setQuery={setQuery} results={searchResults} onOpen={onOpen} searchInputRef={searchInputRef} />
 
     <section className="collection-block">
       <div className="section-heading"><div><span className="eyebrow">知识入口</span><h2>从这里继续阅读</h2></div><span className="section-index">02 / 05</span></div>
@@ -235,11 +276,11 @@ function EntryRow({ index, title, text, count, onClick, accent, icon }) {
   return <button className="entry-row" onClick={onClick}><span className={'entry-icon ' + accent}>{icon}</span><span className="entry-index">{index}</span><span className="entry-copy"><strong>{title}</strong><small>{text}</small></span><span className="entry-count">{count}</span><ArrowUpRight className="entry-arrow" size={18} /></button>;
 }
 
-function DescriptionSearch({ query, setQuery, results, onOpen }) {
+function DescriptionSearch({ query, setQuery, results, onOpen, searchInputRef }) {
   const hasKnowledge = results.disorders.length || results.cases.length || results.drugs.length;
   return <section className="search-block description-search">
     <div className="section-heading"><div><span className="eyebrow">描述式检索</span><h2>把正在经历的情况写下来</h2></div><span className="section-index">01 / 05</span></div>
-    <div className="search-wrap"><Search size={19} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="例如：三个月都很累，早醒，不想见人" aria-label="描述你正在经历的情况" />{query && <button className="clear-search" onClick={() => setQuery('')} aria-label="清除描述"><X size={16} /></button>}<kbd>⌘ K</kbd></div>
+    <div className="search-wrap"><Search size={19} /><input ref={searchInputRef} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="例如：三个月都很累，早醒，不想见人" aria-label="描述你正在经历的情况" />{query && <button className="clear-search" onClick={() => setQuery('')} aria-label="清除描述"><X size={16} /></button>}<kbd>Ctrl/⌘ K</kbd></div>
     {query && <div className="search-results search-results-rich">
       {results.risk && <div className={'risk-banner ' + results.risk.level}><ShieldCheck size={18} /><div><strong>{results.risk.labels.join(' · ')}</strong><p>{results.risk.message}</p></div></div>}
       {results.disorders.length > 0 && <SearchGroup label="可能相关的疾病线索" note="按症状、时间线和功能影响排序"><div className="search-result-list">{results.disorders.map(({ item, hits }) => <SearchResult key={'disorder-' + item.id} type="disorders" item={item} hits={hits} onOpen={onOpen} />)}</div></SearchGroup>}
@@ -353,7 +394,7 @@ function CaseDetail({ item, disorder, onEdit, onDelete, detailRef }) {
   return <article className="case-detail" ref={detailRef}><div className="detail-top"><div><span className="eyebrow">{disorder?.category || 'CASE NOTE'} · {item.stage}</span><h2>{item.title}</h2><p className="aliases">{disorder?.name || '教学性案例'} · 合成案例</p></div>{CAN_EDIT && <div className="detail-actions"><button className="icon-button" onClick={onEdit} aria-label="编辑案例"><Edit3 size={17} /></button><button className="icon-button danger" onClick={onDelete} aria-label="删除案例"><Trash2 size={17} /></button></div>}</div><div className="fact-grid"><Fact label="案例摘要" text={item.summary} /><Fact label="表现" text={(item.presentation || []).join('；')} /><Fact label="时间线" text={item.timeline} /><Fact label="功能影响" text={item.functionImpact} /><Fact label="评估重点" text={(item.assessmentFocus || []).join('；')} /><Fact label="鉴别提示" text={(item.differentialClues || []).join('；')} /><Fact label="风险线索" text={item.riskSignals} warning /><Fact label="安全提醒" text={item.safetyNote} warning /></div><SourceLine text={item.source} /></article>;
 }
 
-function ResourcesPage({ data, onEdit, onDelete, onAdd }) { return <div className="page library-page page-enter"><PageHeader eyebrow="LIBRARY" title="网络资源" description="外部网站与开放资料的统一入口，原始书籍仅作为项目内部依据。" count={data.resources.length + ' 项资源'} onAdd={() => onAdd('resources')} addLabel="新增资源" /><div className="resource-list">{data.resources.map((item) => <article className="resource-row" key={item.id}><div className={'resource-kind ' + (item.kind === '书籍' ? 'yellow' : 'blue')}>{item.kind === '书籍' ? <BookOpen size={18} /> : <ExternalLink size={18} />}</div><div className="resource-copy"><span className="eyebrow">{item.source}</span><h2>{item.title}</h2><p>{item.description}</p></div><div className="row-actions"><a className="icon-button" href={item.url} target="_blank" rel="noreferrer" aria-label="打开资源"><ArrowUpRight size={17} /></a>{CAN_EDIT && <><button className="icon-button" onClick={() => onEdit('resources', item)} aria-label="编辑资源"><Edit3 size={16} /></button><button className="icon-button danger" onClick={() => onDelete('resources', item)} aria-label="删除资源"><Trash2 size={16} /></button></>}</div></article>)}</div><div className="resource-note"><ExternalLink size={17} /><p>这里仅展示公开网络链接。项目内的三本 PDF 保存在 <code>raw/</code>，不会作为网络资源开放。</p></div></div>; }
+function ResourcesPage({ data, onEdit, onDelete, onAdd }) { return <div className="page library-page page-enter"><PageHeader eyebrow="LIBRARY" title="网络资源" description="外部网站与开放资料的统一入口，原始书籍仅作为项目内部依据。" count={data.resources.length + ' 项资源'} onAdd={() => onAdd('resources')} addLabel="新增资源" /><div className="resource-list">{data.resources.map((item) => <article className="resource-row" key={item.id}><div className={'resource-kind ' + (item.kind === '书籍' ? 'yellow' : 'blue')}>{item.kind === '书籍' ? <BookOpen size={18} /> : <ExternalLink size={18} />}</div><div className="resource-copy"><span className="eyebrow">{item.source}</span><h2>{item.title}</h2><p>{item.description}</p></div><div className="row-actions"><a className="icon-button" href={item.url} target="_blank" rel="noreferrer" aria-label="打开资源"><ArrowUpRight size={17} /></a>{CAN_EDIT && <><button className="icon-button" onClick={() => onEdit('resources', item)} aria-label="编辑资源"><Edit3 size={16} /></button><button className="icon-button danger" onClick={() => onDelete('resources', item)} aria-label="删除资源"><Trash2 size={16} /></button></>}</div></article>)}</div><div className="resource-note"><ExternalLink size={17} /><p>这里仅展示公开网络链接。项目内部原始资料不会作为网络资源开放。</p></div></div>; }
 
 function PageHeader({ eyebrow, title, description, count, onAdd, addLabel }) { return <div className="page-header"><div><span className="eyebrow">{eyebrow}</span><h1>{title}</h1><p>{description}</p></div><div className="page-header-actions"><span className="count-label">{count}</span>{CAN_EDIT && <button className="primary-button" onClick={onAdd}><Plus size={16} /> {addLabel}</button>}</div></div>; }
 

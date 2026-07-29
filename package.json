@@ -7,14 +7,17 @@
     "dev": "vite",
     "build": "vite build --base=./",
     "preview": "vite preview",
-    "check:data": "node work/validate-data.mjs"
+    "check:data": "node scripts/validate-data.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check:build": "node scripts/check-build.mjs",
+    "verify": "npm run check:data && npm test && npm run build && npm run check:build"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "latest",
-    "vite": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "lucide-react": "latest"
+    "@vitejs/plugin-react": "6.0.4",
+    "vite": "8.1.5",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "lucide-react": "1.27.0"
   },
   "devDependencies": {}
 }
