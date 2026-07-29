@@ -1,0 +1,13 @@
+node_modules/
+dist/
+
+# Internal source material and extraction artifacts are never published.
+raw/
+work/
+tmp/
+
+# Original books stay local even if copied outside raw/ by mistake.
+*.pdf
+
+.DS_Store
+*.log
