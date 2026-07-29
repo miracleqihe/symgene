@@ -1,6 +1,8 @@
 # Sym Gen（心鉴）
 
-![Sym Gen 标志](src/assets/sym-gen-mark.svg)
+<p align="center">
+  <img src="src/assets/sym-gen-mark.svg" alt="Sym Gen 标志" width="30%">
+</p>
 
 Sym Gen 是一个面向公众的精神与心理健康公益知识库。项目以疾病库和教学案例库为检索核心：读者可以用日常语言描述正在经历的情况，先查看可能相关的疾病线索与相似案例，再阅读关联的治疗和药物资料。
 
