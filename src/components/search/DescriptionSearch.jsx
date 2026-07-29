@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ArrowUpRight, FlaskConical, Search, ShieldCheck, X } from 'lucide-react';
 import { typeLabels } from '../../data.js';
 
@@ -27,8 +27,21 @@ function SearchResult({ type, item, hits, onOpen }) {
   );
 }
 
-export function DescriptionSearch({ query, setQuery, results, onOpen, searchInputRef }) {
+export function DescriptionSearch({
+  query,
+  setQuery,
+  results,
+  onOpen,
+  searchInputRef,
+  searchFocusRequest
+}) {
   const hasKnowledge = results.disorders.length || results.cases.length || results.drugs.length;
+
+  useEffect(() => {
+    if (!searchFocusRequest) return;
+    searchInputRef.current?.focus({ preventScroll: true });
+  }, [searchFocusRequest, searchInputRef]);
+
   return (
     <section className="search-block description-search">
       <div className="search-meta">

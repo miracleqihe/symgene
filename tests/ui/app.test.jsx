@@ -3,14 +3,17 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, test, vi } from 'vitest';
 import { App } from '../../src/app/App.jsx';
+import { BACKUP_FORMAT } from '../../src/storage/importExport.js';
 import { createStoredData, seedStoredData, STORAGE_KEY } from './fixtures.js';
 
 async function renderApp({
   canEdit = false,
   enter = true,
+  reducedMotion = true,
   storedData = createStoredData(),
   beforeRender
 } = {}) {
+  mockReducedMotion(reducedMotion);
   seedStoredData(storedData);
   beforeRender?.();
   const user = userEvent.setup();
@@ -32,6 +35,43 @@ function dataWithUnrelatedDisorder() {
     relatedDrugIds: []
   });
   return data;
+}
+
+function currentEnvelope() {
+  return JSON.parse(window.localStorage.getItem(STORAGE_KEY));
+}
+
+function importFileFromCurrent(update, filename = 'symgene-test-backup.json') {
+  const envelope = structuredClone(currentEnvelope());
+  update?.(envelope);
+  const payload = {
+    format: BACKUP_FORMAT,
+    schemaVersion: envelope.schemaVersion,
+    seedVersion: envelope.seedVersion,
+    exportedAt: envelope.savedAt,
+    data: envelope.data,
+    deletedIds: envelope.deletedIds
+  };
+  return new File([JSON.stringify(payload)], filename, { type: 'application/json' });
+}
+
+function storeBackupFromCurrent(update, timestamp = '2026-07-29T13-00-00.000Z') {
+  const envelope = structuredClone(currentEnvelope());
+  update?.(envelope);
+  window.localStorage.setItem(`symgene-wiki-backup-${timestamp}`, JSON.stringify(envelope));
+}
+
+function mockReducedMotion(matches) {
+  vi.spyOn(window, 'matchMedia').mockImplementation((query) => ({
+    matches: query === '(prefers-reduced-motion: reduce)' ? matches : false,
+    media: query,
+    onchange: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn()
+  }));
 }
 
 function navButton(name) {
@@ -133,6 +173,57 @@ describe('搜索', () => {
     await waitFor(() => expect(screen.getByRole('textbox', { name: '描述你正在经历的情况' })).toHaveFocus());
   });
 
+  test('正常动画下从药物页按 Ctrl + K 会在首页挂载后聚焦', async () => {
+    const { user } = await renderApp({ reducedMotion: false });
+    await openPage(user, '精神药物');
+    await user.keyboard('{Control>}k{/Control}');
+    await waitFor(
+      () => expect(screen.getByRole('textbox', { name: '描述你正在经历的情况' })).toHaveFocus(),
+      { timeout: 1500 }
+    );
+  });
+
+  test('正常动画下从疾病页按 Meta + K 会在首页挂载后聚焦', async () => {
+    const { user } = await renderApp({ reducedMotion: false });
+    await openPage(user, '疾病科普');
+    await user.keyboard('{Meta>}k{/Meta}');
+    await waitFor(
+      () => expect(screen.getByRole('textbox', { name: '描述你正在经历的情况' })).toHaveFocus(),
+      { timeout: 1500 }
+    );
+  });
+
+  test('reduced-motion 下从案例页按 Ctrl + K 仍会聚焦', async () => {
+    const { user } = await renderApp({ reducedMotion: true });
+    await openPage(user, '案例分析');
+    await user.keyboard('{Control>}k{/Control}');
+    await waitFor(() => expect(screen.getByRole('textbox', { name: '描述你正在经历的情况' })).toHaveFocus());
+  });
+
+  test('页面切换期间连续触发两次快捷键仍会聚焦最新首页搜索框', async () => {
+    const { user } = await renderApp({ reducedMotion: false });
+    await openPage(user, '精神药物');
+    await user.keyboard('{Control>}k{/Control}');
+    await user.keyboard('{Control>}k{/Control}');
+    await waitFor(
+      () => expect(screen.getByRole('textbox', { name: '描述你正在经历的情况' })).toHaveFocus(),
+      { timeout: 1500 }
+    );
+  });
+
+  test('快捷键会阻止浏览器默认行为', async () => {
+    await renderApp();
+    const event = new KeyboardEvent('keydown', {
+      key: 'k',
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true
+    });
+    window.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(true);
+    await waitFor(() => expect(screen.getByRole('textbox', { name: '描述你正在经历的情况' })).toHaveFocus());
+  });
+
   test('普通查询显示疾病线索', async () => {
     const { user } = await renderApp();
     await user.type(screen.getByRole('textbox', { name: '描述你正在经历的情况' }), '最近总是早醒');
@@ -199,6 +290,103 @@ describe('详情', () => {
     const { user } = await renderApp();
     await openPage(user, '网络资源');
     expect(screen.getByRole('link', { name: '打开资源' })).toHaveAttribute('rel', expect.stringContaining('noreferrer'));
+  });
+
+  test('恢复默认数据会清除已不存在的当前详情且无需刷新', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const { user } = await renderApp({
+      canEdit: true,
+      storedData: dataWithUnrelatedDisorder()
+    });
+    await openPage(user, '疾病科普');
+    await user.click(screen.getByRole('button', { name: /虚构无案例疾病/ }));
+    expect(screen.getByRole('heading', { name: '虚构无案例疾病', level: 2 })).toBeVisible();
+
+    await user.click(screen.getByRole('button', { name: '本地数据' }));
+    await user.click(screen.getByRole('button', { name: '恢复默认数据' }));
+    await user.click(screen.getByRole('button', { name: '关闭本地数据' }));
+
+    await waitFor(() => expect(screen.queryByText('仅用于本地删除保护测试。')).not.toBeInTheDocument());
+    expect(screen.getByRole('heading', { name: '选择一个疾病词条' })).toBeVisible();
+  });
+
+  test('导入替换同 ID 数据会立即更新当前详情', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const { user } = await renderApp({ canEdit: true });
+    await openPage(user, '精神药物');
+    await user.click(screen.getByRole('button', { name: /舍曲林/ }));
+    expect(screen.getByText('测试药物作用')).toBeVisible();
+    const file = importFileFromCurrent((envelope) => {
+      envelope.data.drugs[0].action = '导入后更新的虚构药物作用';
+    });
+
+    await user.click(screen.getByRole('button', { name: '本地数据' }));
+    await user.upload(screen.getByLabelText('选择本地备份文件'), file);
+    await user.click(screen.getByRole('button', { name: '关闭本地数据' }));
+
+    expect(await screen.findByText('导入后更新的虚构药物作用')).toBeVisible();
+    expect(screen.queryByText('测试药物作用')).not.toBeInTheDocument();
+  });
+
+  test('恢复不存在当前 ID 的备份会清除详情', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const { user } = await renderApp({
+      canEdit: true,
+      storedData: dataWithUnrelatedDisorder(),
+      beforeRender() {
+        storeBackupFromCurrent((envelope) => {
+          envelope.data.disorders = envelope.data.disorders
+            .filter((item) => item.id !== 'disorder-unrelated');
+        });
+      }
+    });
+    await openPage(user, '疾病科普');
+    await user.click(screen.getByRole('button', { name: /虚构无案例疾病/ }));
+    await user.click(screen.getByRole('button', { name: '本地数据' }));
+    await user.click(screen.getAllByRole('button', { name: '恢复' }).at(-1));
+    await user.click(screen.getByRole('button', { name: '关闭本地数据' }));
+
+    await waitFor(() => expect(screen.queryByText('仅用于本地删除保护测试。')).not.toBeInTheDocument());
+    expect(screen.getByRole('heading', { name: '选择一个疾病词条' })).toBeVisible();
+  });
+
+  test('恢复包含同 ID 新内容的备份会立即更新详情', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const { user } = await renderApp({
+      canEdit: true,
+      beforeRender() {
+        storeBackupFromCurrent((envelope) => {
+          envelope.data.drugs[0].action = '恢复后更新的虚构药物作用';
+        });
+      }
+    });
+    await openPage(user, '精神药物');
+    await user.click(screen.getByRole('button', { name: /舍曲林/ }));
+    await user.click(screen.getByRole('button', { name: '本地数据' }));
+    await user.click(screen.getAllByRole('button', { name: '恢复' }).at(-1));
+    await user.click(screen.getByRole('button', { name: '关闭本地数据' }));
+
+    expect(await screen.findByText('恢复后更新的虚构药物作用')).toBeVisible();
+    expect(screen.queryByText('测试药物作用')).not.toBeInTheDocument();
+  });
+
+  test('替换无关数据时当前详情保持可见且不会触发无限更新', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { user } = await renderApp({ canEdit: true });
+    await openPage(user, '精神药物');
+    await user.click(screen.getByRole('button', { name: /舍曲林/ }));
+    const file = importFileFromCurrent((envelope) => {
+      envelope.data.disorders[0].summary = '仅更新无关疾病的虚构测试摘要。';
+    });
+
+    await user.click(screen.getByRole('button', { name: '本地数据' }));
+    await user.upload(screen.getByLabelText('选择本地备份文件'), file);
+    await user.click(screen.getByRole('button', { name: '关闭本地数据' }));
+
+    expect(screen.getByRole('heading', { name: '舍曲林', level: 2 })).toBeVisible();
+    expect(screen.getByText('测试药物作用')).toBeVisible();
+    expect(consoleError.mock.calls.flat().join(' ')).not.toContain('Maximum update depth exceeded');
   });
 });
 

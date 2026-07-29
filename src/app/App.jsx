@@ -33,6 +33,7 @@ export function App({ canEdit = CAN_EDIT } = {}) {
   const [entered, setEntered] = useState(false);
   const [localDataOpen, setLocalDataOpen] = useState(false);
   const [mainScrolled, setMainScrolled] = useState(false);
+  const [searchFocusRequest, setSearchFocusRequest] = useState(0);
   const mainContentRef = useRef(null);
   const previousPageRef = useRef(activePage);
   const searchInputRef = useRef(null);
@@ -57,11 +58,11 @@ export function App({ canEdit = CAN_EDIT } = {}) {
 
   useSearchShortcut({
     enabled: entered,
-    inputRef: searchInputRef,
     onActivate() {
       setActivePage('home');
       setSelected(null);
       setMobileNav(false);
+      setSearchFocusRequest((current) => current + 1);
     }
   });
 
@@ -90,6 +91,19 @@ export function App({ canEdit = CAN_EDIT } = {}) {
     if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
     setMainScrolled(false);
   }, [activePage]);
+
+  useEffect(() => {
+    if (!selected) return;
+    const currentItems = data[activePage];
+    const currentItem = Array.isArray(currentItems)
+      ? currentItems.find((item) => item.id === selected.id)
+      : null;
+    if (!currentItem) {
+      setSelected(null);
+    } else if (currentItem !== selected) {
+      setSelected(currentItem);
+    }
+  }, [activePage, data, selected]);
 
   const counts = useMemo(() => ({
     drugs: data.drugs.length,
@@ -203,6 +217,7 @@ export function App({ canEdit = CAN_EDIT } = {}) {
                 setQuery={setQuery}
                 searchResults={searchResults}
                 searchInputRef={searchInputRef}
+                searchFocusRequest={searchFocusRequest}
               />
             )}
             {activePage === 'drugs' && (

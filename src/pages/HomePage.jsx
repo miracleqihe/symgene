@@ -12,7 +12,8 @@ export function HomePage({
   query,
   setQuery,
   searchResults,
-  searchInputRef
+  searchInputRef,
+  searchFocusRequest
 }) {
   return (
     <div className="page home-page page-enter">
@@ -58,6 +59,7 @@ export function HomePage({
         results={searchResults}
         onOpen={onOpen}
         searchInputRef={searchInputRef}
+        searchFocusRequest={searchFocusRequest}
       />
 
       <section className="collection-block">
