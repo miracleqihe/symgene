@@ -223,6 +223,14 @@ function listValue(value) {
   return Array.isArray(value) ? value.join(' ') : String(value || '');
 }
 
+function aliasValues(value) {
+  const values = Array.isArray(value) ? value : [value];
+  return values
+    .flatMap((item) => String(item || '').split(/[·、,，;/；|]+/))
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function textOf(item, fields) {
   return fields.map(([field]) => listValue(item[field])).join(' ');
 }
@@ -300,10 +308,11 @@ export function detectRisk(query) {
 }
 
 export function matchKnowledge(query, data) {
-  const normalized = normalize(query);
-  if (!normalized) return { risk: null, disorders: [], cases: [], drugs: [], directDrugHint: false };
-  const terms = extractTerms(normalized, data);
-  const risk = detectRisk(normalized);
+  const rawQuery = String(query || '');
+  const normalizedQuery = normalize(rawQuery);
+  if (!normalizedQuery) return { risk: null, disorders: [], cases: [], drugs: [], directDrugHint: false };
+  const terms = extractTerms(rawQuery, data);
+  const risk = detectRisk(rawQuery);
   const scoringTerms = risk?.level === 'critical' ? [] : terms;
   const scoredDisorders = data.disorders.map((item) => {
     const result = scoreItem(item, SEARCH_FIELDS, scoringTerms);
@@ -320,6 +329,11 @@ export function matchKnowledge(query, data) {
   const relevantDisorderIds = new Set([...disorders.map(({ item }) => item.id), ...cases.map(({ item }) => item.disorderId)]);
   const drugIds = new Set(data.disorders.filter((item) => relevantDisorderIds.has(item.id)).flatMap((item) => item.relatedDrugIds || []));
   const drugs = data.drugs.filter((item) => drugIds.has(item.id)).slice(0, 8);
-  const directDrugHint = data.drugs.some((item) => [item.name, item.aliases, item.categoryLabel].join(' ').toLowerCase().includes(normalized));
+  const directDrugHint = data.drugs.some((item) => {
+    const candidates = [item.name, item.englishName, ...aliasValues(item.aliases)]
+      .map(normalize)
+      .filter(Boolean);
+    return candidates.some((candidate) => normalizedQuery.includes(candidate));
+  });
   return { risk, disorders, cases, drugs, directDrugHint };
 }

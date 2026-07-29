@@ -61,7 +61,9 @@ function sanitizeData(value) {
     : normalizedSavedDrugs;
   const mergedDisorders = isLegacy ? seed.disorders : (next.disorders || seed.disorders);
   const mergedCases = isLegacy ? seed.cases : (next.cases || seed.cases);
-  const savedResources = (next.resources || []).filter((item) => !item.localPath && !String(item.source || '').startsWith('raw/'));
+  const savedResources = (next.resources || []).filter((item) =>
+    !item.localPath && /^https?:\/\//i.test(String(item.url || ''))
+  );
   const mergedResources = isLegacy
     ? [...savedResources, ...seed.resources.filter((item) => !savedResources.some((saved) => saved.id === item.id))]
     : savedResources;
@@ -92,14 +94,52 @@ function App() {
   const [editor, setEditor] = useState(null);
   const [mobileNav, setMobileNav] = useState(false);
   const [toast, setToast] = useState('');
+  const [storageError, setStorageError] = useState('');
   const [entered, setEntered] = useState(false);
   const [mainScrolled, setMainScrolled] = useState(false);
   const mainContentRef = useRef(null);
   const previousPageRef = useRef(activePage);
+  const searchInputRef = useRef(null);
+  const focusFrameRef = useRef(null);
+  const pendingStorageToastRef = useRef('');
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      setStorageError('');
+      if (pendingStorageToastRef.current) {
+        setToast(pendingStorageToastRef.current);
+      }
+    } catch (error) {
+      setToast('');
+      setStorageError('本地保存失败，请检查浏览器存储权限或复制当前内容。');
+      if (import.meta.env.DEV) {
+        console.warn('无法将 Sym Gen 数据写入本地存储。', error);
+      }
+    } finally {
+      pendingStorageToastRef.current = '';
+    }
   }, [data]);
+
+  useEffect(() => {
+    function focusSearch(event) {
+      if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'k' || !entered) return;
+      event.preventDefault();
+      setActivePage('home');
+      setSelected(null);
+      setMobileNav(false);
+      if (focusFrameRef.current) window.cancelAnimationFrame(focusFrameRef.current);
+      focusFrameRef.current = window.requestAnimationFrame(() => {
+        searchInputRef.current?.focus();
+        focusFrameRef.current = null;
+      });
+    }
+    window.addEventListener('keydown', focusSearch);
+    return () => {
+      window.removeEventListener('keydown', focusSearch);
+      if (focusFrameRef.current) window.cancelAnimationFrame(focusFrameRef.current);
+    };
+  }, [entered]);
 
   useEffect(() => {
     if (!toast) return undefined;
@@ -150,6 +190,7 @@ function App() {
 
   function saveEditor(nextItem) {
     const type = editor.type;
+    pendingStorageToastRef.current = '已保存到本地浏览器';
     setData((current) => {
       const list = current[type] || [];
       const found = list.some((item) => item.id === nextItem.id);
@@ -157,14 +198,13 @@ function App() {
     });
     setSelected(nextItem);
     setEditor(null);
-    setToast('已保存到本地浏览器');
   }
 
   function deleteItem(type, item) {
     if (!window.confirm('确定删除“' + (item.name || item.title) + '”吗？')) return;
+    pendingStorageToastRef.current = '词条已删除';
     setData((current) => ({ ...current, [type]: current[type].filter((entry) => entry.id !== item.id) }));
     setSelected(null);
-    setToast('词条已删除');
   }
 
   const activeNavIndex = Math.max(0, navItems.findIndex((item) => item.id === activePage));
@@ -229,7 +269,7 @@ function App() {
             settleMs={activePage === 'cases' ? 620 : 760}
             resolveDirection={resolvePageDirection}
           >
-            {activePage === 'home' && <HomePage data={data} counts={counts} onNavigate={go} onOpen={openItem} query={query} setQuery={setQuery} searchResults={searchResults} />}
+            {activePage === 'home' && <HomePage data={data} counts={counts} onNavigate={go} onOpen={openItem} query={query} setQuery={setQuery} searchResults={searchResults} searchInputRef={searchInputRef} />}
             {activePage === 'drugs' && <ListPage type="drugs" data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} mainContentRef={mainContentRef} />}
             {activePage === 'disorders' && <ListPage type="disorders" data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} mainContentRef={mainContentRef} />}
             {activePage === 'cases' && <CasesPage data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} onOpenDisorder={(disorder) => openItem('disorders', disorder)} mainContentRef={mainContentRef} />}
@@ -239,24 +279,24 @@ function App() {
       </div>
 
       <AnimatedPresence
-        viewKey={editor ? `${editor.type}:${editor.item.id}` : EMPTY_VIEW}
+        viewKey={CAN_EDIT && editor ? `${editor.type}:${editor.item.id}` : EMPTY_VIEW}
         emptyKey={EMPTY_VIEW}
         kind="overlay"
         exitMs={150}
         enterMs={320}
         resolveDirection={resolveOverlayDirection}
       >
-        {editor && <EditorModal editor={editor} disorders={data.disorders} onClose={() => setEditor(null)} onSave={saveEditor} />}
+        {CAN_EDIT && editor && <EditorModal editor={editor} disorders={data.disorders} onClose={() => setEditor(null)} onSave={saveEditor} />}
       </AnimatedPresence>
       <AnimatedPresence
-        viewKey={toast || EMPTY_VIEW}
+        viewKey={(storageError || toast) || EMPTY_VIEW}
         emptyKey={EMPTY_VIEW}
         kind="toast"
         exitMs={160}
         enterMs={300}
         resolveDirection={resolveOverlayDirection}
       >
-        {toast && <div className="toast" role="status"><Sparkles size={16} />{toast}</div>}
+        {(storageError || toast) && <div className="toast" role="status">{storageError ? <CircleHelp size={16} /> : <Sparkles size={16} />}{storageError || toast}</div>}
       </AnimatedPresence>
     </div>
   );
@@ -300,7 +340,7 @@ function NavIcon({ id }) {
   return <Library {...props} />;
 }
 
-function HomePage({ data, counts, onNavigate, onOpen, query, setQuery, searchResults }) {
+function HomePage({ data, counts, onNavigate, onOpen, query, setQuery, searchResults, searchInputRef }) {
   return <div className="page home-page page-enter">
     <section className="hero">
       <div className="hero-image" aria-hidden="true" />
@@ -326,7 +366,7 @@ function HomePage({ data, counts, onNavigate, onOpen, query, setQuery, searchRes
       <span className="reader-coordinate" aria-hidden="true">READER NOTE / 01</span>
     </section>
 
-    <DescriptionSearch query={query} setQuery={setQuery} results={searchResults} onOpen={onOpen} />
+    <DescriptionSearch query={query} setQuery={setQuery} results={searchResults} onOpen={onOpen} searchInputRef={searchInputRef} />
 
     <section className="collection-block">
       <div className="section-heading"><span className="editorial-section-number" aria-hidden="true">03</span><div><span className="eyebrow">知识入口</span><h2>从这里继续阅读</h2></div><span className="section-index">03 / 05</span></div>
@@ -346,7 +386,7 @@ function EntryRow({ index, title, text, count, onClick, accent, icon }) {
   return <button className={'entry-row accent-' + accent} onClick={onClick}><span className="entry-axis" aria-hidden="true" /><span className={'entry-icon ' + accent}>{icon}</span><span className="entry-index">{index}</span><span className="entry-copy"><strong>{title}</strong><small>{text}</small></span><span className="entry-count">{count}</span><ArrowUpRight className="entry-arrow" size={18} /></button>;
 }
 
-function DescriptionSearch({ query, setQuery, results, onOpen }) {
+function DescriptionSearch({ query, setQuery, results, onOpen, searchInputRef }) {
   const hasKnowledge = results.disorders.length || results.cases.length || results.drugs.length;
   return <section className="search-block description-search">
     <div className="search-meta">
@@ -355,7 +395,7 @@ function DescriptionSearch({ query, setQuery, results, onOpen }) {
       <span className="section-index">02 / 05</span>
     </div>
     <div className="search-dock">
-      <div className="search-wrap"><Search size={19} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="例如：三个月都很累，早醒，不想见人" aria-label="描述你正在经历的情况" />{query && <button className="clear-search" onClick={() => setQuery('')} aria-label="清除描述"><X size={16} /></button>}<kbd>⌘ K</kbd></div>
+      <div className="search-wrap"><Search size={19} /><input ref={searchInputRef} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="例如：三个月都很累，早醒，不想见人" aria-label="描述你正在经历的情况" />{query && <button className="clear-search" onClick={() => setQuery('')} aria-label="清除描述"><X size={16} /></button>}<kbd>Ctrl/⌘ K</kbd></div>
       <div className="search-dock-status" aria-hidden="true"><span>NATURAL LANGUAGE</span><span>LOCAL KNOWLEDGE INDEX</span></div>
       {query && <div className="search-results search-results-rich">
         {results.risk && <div className={'risk-banner ' + results.risk.level}><ShieldCheck size={18} /><div><strong>{results.risk.labels.join(' · ')}</strong><p>{results.risk.message}</p></div></div>}
@@ -564,7 +604,7 @@ function CaseDetail({ item, disorder, onBack, onEdit, onDelete, detailRef }) {
   return <article className="case-detail" ref={detailRef}><button className="detail-back" onClick={onBack}><ArrowLeft size={15} /> 返回案例列表</button><div className="detail-top"><span className="detail-entry-number" aria-hidden="true">CASE</span><div><span className="eyebrow">{disorder?.category || 'CASE NOTE'} · {item.stage}</span><h2>{item.title}</h2><p className="aliases">{disorder?.name || '教学性案例'} · 合成案例</p></div>{CAN_EDIT && <div className="detail-actions"><button className="icon-button" onClick={onEdit} aria-label="编辑案例"><Edit3 size={17} /></button><button className="icon-button danger" onClick={onDelete} aria-label="删除案例"><Trash2 size={17} /></button></div>}</div><div className="fact-grid"><Fact label="案例摘要" text={item.summary} priority /><Fact label="表现" text={(item.presentation || []).join('；')} priority /><Fact label="时间线" text={item.timeline} /><Fact label="功能影响" text={item.functionImpact} /><Fact label="评估重点" text={(item.assessmentFocus || []).join('；')} /><Fact label="鉴别提示" text={(item.differentialClues || []).join('；')} /><Fact label="风险线索" text={item.riskSignals} warning /><Fact label="安全提醒" text={item.safetyNote} warning /></div><SourceLine text={item.source} /></article>;
 }
 
-function ResourcesPage({ data, onEdit, onDelete, onAdd }) { return <div className="page resources-page page-enter"><PageHeader page="resources" eyebrow="LIBRARY" title="网络资源" description="外部网站与开放资料的统一入口，原始书籍仅作为项目内部依据。" count={data.resources.length + ' 项资源'} onAdd={() => onAdd('resources')} addLabel="新增资源" /><div className="resource-list">{data.resources.map((item, itemIndex) => <article className="resource-row" key={item.id}><span className="resource-number" aria-hidden="true">{String(itemIndex + 1).padStart(2, '0')}</span><div className={'resource-kind ' + (item.kind === '书籍' ? 'yellow' : 'blue')}>{item.kind === '书籍' ? <BookOpen size={18} /> : <ExternalLink size={18} />}</div><div className="resource-copy"><span className="eyebrow">{item.source}</span><h2>{item.title}</h2><p>{item.description}</p></div><span className="resource-direction" aria-hidden="true">OUT / ↗</span><div className="row-actions"><a className="icon-button" href={item.url} target="_blank" rel="noreferrer" aria-label="打开资源"><ArrowUpRight size={17} /></a>{CAN_EDIT && <><button className="icon-button" onClick={() => onEdit('resources', item)} aria-label="编辑资源"><Edit3 size={16} /></button><button className="icon-button danger" onClick={() => onDelete('resources', item)} aria-label="删除资源"><Trash2 size={16} /></button></>}</div></article>)}</div><div className="resource-note"><ExternalLink size={17} /><p>这里仅展示公开网络链接。项目内的三本 PDF 保存在 <code>raw/</code>，不会作为网络资源开放。</p></div></div>; }
+function ResourcesPage({ data, onEdit, onDelete, onAdd }) { return <div className="page resources-page page-enter"><PageHeader page="resources" eyebrow="LIBRARY" title="网络资源" description="外部网站与开放资料的统一入口，原始书籍仅作为项目内部依据。" count={data.resources.length + ' 项资源'} onAdd={() => onAdd('resources')} addLabel="新增资源" /><div className="resource-list">{data.resources.map((item, itemIndex) => <article className="resource-row" key={item.id}><span className="resource-number" aria-hidden="true">{String(itemIndex + 1).padStart(2, '0')}</span><div className={'resource-kind ' + (item.kind === '书籍' ? 'yellow' : 'blue')}>{item.kind === '书籍' ? <BookOpen size={18} /> : <ExternalLink size={18} />}</div><div className="resource-copy"><span className="eyebrow">{item.source}</span><h2>{item.title}</h2><p>{item.description}</p></div><span className="resource-direction" aria-hidden="true">OUT / ↗</span><div className="row-actions"><a className="icon-button" href={item.url} target="_blank" rel="noreferrer" aria-label="打开资源"><ArrowUpRight size={17} /></a>{CAN_EDIT && <><button className="icon-button" onClick={() => onEdit('resources', item)} aria-label="编辑资源"><Edit3 size={16} /></button><button className="icon-button danger" onClick={() => onDelete('resources', item)} aria-label="删除资源"><Trash2 size={16} /></button></>}</div></article>)}</div><div className="resource-note"><ExternalLink size={17} /><p>这里仅展示公开网络链接。项目内部原始资料不会作为网络资源开放。</p></div></div>; }
 
 function PageHeader({ page, eyebrow, title, description, count, onAdd, addLabel }) {
   const meta = {

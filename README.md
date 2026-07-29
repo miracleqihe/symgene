@@ -4,6 +4,12 @@
   <img src="src/assets/sym-gen-mark.svg" alt="Sym Gen 标志" width="30%">
 </p>
 
+<p align="center">
+  <a href="https://miracleqihe.github.io/symgene/">
+    <strong>在线访问 Sym Gen（心鉴）</strong>
+  </a>
+</p>
+
 Sym Gen 是一个面向公众的精神与心理健康公益知识库。项目以疾病库和教学案例库为检索核心：读者可以用日常语言描述正在经历的情况，先查看可能相关的疾病线索与相似案例，再阅读关联的治疗和药物资料。
 
 当前版本收录：
@@ -23,23 +29,39 @@ Sym Gen 是一个面向公众的精神与心理健康公益知识库。项目以
 ## 本地运行
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
-数据与检索回归检查：
+完整验证：
 
 ```bash
 npm run check:data
+npm test
+npm run build
+npm run check:build
 ```
 
-生产构建：
+也可以一次执行：
 
 ```bash
-npm run build
+npm run verify
 ```
 
-推送到 `main` 分支后，[GitHub Pages 工作流](.github/workflows/deploy-pages.yml)会构建并发布公开阅读版。
+`verify` 会依次执行正式数据检查、自动化测试、生产构建和构建产物边界检查。
+
+## 部署行为
+
+- Pull Request：只执行数据检查、测试和生产构建验证，不部署。
+- 推送到 `main`：全部验证通过后，由 [GitHub Pages 工作流](.github/workflows/deploy-pages.yml)部署。
+- 手动运行工作流：全部验证通过后允许部署。
+
+## 隐私与本地数据
+
+- 描述式检索在浏览器本地运行；项目代码本身不主动将搜索描述发送到后端。
+- 新增、编辑和删除仅在本地开发模式开放，编辑内容保存在浏览器 `localStorage`。
+- 清除浏览器数据可能导致本地编辑内容丢失；请勿录入真实患者身份信息。
+- 原始书籍、PDF、OCR 文本和提取中间文件不会进入公开仓库。
 
 ## 免责声明
 
