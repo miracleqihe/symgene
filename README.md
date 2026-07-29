@@ -31,6 +31,8 @@ npm run dev
 npm run check:data
 ```
 
+该命令运行仓库内的 `scripts/validate-data.mjs`，不依赖仅保存在本地的原始书籍、OCR 文本或提取中间文件。
+
 生产构建：
 
 ```bash

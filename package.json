@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build --base=./",
     "preview": "vite preview",
-    "check:data": "node work/validate-data.mjs"
+    "check:data": "node scripts/validate-data.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
