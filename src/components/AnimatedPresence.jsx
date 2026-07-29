@@ -18,6 +18,10 @@ function defaultDirection() {
   return 'lateral-forward';
 }
 
+function hasRenderableContent(value) {
+  return value !== null && value !== undefined && typeof value !== 'boolean';
+}
+
 export default function AnimatedPresence({
   viewKey,
   children,
@@ -37,7 +41,7 @@ export default function AnimatedPresence({
   const exitTimersRef = useRef(new Map());
   const enterTimersRef = useRef(new Map());
   const pendingLayerRef = useRef(null);
-  const initialHasContent = currentKey !== normalizedEmptyKey && children != null;
+  const initialHasContent = currentKey !== normalizedEmptyKey && hasRenderableContent(children);
   const [layers, setLayers] = useState(() => [{
     id: 0,
     key: currentKey,
@@ -130,14 +134,14 @@ export default function AnimatedPresence({
             child: children,
             phase: 'current',
             direction,
-            entering: !reducedMotion && currentKey !== normalizedEmptyKey && children != null
+            entering: !reducedMotion && currentKey !== normalizedEmptyKey && hasRenderableContent(children)
           };
       return;
     }
 
     const previousKey = previousCurrent?.key ?? currentKey;
     const direction = resolveDirection(previousKey, currentKey);
-    const nextHasContent = currentKey !== normalizedEmptyKey && children != null;
+    const nextHasContent = currentKey !== normalizedEmptyKey && hasRenderableContent(children);
     const nextLayer = {
       id: nextLayerIdRef.current++,
       key: currentKey,
@@ -157,7 +161,7 @@ export default function AnimatedPresence({
 
     const previousHasContent = previousCurrent
       && previousCurrent.key !== normalizedEmptyKey
-      && previousCurrent.child != null;
+      && hasRenderableContent(previousCurrent.child);
     if (mode === 'wait' && previousHasContent) {
       pendingLayerRef.current = nextLayer;
       commitLayers([{ ...previousCurrent, phase: 'exiting', direction, entering: false }]);
@@ -231,7 +235,7 @@ export default function AnimatedPresence({
       }}
     >
       {layers.map((layer) => {
-        if (layer.child == null) return null;
+        if (layer.key === normalizedEmptyKey || !hasRenderableContent(layer.child)) return null;
         const exiting = layer.phase === 'exiting';
         const layerClasses = [
           'presence-layer',
