@@ -102,7 +102,10 @@ export function parseKnowledgeImport(text, {
   if (typeof text !== 'string') {
     throw new KnowledgeTransferError('import-file-invalid', '导入文件必须能读取为文本。');
   }
-  if (!Number.isFinite(size) || size < 0 || size > MAX_IMPORT_BYTES) {
+  const actualSize = byteLength(text);
+  if (!Number.isFinite(size)
+    || size < 0
+    || Math.max(size, actualSize) > MAX_IMPORT_BYTES) {
     throw new KnowledgeTransferError('import-file-too-large', '导入文件超过 5 MB 上限。');
   }
 

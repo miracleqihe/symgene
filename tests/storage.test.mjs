@@ -241,6 +241,7 @@ test('31 无效备份不能覆盖当前数据', () => {
     { code: 'backup-invalid' }
   );
   assert.equal(storage.getItem(STORAGE_KEY), rawBefore);
+  assert.ok(listBackups(storage).some((backup) => storage.getItem(backup.key) === rawBefore));
 });
 
 test('32 合法 envelope 可导出', () => {
@@ -327,6 +328,17 @@ test('42 超过 5 MB 的文件被拒绝', () => {
   assert.throws(
     () => parseKnowledgeImport('{}', {
       size: MAX_IMPORT_BYTES + 1,
+      seedData: makeSeed()
+    }),
+    { code: 'import-file-too-large' }
+  );
+});
+
+test('42b 实际文本超过上限时不能用虚假 size 绕过', () => {
+  const oversized = 'x'.repeat(MAX_IMPORT_BYTES + 1);
+  assert.throws(
+    () => parseKnowledgeImport(oversized, {
+      size: 1,
       seedData: makeSeed()
     }),
     { code: 'import-file-too-large' }

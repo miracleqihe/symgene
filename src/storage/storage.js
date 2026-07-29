@@ -215,10 +215,11 @@ export function restoreBackup(storage, backupKey, seedData, {
   now = new Date(),
   seedVersion = SEED_VERSION
 } = {}) {
-  if (typeof backupKey !== 'string' || !backupKey.startsWith(BACKUP_KEY_PREFIX)) {
-    throw new KnowledgeStorageError('backup-key-invalid', '备份标识无效。');
-  }
   const rawValue = readBackupRaw(storage, backupKey);
+  const currentRaw = storage.getItem(STORAGE_KEY);
+  const currentBackupKey = currentRaw == null
+    ? null
+    : createBackup(storage, currentRaw, { now });
   const migration = migrateKnowledge(rawValue, seedData, {
     legacySeedData,
     now,
@@ -227,7 +228,8 @@ export function restoreBackup(storage, backupKey, seedData, {
   if (!migration.ok) {
     throw new KnowledgeStorageError('backup-invalid', '该备份未通过完整性校验，未执行恢复。');
   }
-  return replaceKnowledge(storage, migration.envelope, { now });
+  writeKnowledge(storage, migration.envelope);
+  return { envelope: migration.envelope, backupKey: currentBackupKey };
 }
 
 export function resetKnowledge(storage, seedData, {
