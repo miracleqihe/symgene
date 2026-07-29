@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { ShieldCheck, Sparkles, X } from 'lucide-react';
+import { useDialogFocus } from '../../hooks/useDialogFocus.js';
 
 export function EditorModal({ editor, disorders, onClose, onSave }) {
   const [form, setForm] = useState(editor.item);
+  const dialogRef = useRef(null);
+  useDialogFocus(dialogRef, onClose);
   const type = editor.type;
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
   const parseList = (value) => Array.isArray(value)
@@ -65,11 +68,18 @@ export function EditorModal({ editor, disorders, onClose, onSave }) {
 
   return (
     <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <div className="editor-modal" role="dialog" aria-modal="true" aria-label="编辑词条">
+      <div
+        ref={dialogRef}
+        className="editor-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="编辑词条"
+        tabIndex={-1}
+      >
         <div className="modal-head">
           <div>
             <span className="eyebrow">LOCAL EDITOR</span>
-            <h2>{editor.item.name || editor.item.title ? '编辑词条' : '新增词条'}</h2>
+            <h2 id="editor-title">{editor.item.name || editor.item.title ? '编辑词条' : '新增词条'}</h2>
           </div>
           <button className="icon-button" onClick={onClose} aria-label="关闭"><X size={18} /></button>
         </div>

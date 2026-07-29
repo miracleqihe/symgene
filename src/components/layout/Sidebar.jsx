@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   ChevronRight,
+  Database,
   FileText,
   FlaskConical,
   HeartPulse,
@@ -19,7 +20,14 @@ function NavIcon({ id }) {
   return <Library {...props} />;
 }
 
-export function Sidebar({ activePage, counts, mobileNav, onNavigate }) {
+export function Sidebar({
+  activePage,
+  canEdit,
+  counts,
+  mobileNav,
+  onNavigate,
+  onOpenLocalData
+}) {
   return (
     <aside className={'sidebar ' + (mobileNav ? 'is-open' : '')}>
       <div className="side-intro">
@@ -40,6 +48,12 @@ export function Sidebar({ activePage, counts, mobileNav, onNavigate }) {
           </button>
         ))}
       </nav>
+      {canEdit && (
+        <button type="button" className="local-data-button" onClick={onOpenLocalData}>
+          <Database size={15} />
+          <span>本地数据</span>
+        </button>
+      )}
       <div className="side-foot">
         <ShieldCheck size={15} />
         <span>内容用于公共科普<br />不替代专业诊疗</span>

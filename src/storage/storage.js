@@ -66,6 +66,17 @@ export function listBackups(storage) {
     .sort((left, right) => right.key.localeCompare(left.key));
 }
 
+export function readBackupRaw(storage, backupKey) {
+  if (typeof backupKey !== 'string' || !backupKey.startsWith(BACKUP_KEY_PREFIX)) {
+    throw new KnowledgeStorageError('backup-key-invalid', '备份标识无效。');
+  }
+  const rawValue = storage.getItem(backupKey);
+  if (rawValue == null) {
+    throw new KnowledgeStorageError('backup-not-found', '指定备份不存在。');
+  }
+  return rawValue;
+}
+
 function makeBackupKey(storage, now) {
   const base = `${BACKUP_KEY_PREFIX}${now.toISOString().replaceAll(':', '-')}`;
   if (storage.getItem(base) == null) return base;
@@ -207,10 +218,7 @@ export function restoreBackup(storage, backupKey, seedData, {
   if (typeof backupKey !== 'string' || !backupKey.startsWith(BACKUP_KEY_PREFIX)) {
     throw new KnowledgeStorageError('backup-key-invalid', '备份标识无效。');
   }
-  const rawValue = storage.getItem(backupKey);
-  if (rawValue == null) {
-    throw new KnowledgeStorageError('backup-not-found', '指定备份不存在。');
-  }
+  const rawValue = readBackupRaw(storage, backupKey);
   const migration = migrateKnowledge(rawValue, seedData, {
     legacySeedData,
     now,

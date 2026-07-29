@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { EditorModal } from '../components/editor/EditorModal.jsx';
 import { Toast } from '../components/feedback/Toast.jsx';
 import { Sidebar } from '../components/layout/Sidebar.jsx';
+import { LocalDataPanel } from '../components/localData/LocalDataPanel.jsx';
 import { Topbar } from '../components/layout/Topbar.jsx';
 import { useLocalKnowledge } from '../hooks/useLocalKnowledge.js';
 import { useSearchShortcut } from '../hooks/useSearchShortcut.js';
@@ -22,8 +23,21 @@ export function App({ canEdit = CAN_EDIT } = {}) {
   const [mobileNav, setMobileNav] = useState(false);
   const [toast, setToast] = useState('');
   const [entered, setEntered] = useState(false);
+  const [localDataOpen, setLocalDataOpen] = useState(false);
   const searchInputRef = useRef(null);
-  const { data, storageError, saveEntry, removeEntry } = useLocalKnowledge({ onSaved: setToast });
+  const {
+    backups,
+    data,
+    envelope,
+    getBackupRaw,
+    importEnvelope,
+    removeEntry,
+    resetLocalKnowledge,
+    restoreLocalBackup,
+    saveEntry,
+    seedData,
+    storageError
+  } = useLocalKnowledge({ onSaved: setToast });
 
   useSearchShortcut({
     enabled: entered,
@@ -98,9 +112,11 @@ export function App({ canEdit = CAN_EDIT } = {}) {
       <div className="layout">
         <Sidebar
           activePage={activePage}
+          canEdit={canEdit}
           counts={counts}
           mobileNav={mobileNav}
           onNavigate={go}
+          onOpenLocalData={() => setLocalDataOpen(true)}
         />
         <main className="main-content">
           {activePage === 'home' && (
@@ -170,8 +186,19 @@ export function App({ canEdit = CAN_EDIT } = {}) {
           onSave={saveEditor}
         />
       )}
-      <Toast message={toast} />
-      <Toast message={storageError} error />
+      {canEdit && localDataOpen && (
+        <LocalDataPanel
+          backups={backups}
+          envelope={envelope}
+          seedData={seedData}
+          onClose={() => setLocalDataOpen(false)}
+          onImport={importEnvelope}
+          onReadBackup={getBackupRaw}
+          onReset={resetLocalKnowledge}
+          onRestore={restoreLocalBackup}
+        />
+      )}
+      <Toast message={storageError || toast} error={Boolean(storageError)} />
     </div>
   );
 }

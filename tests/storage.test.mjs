@@ -14,6 +14,15 @@ import {
   upsertEntry
 } from '../src/storage/operations.js';
 import {
+  applyKnowledgeImport,
+  BACKUP_FORMAT,
+  createKnowledgeExport,
+  MAX_IMPORT_BYTES,
+  parseKnowledgeImport,
+  serializeKnowledgeExport,
+  summarizeKnowledgeImport
+} from '../src/storage/importExport.js';
+import {
   createBackup,
   listBackups,
   readKnowledge,
@@ -95,7 +104,7 @@ test('06 交叉引用无效的旧数据迁移失败', () => {
 });
 
 for (const type of ['drugs', 'disorders', 'cases', 'resources']) {
-  test(`0${7 + ['drugs', 'disorders', 'cases', 'resources'].indexOf(type)} ${type} 自定义新增在读取后保留`, () => {
+  test(`${String(7 + ['drugs', 'disorders', 'cases', 'resources'].indexOf(type)).padStart(2, '0')} ${type} 自定义新增在读取后保留`, () => {
     const seed = makeSeed();
     const data = clone(seed);
     data[type].unshift(customEntry(type));
@@ -231,6 +240,208 @@ test('31 无效备份不能覆盖当前数据', () => {
     () => restoreBackup(storage, key, makeSeed(), { now: NOW }),
     { code: 'backup-invalid' }
   );
+  assert.equal(storage.getItem(STORAGE_KEY), rawBefore);
+});
+
+test('32 合法 envelope 可导出', () => {
+  const exported = createKnowledgeExport(createEnvelope(makeSeed()), { now: NOW });
+  assert.deepEqual(exported.data, makeSeed());
+});
+
+test('33 导出包含固定格式标识', () => {
+  const exported = createKnowledgeExport(createEnvelope(makeSeed()), { now: NOW });
+  assert.equal(exported.format, BACKUP_FORMAT);
+});
+
+test('34 导出包含结构和种子版本', () => {
+  const exported = createKnowledgeExport(createEnvelope(makeSeed()), { now: NOW });
+  assert.equal(exported.schemaVersion, 2);
+  assert.equal(exported.seedVersion, 11);
+});
+
+test('35 导出包含 ISO 时间', () => {
+  const exported = createKnowledgeExport(createEnvelope(makeSeed()), { now: NOW });
+  assert.equal(exported.exportedAt, NOW.toISOString());
+});
+
+test('36 导出不包含搜索查询', () => {
+  const text = serializeKnowledgeExport(createEnvelope(makeSeed()), { now: NOW });
+  assert.ok(!text.includes('searchQuery'));
+  assert.ok(!text.includes('最近总是早醒'));
+});
+
+test('37 导出不包含浏览器和身份信息', () => {
+  const exported = createKnowledgeExport(createEnvelope(makeSeed()), { now: NOW });
+  assert.deepEqual(Object.keys(exported).sort(), [
+    'data',
+    'deletedIds',
+    'exportedAt',
+    'format',
+    'schemaVersion',
+    'seedVersion'
+  ]);
+});
+
+test('38 无效数据不能导出为合法备份', () => {
+  const invalid = createEnvelope(makeSeed());
+  invalid.cases = [];
+  invalid.data.resources[0].url = 'not-a-url';
+  assert.throws(
+    () => createKnowledgeExport(invalid, { now: NOW }),
+    { code: 'validation-failed' }
+  );
+});
+
+test('39 导出后重新导入可往返保持数据与删除记录', () => {
+  const seed = makeSeed();
+  const source = deleteEntry(
+    upsertEntry(createEnvelope(seed), 'resources', customEntry('resources'), { now: NOW }),
+    'cases',
+    'case-extra',
+    seed,
+    { now: NOW }
+  );
+  const parsed = parseKnowledgeImport(
+    serializeKnowledgeExport(source, { now: NOW }),
+    { seedData: seed, now: NOW }
+  );
+  assert.deepEqual(parsed.envelope.data, source.data);
+  assert.deepEqual(parsed.envelope.deletedIds, source.deletedIds);
+});
+
+test('40 非文本文件内容被拒绝', () => {
+  assert.throws(
+    () => parseKnowledgeImport(new Uint8Array([1, 2, 3]), { seedData: makeSeed() }),
+    { code: 'import-file-invalid' }
+  );
+});
+
+test('41 无效 JSON 被拒绝', () => {
+  assert.throws(
+    () => parseKnowledgeImport('{invalid', { seedData: makeSeed() }),
+    { code: 'import-json-invalid' }
+  );
+});
+
+test('42 超过 5 MB 的文件被拒绝', () => {
+  assert.throws(
+    () => parseKnowledgeImport('{}', {
+      size: MAX_IMPORT_BYTES + 1,
+      seedData: makeSeed()
+    }),
+    { code: 'import-file-too-large' }
+  );
+});
+
+test('43 缺少格式标识的文件被拒绝', () => {
+  const exported = createKnowledgeExport(createEnvelope(makeSeed()), { now: NOW });
+  delete exported.format;
+  assert.throws(
+    () => parseKnowledgeImport(JSON.stringify(exported), { seedData: makeSeed() }),
+    { code: 'import-format-invalid' }
+  );
+});
+
+test('44 未知未来版本被拒绝', () => {
+  const exported = createKnowledgeExport(createEnvelope(makeSeed()), { now: NOW });
+  exported.schemaVersion = 99;
+  assert.throws(
+    () => parseKnowledgeImport(JSON.stringify(exported), { seedData: makeSeed() }),
+    { code: 'import-version-future' }
+  );
+});
+
+test('45 含重复 ID 的导入被拒绝', () => {
+  const exported = createKnowledgeExport(createEnvelope(makeSeed()), { now: NOW });
+  exported.data.drugs.push(clone(exported.data.drugs[0]));
+  assert.throws(
+    () => parseKnowledgeImport(JSON.stringify(exported), { seedData: makeSeed() }),
+    { code: 'validation-failed' }
+  );
+});
+
+test('46 含无效交叉引用的导入被拒绝', () => {
+  const exported = createKnowledgeExport(createEnvelope(makeSeed()), { now: NOW });
+  exported.data.cases[0].disorderId = 'missing';
+  assert.throws(
+    () => parseKnowledgeImport(JSON.stringify(exported), { seedData: makeSeed() }),
+    { code: 'validation-failed' }
+  );
+});
+
+test('47 含私有目录路径的导入被拒绝', () => {
+  const exported = createKnowledgeExport(createEnvelope(makeSeed()), { now: NOW });
+  exported.data.resources[0].url = 'work/private-notes.txt';
+  assert.throws(
+    () => parseKnowledgeImport(JSON.stringify(exported), { seedData: makeSeed() }),
+    { code: 'validation-failed' }
+  );
+});
+
+test('48 含 file URL 的导入被拒绝', () => {
+  const exported = createKnowledgeExport(createEnvelope(makeSeed()), { now: NOW });
+  exported.data.resources[0].url = 'file:///Users/example/private.json';
+  assert.throws(
+    () => parseKnowledgeImport(JSON.stringify(exported), { seedData: makeSeed() }),
+    { code: 'validation-failed' }
+  );
+});
+
+test('49 含 localhost URL 的导入被拒绝', () => {
+  const exported = createKnowledgeExport(createEnvelope(makeSeed()), { now: NOW });
+  exported.data.resources[0].url = 'http://localhost:4173/private';
+  assert.throws(
+    () => parseKnowledgeImport(JSON.stringify(exported), { seedData: makeSeed() }),
+    { code: 'validation-failed' }
+  );
+});
+
+test('50 导入解析失败不改变当前主数据', () => {
+  const storage = currentStorage();
+  const rawBefore = storage.getItem(STORAGE_KEY);
+  assert.throws(() => parseKnowledgeImport('{broken', { seedData: makeSeed() }));
+  assert.equal(storage.getItem(STORAGE_KEY), rawBefore);
+});
+
+test('51 导入成功写入前备份当前数据', () => {
+  const seed = makeSeed();
+  const storage = currentStorage(seed);
+  const rawBefore = storage.getItem(STORAGE_KEY);
+  const imported = upsertEntry(
+    createEnvelope(seed),
+    'resources',
+    customEntry('resources'),
+    { now: NOW }
+  );
+  const result = applyKnowledgeImport(storage, imported, { now: NOW });
+  assert.equal(storage.getItem(result.backupKey), rawBefore);
+});
+
+test('52 导入成功后主状态更新并可生成摘要', () => {
+  const seed = makeSeed();
+  const storage = currentStorage(seed);
+  const imported = upsertEntry(
+    createEnvelope(seed),
+    'resources',
+    customEntry('resources'),
+    { now: NOW }
+  );
+  const result = applyKnowledgeImport(storage, imported, { now: NOW });
+  const summary = summarizeKnowledgeImport(result.envelope, createEnvelope(seed));
+  assert.deepEqual(stored(storage), imported);
+  assert.equal(summary.added, 1);
+  assert.equal(summary.counts.resources, 3);
+});
+
+test('53 用户取消导入确认时不写入', () => {
+  const seed = makeSeed();
+  const storage = currentStorage(seed);
+  const rawBefore = storage.getItem(STORAGE_KEY);
+  const result = applyKnowledgeImport(storage, createEnvelope(seed), {
+    confirmed: false,
+    now: NOW
+  });
+  assert.equal(result.applied, false);
   assert.equal(storage.getItem(STORAGE_KEY), rawBefore);
 });
 
