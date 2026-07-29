@@ -61,7 +61,7 @@ function readData() {
   }
 }
 
-function App() {
+export function App({ canEdit = CAN_EDIT } = {}) {
   const [data, setData] = useState(readData);
   const [activePage, setActivePage] = useState('home');
   const [query, setQuery] = useState('');
@@ -182,7 +182,7 @@ function App() {
           <span><strong>Sym Gen</strong><em>心鉴 · WIKI</em></span>
         </button>
         <div className="topbar-actions">
-          <span className="status-dot"><i /> {CAN_EDIT ? '本地编辑模式' : '公开阅读模式'}</span>
+          <span className="status-dot"><i /> {canEdit ? '本地编辑模式' : '公开阅读模式'}</span>
           <button className="icon-button menu-toggle" onClick={() => setMobileNav(!mobileNav)} aria-label="打开导航"><Menu size={20} /></button>
         </div>
       </header>
@@ -198,14 +198,14 @@ function App() {
 
         <main className="main-content">
           {activePage === 'home' && <HomePage data={data} counts={counts} onNavigate={go} onOpen={openItem} query={query} setQuery={setQuery} searchResults={searchResults} searchInputRef={searchInputRef} />}
-          {activePage === 'drugs' && <ListPage type="drugs" data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} />}
-          {activePage === 'disorders' && <ListPage type="disorders" data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} />}
-          {activePage === 'cases' && <CasesPage data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} onOpenDisorder={(disorder) => openItem('disorders', disorder)} />}
-          {activePage === 'resources' && <ResourcesPage data={data} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} />}
+          {activePage === 'drugs' && <ListPage canEdit={canEdit} type="drugs" data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} />}
+          {activePage === 'disorders' && <ListPage canEdit={canEdit} type="disorders" data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} />}
+          {activePage === 'cases' && <CasesPage canEdit={canEdit} data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} onOpenDisorder={(disorder) => openItem('disorders', disorder)} />}
+          {activePage === 'resources' && <ResourcesPage canEdit={canEdit} data={data} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} />}
         </main>
       </div>
 
-      {CAN_EDIT && editor && <EditorModal editor={editor} disorders={data.disorders} onClose={() => setEditor(null)} onSave={saveEditor} />}
+      {canEdit && editor && <EditorModal editor={editor} disorders={data.disorders} onClose={() => setEditor(null)} onSave={saveEditor} />}
       {toast && <div className="toast"><Sparkles size={16} />{toast}</div>}
       {storageError && <div className="toast"><CircleHelp size={16} />{storageError}</div>}
     </div>
@@ -302,7 +302,7 @@ function SearchResult({ type, item, hits, onOpen }) {
   return <button className="search-result" onClick={() => onOpen(type, item)}><span className={'result-type ' + type}>{typeLabels[type]}</span><span className="result-copy"><strong>{title}</strong><small>{subtitle}</small>{hits?.length > 0 && <em>命中：{hits.join('、')}</em>}</span><ArrowUpRight size={17} /></button>;
 }
 
-function ListPage({ type, data, selected, onSelect, onEdit, onDelete, onAdd }) {
+function ListPage({ canEdit, type, data, selected, onSelect, onEdit, onDelete, onAdd }) {
   const detailRef = useRef(null);
   const items = data[type];
   const label = type === 'drugs' ? '精神药物' : '疾病科普';
@@ -312,10 +312,10 @@ function ListPage({ type, data, selected, onSelect, onEdit, onDelete, onAdd }) {
     return () => window.cancelAnimationFrame(frame);
   }, [selected?.id]);
   return <div className="page library-page page-enter">
-    <PageHeader eyebrow={type === 'drugs' ? 'MEDICATIONS' : 'DISORDERS'} title={label} description={type === 'drugs' ? '按《精神药物手册》的章节与药理学分类整理常见精神科药物。' : '从症状、病程与功能影响出发，建立可读的疾病词条。'} count={items.length + ' 个词条'} onAdd={() => onAdd(type)} addLabel="新增词条" />
+    <PageHeader canEdit={canEdit} eyebrow={type === 'drugs' ? 'MEDICATIONS' : 'DISORDERS'} title={label} description={type === 'drugs' ? '按《精神药物手册》的章节与药理学分类整理常见精神科药物。' : '从症状、病程与功能影响出发，建立可读的疾病词条。'} count={items.length + ' 个词条'} onAdd={() => onAdd(type)} addLabel="新增词条" />
     <div className="workspace-grid">
       <section className={'index-panel ' + (type === 'drugs' ? 'drug-index-panel' : 'disorder-index-panel')}><div className="panel-label">分类索引 <span>{String(items.length).padStart(2, '0')}</span></div>{type === 'drugs' ? <DrugIndex items={items} selected={selected} onSelect={onSelect} /> : <DisorderIndex items={items} selected={selected} onSelect={onSelect} />}</section>
-      <section className="detail-panel" ref={detailRef}>{selected ? <Detail type={type} item={selected} onEdit={() => onEdit(type, selected)} onDelete={() => onDelete(type, selected)} /> : <EmptyDetail type={type} onChoose={() => items[0] && onSelect(items[0])} />}</section>
+      <section className="detail-panel" ref={detailRef}>{selected ? <Detail canEdit={canEdit} type={type} item={selected} onEdit={() => onEdit(type, selected)} onDelete={() => onDelete(type, selected)} /> : <EmptyDetail type={type} onChoose={() => items[0] && onSelect(items[0])} />}</section>
     </div>
   </div>;
 }
@@ -358,9 +358,9 @@ function DrugIndex({ items, selected, onSelect }) {
   return <div className="drug-index">{sections.map((section) => <section className="drug-section" key={section.name}><div className="drug-section-head"><strong>{section.name}</strong><span>{section.categories.reduce((total, category) => total + category.items.length, 0)} 个词条</span></div>{section.categories.map((category) => <div className="drug-category" key={category.name}><div className="drug-category-head"><div><strong>{category.name}</strong>{category.description && category.description !== category.name && <span>{category.description}</span>}</div><small>{category.items.length}</small></div><div className="index-list">{category.items.map((item) => <button key={item.id} className={selected?.id === item.id ? 'selected' : ''} onClick={() => onSelect(item)}><span>{item.name}</span><small>{item.aliases}</small><ChevronRight size={15} /></button>)}</div></div>)}</section>)}</div>;
 }
 
-function Detail({ type, item, onEdit, onDelete }) {
+function Detail({ canEdit, type, item, onEdit, onDelete }) {
   const isDrug = type === 'drugs';
-  return <article className="detail-article"><div className="detail-top"><div><span className="eyebrow">{isDrug ? (item.categoryLabel || item.className) : item.category}</span><h2>{item.name}</h2><p className="aliases">{isDrug ? item.aliases : item.aliases?.join(' · ') || '疾病词条 · 公共阅读版'}</p>{isDrug && item.className && item.className !== item.categoryLabel && <p className="detail-class">{item.className}</p>}</div>{CAN_EDIT && <div className="detail-actions"><button className="icon-button" onClick={onEdit} aria-label="编辑词条"><Edit3 size={17} /></button><button className="icon-button danger" onClick={onDelete} aria-label="删除词条"><Trash2 size={17} /></button></div>}</div>{isDrug ? <div className="fact-grid"><Fact label="适用情境" text={item.indication} /><Fact label="药物作用" text={item.action} /><Fact label="药物动力学" text={item.kinetics} /><Fact label="药物联用效果" text={item.interactions} /><Fact label="禁忌与警示" text={item.contraindications} warning /></div> : <DiseaseFacts item={item} />}<SourceLine text={item.source} /></article>;
+  return <article className="detail-article"><div className="detail-top"><div><span className="eyebrow">{isDrug ? (item.categoryLabel || item.className) : item.category}</span><h2>{item.name}</h2><p className="aliases">{isDrug ? item.aliases : item.aliases?.join(' · ') || '疾病词条 · 公共阅读版'}</p>{isDrug && item.className && item.className !== item.categoryLabel && <p className="detail-class">{item.className}</p>}</div>{canEdit && <div className="detail-actions"><button className="icon-button" onClick={onEdit} aria-label="编辑词条"><Edit3 size={17} /></button><button className="icon-button danger" onClick={onDelete} aria-label="删除词条"><Trash2 size={17} /></button></div>}</div>{isDrug ? <div className="fact-grid"><Fact label="适用情境" text={item.indication} /><Fact label="药物作用" text={item.action} /><Fact label="药物动力学" text={item.kinetics} /><Fact label="药物联用效果" text={item.interactions} /><Fact label="禁忌与警示" text={item.contraindications} warning /></div> : <DiseaseFacts item={item} />}<SourceLine text={item.source} /></article>;
 }
 
 function DiseaseFacts({ item }) {
@@ -372,7 +372,7 @@ function ListFact({ label, items, warning }) { return <div className={'fact fact
 function SourceLine({ text }) { return <div className="source-line"><BookOpen size={14} /><span>{text}</span></div>; }
 function EmptyDetail({ type, onChoose }) { return <div className="empty-detail"><span className="empty-mark"><Brain size={25} /></span><h3>选择一个{type === 'drugs' ? '药物' : '疾病'}词条</h3><p>从左侧索引开始，查看结构化内容与来源说明。</p><button className="text-button" onClick={onChoose}>打开第一个词条 <ArrowUpRight size={15} /></button></div>; }
 
-function CasesPage({ data, selected, onSelect, onEdit, onDelete, onAdd, onOpenDisorder }) {
+function CasesPage({ canEdit, data, selected, onSelect, onEdit, onDelete, onAdd, onOpenDisorder }) {
   const detailRef = useRef(null);
   const selectedDisorder = selected ? data.disorders.find((item) => item.id === selected.disorderId) : null;
   useEffect(() => {
@@ -385,18 +385,18 @@ function CasesPage({ data, selected, onSelect, onEdit, onDelete, onAdd, onOpenDi
     const bi = DISORDER_CATEGORY_ORDER.indexOf(b.category);
     return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi) || a.name.localeCompare(b.name, 'zh-CN');
   });
-  return <div className="page library-page page-enter"><PageHeader eyebrow="CASE NOTES" title="案例分析" description="按疾病词条分组的教学性案例，用于练习观察、评估与沟通。" count={data.cases.length + ' 个案例'} onAdd={() => onAdd('cases')} addLabel="新增案例" />{selected && <CaseDetail detailRef={detailRef} item={selected} disorder={selectedDisorder} onEdit={() => onEdit('cases', selected)} onDelete={() => onDelete('cases', selected)} />}<div className="case-groups">{disorders.map((disorder) => { const cases = data.cases.filter((item) => item.disorderId === disorder.id); return <section className="case-group" key={disorder.id}><div className="case-group-heading"><div><span className="eyebrow">{disorder.category}</span><h2>{disorder.name}</h2></div><button className="link-button" onClick={() => onOpenDisorder(disorder)}>查看疾病词条 <ChevronRight size={15} /></button></div>{cases.length ? <div className="case-list">{cases.map((item) => <CaseRow key={item.id} item={item} selected={selected?.id === item.id} onSelect={onSelect} onEdit={() => onEdit('cases', item)} onDelete={() => onDelete('cases', item)} />)}</div> : <p className="muted">还没有案例，点击右上角新增。</p>}</section>; })}</div></div>;
+  return <div className="page library-page page-enter"><PageHeader canEdit={canEdit} eyebrow="CASE NOTES" title="案例分析" description="按疾病词条分组的教学性案例，用于练习观察、评估与沟通。" count={data.cases.length + ' 个案例'} onAdd={() => onAdd('cases')} addLabel="新增案例" />{selected && <CaseDetail canEdit={canEdit} detailRef={detailRef} item={selected} disorder={selectedDisorder} onEdit={() => onEdit('cases', selected)} onDelete={() => onDelete('cases', selected)} />}<div className="case-groups">{disorders.map((disorder) => { const cases = data.cases.filter((item) => item.disorderId === disorder.id); return <section className="case-group" key={disorder.id}><div className="case-group-heading"><div><span className="eyebrow">{disorder.category}</span><h2>{disorder.name}</h2></div><button className="link-button" onClick={() => onOpenDisorder(disorder)}>查看疾病词条 <ChevronRight size={15} /></button></div>{cases.length ? <div className="case-list">{cases.map((item) => <CaseRow canEdit={canEdit} key={item.id} item={item} selected={selected?.id === item.id} onSelect={onSelect} onEdit={() => onEdit('cases', item)} onDelete={() => onDelete('cases', item)} />)}</div> : <p className="muted">还没有案例，点击右上角新增。</p>}</section>; })}</div></div>;
 }
 
-function CaseRow({ item, selected, onSelect, onEdit, onDelete }) { return <div className={'case-row ' + (selected ? 'selected' : '')}><button onClick={() => onSelect(item)} className="case-main"><span className="case-stage">{item.stage}</span><strong>{item.title}</strong><p>{item.summary}</p><span className="tag-line">{(item.tags || []).map((tag) => <em key={tag}>{tag}</em>)}</span></button>{CAN_EDIT && <div className="row-actions"><button className="icon-button" onClick={onEdit} aria-label="编辑案例"><Edit3 size={16} /></button><button className="icon-button danger" onClick={onDelete} aria-label="删除案例"><Trash2 size={16} /></button></div>}</div>; }
+function CaseRow({ canEdit, item, selected, onSelect, onEdit, onDelete }) { return <div className={'case-row ' + (selected ? 'selected' : '')}><button onClick={() => onSelect(item)} className="case-main"><span className="case-stage">{item.stage}</span><strong>{item.title}</strong><p>{item.summary}</p><span className="tag-line">{(item.tags || []).map((tag) => <em key={tag}>{tag}</em>)}</span></button>{canEdit && <div className="row-actions"><button className="icon-button" onClick={onEdit} aria-label="编辑案例"><Edit3 size={16} /></button><button className="icon-button danger" onClick={onDelete} aria-label="删除案例"><Trash2 size={16} /></button></div>}</div>; }
 
-function CaseDetail({ item, disorder, onEdit, onDelete, detailRef }) {
-  return <article className="case-detail" ref={detailRef}><div className="detail-top"><div><span className="eyebrow">{disorder?.category || 'CASE NOTE'} · {item.stage}</span><h2>{item.title}</h2><p className="aliases">{disorder?.name || '教学性案例'} · 合成案例</p></div>{CAN_EDIT && <div className="detail-actions"><button className="icon-button" onClick={onEdit} aria-label="编辑案例"><Edit3 size={17} /></button><button className="icon-button danger" onClick={onDelete} aria-label="删除案例"><Trash2 size={17} /></button></div>}</div><div className="fact-grid"><Fact label="案例摘要" text={item.summary} /><Fact label="表现" text={(item.presentation || []).join('；')} /><Fact label="时间线" text={item.timeline} /><Fact label="功能影响" text={item.functionImpact} /><Fact label="评估重点" text={(item.assessmentFocus || []).join('；')} /><Fact label="鉴别提示" text={(item.differentialClues || []).join('；')} /><Fact label="风险线索" text={item.riskSignals} warning /><Fact label="安全提醒" text={item.safetyNote} warning /></div><SourceLine text={item.source} /></article>;
+function CaseDetail({ canEdit, item, disorder, onEdit, onDelete, detailRef }) {
+  return <article className="case-detail" ref={detailRef}><div className="detail-top"><div><span className="eyebrow">{disorder?.category || 'CASE NOTE'} · {item.stage}</span><h2>{item.title}</h2><p className="aliases">{disorder?.name || '教学性案例'} · 合成案例</p></div>{canEdit && <div className="detail-actions"><button className="icon-button" onClick={onEdit} aria-label="编辑案例"><Edit3 size={17} /></button><button className="icon-button danger" onClick={onDelete} aria-label="删除案例"><Trash2 size={17} /></button></div>}</div><div className="fact-grid"><Fact label="案例摘要" text={item.summary} /><Fact label="表现" text={(item.presentation || []).join('；')} /><Fact label="时间线" text={item.timeline} /><Fact label="功能影响" text={item.functionImpact} /><Fact label="评估重点" text={(item.assessmentFocus || []).join('；')} /><Fact label="鉴别提示" text={(item.differentialClues || []).join('；')} /><Fact label="风险线索" text={item.riskSignals} warning /><Fact label="安全提醒" text={item.safetyNote} warning /></div><SourceLine text={item.source} /></article>;
 }
 
-function ResourcesPage({ data, onEdit, onDelete, onAdd }) { return <div className="page library-page page-enter"><PageHeader eyebrow="LIBRARY" title="网络资源" description="外部网站与开放资料的统一入口，原始书籍仅作为项目内部依据。" count={data.resources.length + ' 项资源'} onAdd={() => onAdd('resources')} addLabel="新增资源" /><div className="resource-list">{data.resources.map((item) => <article className="resource-row" key={item.id}><div className={'resource-kind ' + (item.kind === '书籍' ? 'yellow' : 'blue')}>{item.kind === '书籍' ? <BookOpen size={18} /> : <ExternalLink size={18} />}</div><div className="resource-copy"><span className="eyebrow">{item.source}</span><h2>{item.title}</h2><p>{item.description}</p></div><div className="row-actions"><a className="icon-button" href={item.url} target="_blank" rel="noreferrer" aria-label="打开资源"><ArrowUpRight size={17} /></a>{CAN_EDIT && <><button className="icon-button" onClick={() => onEdit('resources', item)} aria-label="编辑资源"><Edit3 size={16} /></button><button className="icon-button danger" onClick={() => onDelete('resources', item)} aria-label="删除资源"><Trash2 size={16} /></button></>}</div></article>)}</div><div className="resource-note"><ExternalLink size={17} /><p>这里仅展示公开网络链接。项目内部原始资料不会作为网络资源开放。</p></div></div>; }
+function ResourcesPage({ canEdit, data, onEdit, onDelete, onAdd }) { return <div className="page library-page page-enter"><PageHeader canEdit={canEdit} eyebrow="LIBRARY" title="网络资源" description="外部网站与开放资料的统一入口，原始书籍仅作为项目内部依据。" count={data.resources.length + ' 项资源'} onAdd={() => onAdd('resources')} addLabel="新增资源" /><div className="resource-list">{data.resources.map((item) => <article className="resource-row" key={item.id}><div className={'resource-kind ' + (item.kind === '书籍' ? 'yellow' : 'blue')}>{item.kind === '书籍' ? <BookOpen size={18} /> : <ExternalLink size={18} />}</div><div className="resource-copy"><span className="eyebrow">{item.source}</span><h2>{item.title}</h2><p>{item.description}</p></div><div className="row-actions"><a className="icon-button" href={item.url} target="_blank" rel="noreferrer" aria-label="打开资源"><ArrowUpRight size={17} /></a>{canEdit && <><button className="icon-button" onClick={() => onEdit('resources', item)} aria-label="编辑资源"><Edit3 size={16} /></button><button className="icon-button danger" onClick={() => onDelete('resources', item)} aria-label="删除资源"><Trash2 size={16} /></button></>}</div></article>)}</div><div className="resource-note"><ExternalLink size={17} /><p>这里仅展示公开网络链接。项目内部原始资料不会作为网络资源开放。</p></div></div>; }
 
-function PageHeader({ eyebrow, title, description, count, onAdd, addLabel }) { return <div className="page-header"><div><span className="eyebrow">{eyebrow}</span><h1>{title}</h1><p>{description}</p></div><div className="page-header-actions"><span className="count-label">{count}</span>{CAN_EDIT && <button className="primary-button" onClick={onAdd}><Plus size={16} /> {addLabel}</button>}</div></div>; }
+function PageHeader({ canEdit, eyebrow, title, description, count, onAdd, addLabel }) { return <div className="page-header"><div><span className="eyebrow">{eyebrow}</span><h1>{title}</h1><p>{description}</p></div><div className="page-header-actions"><span className="count-label">{count}</span>{canEdit && <button className="primary-button" onClick={onAdd}><Plus size={16} /> {addLabel}</button>}</div></div>; }
 
 function EditorModal({ editor, disorders, onClose, onSave }) {
   const [form, setForm] = useState(editor.item);
@@ -423,4 +423,5 @@ function EditorModal({ editor, disorders, onClose, onSave }) {
   </div><div className="modal-foot"><span><ShieldCheck size={14} /> 保存只写入本浏览器</span><div><button type="button" className="secondary-button" onClick={onClose}>取消</button><button type="submit" className="primary-button"><Sparkles size={16} /> 保存词条</button></div></div></form></div></div>;
 }
 
-createRoot(document.getElementById('root')).render(<App />);
+const rootElement = document.getElementById('root');
+if (rootElement) createRoot(rootElement).render(<App />);
