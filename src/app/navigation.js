@@ -1,3 +1,5 @@
+import { navItems } from '../data.js';
+
 export const DISORDER_CATEGORY_ORDER = [
   '脑器质性及躯体疾病所致精神障碍',
   '中毒所致精神障碍',
@@ -17,3 +19,29 @@ export const DISORDER_CATEGORY_ORDER = [
   '儿童期心理发育障碍',
   '冲动控制与行为成瘾'
 ];
+
+export const EMPTY_VIEW = '__empty__';
+
+const NAV_ORDER = new Map(navItems.map((item, index) => [item.id, index]));
+
+export function resolvePageDirection(from, to) {
+  if (from === 'home' && to !== 'home') return 'forward';
+  if (from !== 'home' && to === 'home') return 'backward';
+  return (NAV_ORDER.get(to) || 0) >= (NAV_ORDER.get(from) || 0)
+    ? 'lateral-forward'
+    : 'lateral-backward';
+}
+
+export function resolveDetailDirection(from, to) {
+  if (from === EMPTY_VIEW && to !== EMPTY_VIEW) return 'forward';
+  if (from !== EMPTY_VIEW && to === EMPTY_VIEW) return 'backward';
+  return 'lateral-forward';
+}
+
+export function resolveForwardDirection() {
+  return 'forward';
+}
+
+export function resolveOverlayDirection() {
+  return 'overlay';
+}

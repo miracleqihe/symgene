@@ -1,19 +1,19 @@
 import React from 'react';
-import { ArrowUpRight, BookOpen, Brain, Edit3, Trash2 } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, BookOpen, Brain, Edit3, ShieldCheck, Trash2 } from 'lucide-react';
 
-export function Fact({ label, text, warning }) {
+export function Fact({ label, text, warning, priority }) {
   return (
-    <div className={'fact ' + (warning ? 'warning' : '')}>
-      <span>{label}</span>
+    <div className={'fact ' + (warning ? 'warning ' : '') + (priority ? 'fact-primary' : 'fact-secondary')}>
+      <span>{warning && <ShieldCheck size={14} />}{label}</span>
       <p>{text || '待补充'}</p>
     </div>
   );
 }
 
-function ListFact({ label, items, warning }) {
+function ListFact({ label, items, warning, priority }) {
   return (
-    <div className={'fact fact-list ' + (warning ? 'warning' : '')}>
-      <span>{label}</span>
+    <div className={'fact fact-list ' + (warning ? 'warning ' : '') + (priority ? 'fact-primary' : 'fact-secondary')}>
+      <span>{warning && <ShieldCheck size={14} />}{label}</span>
       {items?.length ? <ul>{items.map((item) => <li key={item}>{item}</li>)}</ul> : <p>待补充</p>}
     </div>
   );
@@ -26,8 +26,8 @@ export function SourceLine({ text }) {
 function DiseaseFacts({ item }) {
   return (
     <div className="disease-copy">
-      <Fact label="介绍" text={item.summary} />
-      <Fact label="如何理解" text={item.details} />
+      <Fact label="介绍" text={item.summary} priority />
+      <Fact label="如何理解" text={item.details} priority />
       <ListFact label="常见体验" items={item.symptoms} />
       <ListFact label="来访者可能这样描述" items={item.patientPhrases} />
       <ListFact label="病程线索" items={item.courseClues} />
@@ -40,11 +40,21 @@ function DiseaseFacts({ item }) {
   );
 }
 
-export function Detail({ canEdit, type, item, onEdit, onDelete }) {
+export function Detail({ canEdit, type, item, onBack, onEdit, onDelete }) {
   const isDrug = type === 'drugs';
+  const aliasText = Array.isArray(item.aliases) ? item.aliases.join(' · ') : item.aliases || '';
+  const latinName = aliasText.split(/\s*[·•]\s*/).find((part) => /[A-Za-z]/.test(part)) || item.name;
   return (
     <article className="detail-article">
+      <button className="detail-back" onClick={onBack}><ArrowLeft size={15} /> 返回列表</button>
       <div className="detail-top">
+        <span
+          className={'detail-entry-number ' + (isDrug ? 'detail-entry-name' : '')}
+          lang={isDrug ? 'en' : undefined}
+          aria-hidden="true"
+        >
+          {isDrug ? latinName : 'ENTRY'}
+        </span>
         <div>
           <span className="eyebrow">{isDrug ? (item.categoryLabel || item.className) : item.category}</span>
           <h2>{item.name}</h2>
@@ -64,8 +74,8 @@ export function Detail({ canEdit, type, item, onEdit, onDelete }) {
       </div>
       {isDrug ? (
         <div className="fact-grid">
-          <Fact label="适用情境" text={item.indication} />
-          <Fact label="药物作用" text={item.action} />
+          <Fact label="适用情境" text={item.indication} priority />
+          <Fact label="药物作用" text={item.action} priority />
           <Fact label="药物动力学" text={item.kinetics} />
           <Fact label="药物联用效果" text={item.interactions} />
           <Fact label="禁忌与警示" text={item.contraindications} warning />

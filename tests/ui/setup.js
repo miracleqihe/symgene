@@ -39,7 +39,7 @@ Object.defineProperty(window, 'matchMedia', {
   configurable: true,
   writable: true,
   value: vi.fn().mockImplementation((query) => ({
-    matches: false,
+    matches: query === '(prefers-reduced-motion: reduce)',
     media: query,
     onchange: null,
     addEventListener: vi.fn(),

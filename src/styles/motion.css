@@ -1,0 +1,462 @@
+.animated-presence {
+  position: relative;
+  min-width: 0;
+  display: grid;
+  isolation: isolate;
+  contain: layout paint;
+}
+
+.presence-layer {
+  min-width: 0;
+  grid-area: 1 / 1;
+}
+
+.presence-current {
+  position: relative;
+  z-index: 1;
+}
+
+.presence-exiting {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  pointer-events: none;
+}
+
+.presence-layer.is-entering,
+.presence-layer.presence-exiting {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+.presence-page > .presence-exiting *,
+.presence-detail > .presence-exiting *,
+.presence-gateway > .presence-exiting * {
+  animation-play-state: paused !important;
+}
+
+.presence-gateway {
+  width: 100%;
+  height: 100%;
+}
+
+.presence-gateway > .presence-layer {
+  width: 100%;
+  height: 100%;
+}
+
+.presence-page {
+  min-height: 100%;
+}
+
+.presence-page:has(.library-page),
+.presence-page > .presence-layer:has(.library-page) {
+  height: 100%;
+  min-height: 0;
+}
+
+.presence-detail,
+.presence-detail > .presence-layer {
+  min-height: 100%;
+}
+
+.presence-detail > .presence-current {
+  height: 100%;
+}
+
+.presence-overlay,
+.presence-toast {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+}
+
+.presence-toast {
+  z-index: 80;
+}
+
+.presence-overlay > .presence-layer,
+.presence-toast > .presence-layer {
+  position: fixed;
+  inset: 0;
+}
+
+.presence-overlay > .presence-current {
+  pointer-events: auto;
+}
+
+.presence-page > .presence-exiting.direction-forward,
+.presence-detail > .presence-exiting.direction-forward {
+  animation: presence-forward-exit var(--presence-exit-duration) var(--ease-page-exit) both;
+}
+
+.presence-page > .presence-current.is-entering.direction-forward,
+.presence-detail > .presence-current.is-entering.direction-forward {
+  animation: presence-forward-enter var(--presence-enter-duration) var(--ease-page-enter) both;
+}
+
+.presence-page > .presence-exiting.direction-backward,
+.presence-detail > .presence-exiting.direction-backward {
+  animation: presence-backward-exit var(--presence-exit-duration) var(--ease-page-exit) both;
+}
+
+.presence-page > .presence-current.is-entering.direction-backward,
+.presence-detail > .presence-current.is-entering.direction-backward {
+  animation: presence-backward-enter var(--presence-enter-duration) var(--ease-page-enter) both;
+}
+
+.presence-page > .presence-exiting.direction-lateral-forward,
+.presence-detail > .presence-exiting.direction-lateral-forward {
+  animation: presence-lateral-forward-exit var(--presence-exit-duration) var(--ease-page-exit) both;
+}
+
+.presence-page > .presence-current.is-entering.direction-lateral-forward,
+.presence-detail > .presence-current.is-entering.direction-lateral-forward {
+  animation: presence-lateral-forward-enter var(--presence-enter-duration) var(--ease-page-enter) both;
+}
+
+.presence-page > .presence-exiting.direction-lateral-backward,
+.presence-detail > .presence-exiting.direction-lateral-backward {
+  animation: presence-lateral-backward-exit var(--presence-exit-duration) var(--ease-page-exit) both;
+}
+
+.presence-page > .presence-current.is-entering.direction-lateral-backward,
+.presence-detail > .presence-current.is-entering.direction-lateral-backward {
+  animation: presence-lateral-backward-enter var(--presence-enter-duration) var(--ease-page-enter) both;
+}
+
+.presence-gateway > .presence-exiting {
+  animation: gateway-exit var(--presence-exit-duration) var(--ease-page-exit) both;
+}
+
+.presence-gateway > .presence-current.is-entering {
+  animation: gateway-enter var(--presence-enter-duration) var(--ease-page-enter) both;
+}
+
+.presence-overlay > .presence-exiting .modal-backdrop {
+  animation: scrim-exit var(--presence-exit-duration) var(--ease-fade-out) both;
+}
+
+.presence-overlay > .presence-current.is-entering .modal-backdrop {
+  animation: scrim-enter var(--presence-enter-duration) var(--ease-fade-in) both;
+}
+
+.presence-overlay > .presence-exiting .editor-modal {
+  animation: modal-exit var(--presence-exit-duration) var(--ease-modal-exit) both;
+}
+
+.presence-overlay > .presence-current.is-entering .editor-modal {
+  animation: modal-enter var(--presence-enter-duration) var(--ease-modal-enter) both;
+}
+
+.presence-toast > .presence-exiting .toast {
+  animation: toast-exit var(--presence-exit-duration) var(--ease-toast-exit) both;
+}
+
+.presence-toast > .presence-current.is-entering .toast {
+  animation: toast-enter var(--presence-enter-duration) var(--ease-toast-enter) both;
+}
+
+.kinetic-title {
+  display: flex;
+  align-items: baseline;
+}
+
+.presence-current.is-entering .kinetic-character {
+  display: inline-block;
+  animation: kinetic-character-converge 460ms var(--ease-title) both;
+  will-change: transform, opacity;
+}
+
+.presence-page > .presence-current.is-entering[data-layer-key="cases"] {
+  animation: none;
+  backface-visibility: visible;
+  transform: none;
+  will-change: auto;
+}
+
+.presence-page > .presence-current.is-entering .page-header .eyebrow {
+  animation: header-eyebrow-in 360ms var(--ease-content-enter) both;
+}
+
+.presence-page > .presence-current.is-entering .page-header p {
+  animation: header-copy-in 420ms 90ms var(--ease-content-enter) both;
+}
+
+.presence-page > .presence-current.is-entering .page-header-line {
+  animation: header-line-in 480ms 130ms var(--ease-content-enter) both;
+}
+
+.presence-page > .presence-current.is-entering .page-header-actions {
+  animation: header-actions-in 420ms 170ms var(--ease-content-enter) both;
+}
+
+.presence-page > .presence-current.is-entering .drug-section,
+.presence-page > .presence-current.is-entering .disorder-category {
+  animation: index-group-in 420ms var(--ease-content-enter) both;
+  animation-delay: calc(min(var(--group-index), 7) * 32ms + 100ms);
+}
+
+.presence-detail > .presence-current.is-entering .detail-top,
+.presence-detail > .presence-current.is-entering .case-detail .detail-top {
+  animation: detail-heading-in 360ms 30ms var(--ease-content-enter) both;
+}
+
+.presence-detail > .presence-current.is-entering .fact {
+  animation: detail-fact-in 340ms var(--ease-content-enter) both;
+}
+
+.presence-detail > .presence-current.is-entering .fact:nth-child(1) { animation-delay: 70ms; }
+.presence-detail > .presence-current.is-entering .fact:nth-child(2) { animation-delay: 95ms; }
+.presence-detail > .presence-current.is-entering .fact:nth-child(3) { animation-delay: 120ms; }
+.presence-detail > .presence-current.is-entering .fact:nth-child(4) { animation-delay: 145ms; }
+.presence-detail > .presence-current.is-entering .fact:nth-child(5) { animation-delay: 170ms; }
+.presence-detail > .presence-current.is-entering .fact:nth-child(6) { animation-delay: 195ms; }
+.presence-detail > .presence-current.is-entering .fact:nth-child(7) { animation-delay: 220ms; }
+.presence-detail > .presence-current.is-entering .fact:nth-child(8) { animation-delay: 245ms; }
+
+.presence-gateway > .presence-current.is-entering .welcome-symbol,
+.presence-gateway > .presence-current.is-entering .welcome-content h1,
+.presence-gateway > .presence-current.is-entering .welcome-subtitle,
+.presence-gateway > .presence-current.is-entering .welcome-description,
+.presence-gateway > .presence-current.is-entering .welcome-status,
+.presence-gateway > .presence-current.is-entering .welcome-date,
+.presence-gateway > .presence-current.is-entering .welcome-divider,
+.presence-gateway > .presence-current.is-entering .welcome-enter {
+  animation: welcome-step-in 620ms var(--ease-content-enter) both;
+}
+
+.presence-gateway > .presence-current.is-entering .welcome-content h1 { animation-delay: 50ms; }
+.presence-gateway > .presence-current.is-entering .welcome-subtitle { animation-delay: 85ms; }
+.presence-gateway > .presence-current.is-entering .welcome-description { animation-delay: 120ms; }
+.presence-gateway > .presence-current.is-entering .welcome-status { animation-delay: 155ms; }
+.presence-gateway > .presence-current.is-entering .welcome-date { animation-delay: 175ms; }
+.presence-gateway > .presence-current.is-entering .welcome-divider { animation-delay: 195ms; }
+.presence-gateway > .presence-current.is-entering .welcome-enter { animation-delay: 215ms; }
+
+@keyframes presence-forward-exit {
+  to {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+}
+
+@keyframes presence-forward-enter {
+  from {
+    opacity: 0;
+    transform: translateX(36px);
+  }
+}
+
+@keyframes presence-backward-exit {
+  to {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+}
+
+@keyframes presence-backward-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-36px);
+  }
+}
+
+@keyframes presence-lateral-forward-exit {
+  to {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+}
+
+@keyframes presence-lateral-forward-enter {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+}
+
+@keyframes presence-lateral-backward-exit {
+  to {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+}
+
+@keyframes presence-lateral-backward-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+}
+
+@keyframes gateway-exit {
+  to {
+    opacity: 0;
+    transform: translateY(-12px) scale(.995);
+  }
+}
+
+@keyframes gateway-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(.992);
+  }
+}
+
+@keyframes scrim-enter {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes scrim-exit {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(.98);
+  }
+}
+
+@keyframes modal-exit {
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(.985);
+  }
+}
+
+@keyframes toast-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@keyframes toast-exit {
+  to {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes kinetic-character-converge {
+  from {
+    opacity: .76;
+    transform: translate3d(var(--character-offset), 0, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes header-eyebrow-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes header-copy-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes header-line-in {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes header-actions-in {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+}
+
+@keyframes index-group-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+}
+
+@keyframes detail-heading-in {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+}
+
+@keyframes detail-fact-in {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+}
+
+@keyframes welcome-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@media (max-width: 780px) {
+  .presence-overlay > .presence-current.is-entering .editor-modal {
+    animation-name: modal-sheet-enter;
+  }
+
+  .presence-overlay > .presence-exiting .editor-modal {
+    animation-name: modal-sheet-exit;
+  }
+
+  @keyframes modal-sheet-enter {
+    from {
+      opacity: 1;
+      transform: translateY(100%);
+    }
+  }
+
+  @keyframes modal-sheet-exit {
+    to {
+      opacity: 1;
+      transform: translateY(100%);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .001ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+
+  .kinetic-title,
+  .kinetic-character,
+  .presence-layer,
+  .page-header > *,
+  .drug-section,
+  .disorder-category,
+  .fact {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    letter-spacing: inherit;
+  }
+}

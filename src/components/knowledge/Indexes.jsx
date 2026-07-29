@@ -17,9 +17,17 @@ export function DisorderIndex({ items, selected, onSelect }) {
   });
   return (
     <div className="disorder-index">
-      {groups.map((group) => (
-        <section className="disorder-category" key={group.name}>
-          <div className="disorder-category-head"><strong>{group.name}</strong><small>{group.items.length}</small></div>
+      {groups.map((group, groupIndex) => (
+        <section
+          className="disorder-category"
+          style={{ '--group-index': Math.min(groupIndex, 7) }}
+          key={group.name}
+        >
+          <div className="disorder-category-head">
+            <span className="group-number">{String(groupIndex + 1).padStart(2, '0')}</span>
+            <strong>{group.name}</strong>
+            <small>{group.items.length}</small>
+          </div>
           <div className="index-list">
             {group.items.map((item) => (
               <button
@@ -68,9 +76,14 @@ export function DrugIndex({ items, selected, onSelect }) {
 
   return (
     <div className="drug-index">
-      {sections.map((section) => (
-        <section className="drug-section" key={section.name}>
+      {sections.map((section, sectionIndex) => (
+        <section
+          className="drug-section"
+          style={{ '--group-index': Math.min(sectionIndex, 7) }}
+          key={section.name}
+        >
           <div className="drug-section-head">
+            <span className="group-number">{String(sectionIndex + 1).padStart(2, '0')}</span>
             <strong>{section.name}</strong>
             <span>{section.categories.reduce((total, category) => total + category.items.length, 0)} 个词条</span>
           </div>

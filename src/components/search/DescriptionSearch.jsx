@@ -31,28 +31,38 @@ export function DescriptionSearch({ query, setQuery, results, onOpen, searchInpu
   const hasKnowledge = results.disorders.length || results.cases.length || results.drugs.length;
   return (
     <section className="search-block description-search">
-      <div className="section-heading">
-        <div><span className="eyebrow">描述式检索</span><h2>把正在经历的情况写下来</h2></div>
-        <span className="section-index">01 / 05</span>
+      <div className="search-meta">
+        <span className="editorial-number" aria-hidden="true">02</span>
+        <div>
+          <span className="eyebrow">描述式检索</span>
+          <h2>把正在经历的情况写下来</h2>
+          <p>用自然语言整理症状、时间与生活影响。</p>
+        </div>
+        <span className="section-index">02 / 05</span>
       </div>
-      <div className="search-wrap">
-        <Search size={19} />
-        <input
-          ref={searchInputRef}
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="例如：三个月都很累，早醒，不想见人"
-          aria-label="描述你正在经历的情况"
-        />
+      <div className="search-dock">
+        <div className="search-wrap">
+          <Search size={19} />
+          <input
+            ref={searchInputRef}
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="例如：三个月都很累，早醒，不想见人"
+            aria-label="描述你正在经历的情况"
+          />
+          {query && (
+            <button className="clear-search" onClick={() => setQuery('')} aria-label="清除描述">
+              <X size={16} />
+            </button>
+          )}
+          <kbd>Ctrl/⌘ K</kbd>
+        </div>
+        <div className="search-dock-status" aria-hidden="true">
+          <span>NATURAL LANGUAGE</span>
+          <span>LOCAL KNOWLEDGE INDEX</span>
+        </div>
         {query && (
-          <button className="clear-search" onClick={() => setQuery('')} aria-label="清除描述">
-            <X size={16} />
-          </button>
-        )}
-        <kbd>Ctrl/⌘ K</kbd>
-      </div>
-      {query && (
-        <div className="search-results search-results-rich">
+          <div className="search-results search-results-rich">
           {results.risk && (
             <div className={'risk-banner ' + results.risk.level}>
               <ShieldCheck size={18} />
@@ -97,8 +107,9 @@ export function DescriptionSearch({ query, setQuery, results, onOpen, searchInpu
               暂时没有足够的匹配线索。可以补充持续多久、睡眠/精力变化，以及对工作或关系的影响。
             </div>
           )}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </section>
   );
 }

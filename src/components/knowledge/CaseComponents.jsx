@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edit3, Trash2 } from 'lucide-react';
+import { ArrowLeft, Edit3, Trash2 } from 'lucide-react';
 import { Fact, SourceLine } from './Detail.jsx';
 
 export function CaseRow({ canEdit, item, selected, onSelect, onEdit, onDelete }) {
@@ -21,10 +21,12 @@ export function CaseRow({ canEdit, item, selected, onSelect, onEdit, onDelete })
   );
 }
 
-export function CaseDetail({ canEdit, item, disorder, onEdit, onDelete, detailRef }) {
+export function CaseDetail({ canEdit, item, disorder, onBack, onEdit, onDelete, detailRef }) {
   return (
     <article className="case-detail" ref={detailRef}>
+      <button className="detail-back" onClick={onBack}><ArrowLeft size={15} /> 返回案例列表</button>
       <div className="detail-top">
+        <span className="detail-entry-number" aria-hidden="true">CASE</span>
         <div>
           <span className="eyebrow">{disorder?.category || 'CASE NOTE'} · {item.stage}</span>
           <h2>{item.title}</h2>
@@ -38,8 +40,8 @@ export function CaseDetail({ canEdit, item, disorder, onEdit, onDelete, detailRe
         )}
       </div>
       <div className="fact-grid">
-        <Fact label="案例摘要" text={item.summary} />
-        <Fact label="表现" text={(item.presentation || []).join('；')} />
+        <Fact label="案例摘要" text={item.summary} priority />
+        <Fact label="表现" text={(item.presentation || []).join('；')} priority />
         <Fact label="时间线" text={item.timeline} />
         <Fact label="功能影响" text={item.functionImpact} />
         <Fact label="评估重点" text={(item.assessmentFocus || []).join('；')} />

@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import AnimatedPresence from '../components/AnimatedPresence.jsx';
 import { EditorModal } from '../components/editor/EditorModal.jsx';
 import { Toast } from '../components/feedback/Toast.jsx';
 import { Sidebar } from '../components/layout/Sidebar.jsx';
@@ -14,6 +15,12 @@ import { WelcomePage } from '../pages/WelcomePage.jsx';
 import { matchKnowledge } from '../search.js';
 import { CAN_EDIT } from './constants.js';
 import { createBlankEntry } from './editorDefaults.js';
+import {
+  EMPTY_VIEW,
+  resolveForwardDirection,
+  resolveOverlayDirection,
+  resolvePageDirection
+} from './navigation.js';
 
 export function App({ canEdit = CAN_EDIT } = {}) {
   const [activePage, setActivePage] = useState('home');
@@ -25,6 +32,9 @@ export function App({ canEdit = CAN_EDIT } = {}) {
   const [operationError, setOperationError] = useState('');
   const [entered, setEntered] = useState(false);
   const [localDataOpen, setLocalDataOpen] = useState(false);
+  const [mainScrolled, setMainScrolled] = useState(false);
+  const mainContentRef = useRef(null);
+  const previousPageRef = useRef(activePage);
   const searchInputRef = useRef(null);
   const {
     backups,
@@ -73,6 +83,13 @@ export function App({ canEdit = CAN_EDIT } = {}) {
       setOperationError('');
     }
   }, [storageError]);
+
+  useLayoutEffect(() => {
+    if (previousPageRef.current === activePage) return;
+    previousPageRef.current = activePage;
+    if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
+    setMainScrolled(false);
+  }, [activePage]);
 
   const counts = useMemo(() => ({
     drugs: data.drugs.length,
@@ -126,12 +143,21 @@ export function App({ canEdit = CAN_EDIT } = {}) {
     if (removeEntry(type, item.id)) setSelected(null);
   }
 
-  if (!entered) return <WelcomePage onEnter={() => setEntered(true)} />;
-
-  return (
-    <div className="app-shell">
+  const message = storageError || operationError || toast;
+  const overlayKey = canEdit && editor
+    ? `editor:${editor.type}:${editor.item.id}`
+    : canEdit && localDataOpen
+      ? 'local-data'
+      : EMPTY_VIEW;
+  const appView = (
+    <div
+      className="app-shell"
+      data-page={activePage}
+      data-scrolled={mainScrolled ? 'true' : 'false'}
+      data-mobile-nav={mobileNav ? 'open' : 'closed'}
+    >
       <Topbar
-        canEdit={canEdit}
+        activePage={activePage}
         mobileNav={mobileNav}
         onHome={() => go('home')}
         onToggleNavigation={() => setMobileNav(!mobileNav)}
@@ -145,91 +171,149 @@ export function App({ canEdit = CAN_EDIT } = {}) {
           onNavigate={go}
           onOpenLocalData={() => setLocalDataOpen(true)}
         />
-        <main className="main-content">
-          {activePage === 'home' && (
-            <HomePage
-              counts={counts}
-              onNavigate={go}
-              onOpen={openItem}
-              query={query}
-              setQuery={setQuery}
-              searchResults={searchResults}
-              searchInputRef={searchInputRef}
-            />
-          )}
-          {activePage === 'drugs' && (
-            <LibraryPage
-              canEdit={canEdit}
-              type="drugs"
-              data={data}
-              selected={selected}
-              onSelect={setSelected}
-              onEdit={startEdit}
-              onDelete={deleteItem}
-              onAdd={startEdit}
-            />
-          )}
-          {activePage === 'disorders' && (
-            <LibraryPage
-              canEdit={canEdit}
-              type="disorders"
-              data={data}
-              selected={selected}
-              onSelect={setSelected}
-              onEdit={startEdit}
-              onDelete={deleteItem}
-              onAdd={startEdit}
-            />
-          )}
-          {activePage === 'cases' && (
-            <CasesPage
-              canEdit={canEdit}
-              data={data}
-              selected={selected}
-              onSelect={setSelected}
-              onEdit={startEdit}
-              onDelete={deleteItem}
-              onAdd={startEdit}
-              onOpenDisorder={(disorder) => openItem('disorders', disorder)}
-            />
-          )}
-          {activePage === 'resources' && (
-            <ResourcesPage
-              canEdit={canEdit}
-              data={data}
-              onEdit={startEdit}
-              onDelete={deleteItem}
-              onAdd={startEdit}
-            />
-          )}
+        <button
+          className="nav-scrim"
+          onClick={() => setMobileNav(false)}
+          aria-label="关闭导航"
+          tabIndex={mobileNav ? 0 : -1}
+        />
+        <main
+          className="main-content"
+          ref={mainContentRef}
+          onScroll={(event) => {
+            const scrolled = event.currentTarget.scrollTop > 8;
+            setMainScrolled((current) => current === scrolled ? current : scrolled);
+          }}
+        >
+          <AnimatedPresence
+            viewKey={activePage}
+            kind="page"
+            mode="wait"
+            exitMs={150}
+            enterMs={440}
+            settleMs={activePage === 'cases' ? 620 : 760}
+            resolveDirection={resolvePageDirection}
+          >
+            {activePage === 'home' && (
+              <HomePage
+                counts={counts}
+                onNavigate={go}
+                onOpen={openItem}
+                query={query}
+                setQuery={setQuery}
+                searchResults={searchResults}
+                searchInputRef={searchInputRef}
+              />
+            )}
+            {activePage === 'drugs' && (
+              <LibraryPage
+                canEdit={canEdit}
+                type="drugs"
+                data={data}
+                selected={selected}
+                onSelect={setSelected}
+                onEdit={startEdit}
+                onDelete={deleteItem}
+                onAdd={startEdit}
+                mainContentRef={mainContentRef}
+              />
+            )}
+            {activePage === 'disorders' && (
+              <LibraryPage
+                canEdit={canEdit}
+                type="disorders"
+                data={data}
+                selected={selected}
+                onSelect={setSelected}
+                onEdit={startEdit}
+                onDelete={deleteItem}
+                onAdd={startEdit}
+                mainContentRef={mainContentRef}
+              />
+            )}
+            {activePage === 'cases' && (
+              <CasesPage
+                canEdit={canEdit}
+                data={data}
+                selected={selected}
+                onSelect={setSelected}
+                onEdit={startEdit}
+                onDelete={deleteItem}
+                onAdd={startEdit}
+                onOpenDisorder={(disorder) => openItem('disorders', disorder)}
+                mainContentRef={mainContentRef}
+              />
+            )}
+            {activePage === 'resources' && (
+              <ResourcesPage
+                canEdit={canEdit}
+                data={data}
+                onEdit={startEdit}
+                onDelete={deleteItem}
+                onAdd={startEdit}
+              />
+            )}
+          </AnimatedPresence>
         </main>
       </div>
 
-      {canEdit && editor && (
-        <EditorModal
-          editor={editor}
-          disorders={data.disorders}
-          onClose={() => setEditor(null)}
-          onSave={saveEditor}
-        />
-      )}
-      {canEdit && localDataOpen && (
-        <LocalDataPanel
-          backups={backups}
-          envelope={envelope}
-          seedData={seedData}
-          onClose={() => setLocalDataOpen(false)}
-          onImport={importEnvelope}
-          onReadBackup={getBackupRaw}
-          onReset={resetLocalKnowledge}
-          onRestore={restoreLocalBackup}
-        />
-      )}
-      <Toast
-        message={storageError || operationError || toast}
-        error={Boolean(storageError || operationError)}
-      />
+      <AnimatedPresence
+        viewKey={overlayKey}
+        emptyKey={EMPTY_VIEW}
+        kind="overlay"
+        exitMs={150}
+        enterMs={320}
+        resolveDirection={resolveOverlayDirection}
+      >
+        {canEdit && editor ? (
+          <EditorModal
+            editor={editor}
+            disorders={data.disorders}
+            onClose={() => setEditor(null)}
+            onSave={saveEditor}
+          />
+        ) : canEdit && localDataOpen ? (
+          <LocalDataPanel
+            backups={backups}
+            envelope={envelope}
+            seedData={seedData}
+            onClose={() => setLocalDataOpen(false)}
+            onImport={importEnvelope}
+            onReadBackup={getBackupRaw}
+            onReset={resetLocalKnowledge}
+            onRestore={restoreLocalBackup}
+          />
+        ) : null}
+      </AnimatedPresence>
+      <AnimatedPresence
+        viewKey={message || EMPTY_VIEW}
+        emptyKey={EMPTY_VIEW}
+        kind="toast"
+        exitMs={160}
+        enterMs={300}
+        resolveDirection={resolveOverlayDirection}
+      >
+        {message && (
+          <Toast
+            message={message}
+            error={Boolean(storageError || operationError)}
+          />
+        )}
+      </AnimatedPresence>
     </div>
+  );
+
+  return (
+    <AnimatedPresence
+      viewKey={entered ? 'application' : 'welcome'}
+      kind="gateway"
+      exitMs={180}
+      enterMs={480}
+      settleMs={850}
+      resolveDirection={resolveForwardDirection}
+    >
+      {entered ? appView : <WelcomePage onEnter={() => setEntered(true)} />}
+    </AnimatedPresence>
   );
 }
 

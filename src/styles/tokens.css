@@ -1,0 +1,284 @@
+:root {
+  --topbar-height: 0px;
+  --sidebar-width: clamp(228px, 12vw, 280px);
+  --page-padding: clamp(24px, 3vw, 72px);
+  --workspace-gap: 12px;
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+  --space-6: 48px;
+
+  --ink: #17313b;
+  --ink-strong: #102b36;
+  --muted: #647d82;
+  --muted-soft: #8ba0a3;
+  --navy: #173b49;
+  --navy-deep: #0f2d38;
+  --cyan: #8fd1dc;
+  --cyan-deep: #287c89;
+  --cyan-pale: #e4f3f2;
+  --cyan-wash: #f1f8f7;
+  --yellow: #f5d86f;
+  --yellow-pale: #fff7d5;
+  --paper: #fbfcf9;
+  --surface: #ffffff;
+  --surface-soft: #f5f8f5;
+  --surface-quiet: #eef4f2;
+  --line: #d9e4e1;
+  --line-strong: #bed1cd;
+  --danger: #a64f4b;
+  --danger-soft: #fff3f0;
+
+  --radius-xs: 4px;
+  --radius-sm: 7px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-round: 999px;
+
+  --shadow-control: 0 3px 10px rgba(18, 50, 59, 0.07);
+  --shadow-surface: 0 18px 48px rgba(18, 50, 59, 0.08);
+  --shadow-raised: 0 22px 60px rgba(14, 42, 51, 0.13);
+  --shadow-overlay: 0 28px 90px rgba(7, 25, 31, 0.28);
+
+  --ease-state: cubic-bezier(.2, .65, .3, 1);
+  --ease-control: cubic-bezier(.2, .9, .3, 1);
+  --ease-nav: cubic-bezier(.22, 1, .36, 1);
+  --ease-page-enter: cubic-bezier(.16, 1, .3, 1);
+  --ease-page-exit: cubic-bezier(.4, 0, 1, 1);
+  --ease-content-enter: cubic-bezier(.18, .86, .26, 1);
+  --ease-title: cubic-bezier(.18, .84, .22, 1);
+  --ease-fade-in: cubic-bezier(.33, 1, .68, 1);
+  --ease-fade-out: cubic-bezier(.32, 0, .67, 0);
+  --ease-modal-enter: cubic-bezier(.16, 1, .3, 1);
+  --ease-modal-exit: cubic-bezier(.4, 0, 1, 1);
+  --ease-toast-enter: cubic-bezier(.22, 1, .36, 1);
+  --ease-toast-exit: cubic-bezier(.4, 0, 1, 1);
+
+  --duration-state: 180ms;
+  --duration-nav: 390ms;
+
+  --font-display: Manrope, "Noto Sans SC", "Source Han Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-ui: "Noto Sans SC", "Source Han Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-body: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+  --font-mono: "DM Mono", "SFMono-Regular", Consolas, monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html {
+  background: var(--surface-soft);
+}
+
+body {
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 79% -12%, rgba(143, 209, 220, 0.18), transparent 31rem),
+    linear-gradient(135deg, #f7faf6 0%, #f1f7f5 48%, #faf9f0 100%);
+  font-family: var(--font-body);
+  font-feature-settings: "halt" on;
+  font-kerning: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+textarea,
+select {
+  color: inherit;
+  font: inherit;
+  font-family: var(--font-ui);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(52, 137, 149, 0.28);
+  outline-offset: 3px;
+}
+
+::selection {
+  color: var(--ink-strong);
+  background: rgba(143, 209, 220, 0.42);
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: var(--radius-round);
+  background: rgba(70, 112, 117, 0.28);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(52, 101, 108, 0.45);
+  background-clip: padding-box;
+}
+
+.eyebrow {
+  color: var(--cyan-deep);
+  font-family: Manrope, system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.eyebrow.light {
+  color: rgba(232, 249, 247, 0.82);
+}
+
+.icon-button,
+.primary-button,
+.secondary-button,
+.text-button,
+.link-button,
+.welcome-enter {
+  transition:
+    color var(--duration-state) var(--ease-state),
+    background-color var(--duration-state) var(--ease-state),
+    border-color var(--duration-state) var(--ease-state),
+    box-shadow var(--duration-state) var(--ease-state),
+    opacity var(--duration-state) var(--ease-state),
+    transform var(--duration-state) var(--ease-control);
+}
+
+.primary-button,
+.secondary-button {
+  min-height: 40px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.primary-button {
+  color: #fff;
+  background: var(--navy);
+  box-shadow: 0 7px 16px rgba(15, 45, 56, 0.16);
+}
+
+.secondary-button {
+  color: var(--ink);
+  background: var(--surface-quiet);
+  box-shadow: inset 0 0 0 1px rgba(23, 59, 73, 0.04);
+}
+
+.icon-button {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  color: #607b80;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--shadow-control);
+}
+
+.icon-button.danger {
+  color: #8f615e;
+}
+
+.text-button,
+.link-button {
+  padding: 0;
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--cyan-deep);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.primary-button:active,
+.secondary-button:active,
+.icon-button:active,
+.text-button:active,
+.link-button:active,
+.welcome-enter:active {
+  transform: scale(.99);
+  box-shadow: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .primary-button:hover {
+    background: #1d4a59;
+    box-shadow: 0 9px 20px rgba(15, 45, 56, 0.2);
+  }
+
+  .secondary-button:hover {
+    background: #e5efec;
+  }
+
+  .icon-button:hover {
+    color: var(--ink);
+    border-color: #9fc3c1;
+    background: #f5fbfa;
+  }
+
+  .icon-button.danger:hover {
+    color: var(--danger);
+    border-color: #dfb6b2;
+    background: var(--danger-soft);
+  }
+
+  .text-button:hover svg,
+  .link-button:hover svg {
+    transform: translateX(3px);
+  }
+}

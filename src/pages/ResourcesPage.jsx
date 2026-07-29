@@ -4,9 +4,10 @@ import { PageHeader } from '../components/layout/PageHeader.jsx';
 
 export function ResourcesPage({ canEdit, data, onEdit, onDelete, onAdd }) {
   return (
-    <div className="page library-page page-enter">
+    <div className="page resources-page page-enter">
       <PageHeader
         canEdit={canEdit}
+        page="resources"
         eyebrow="LIBRARY"
         title="网络资源"
         description="外部网站与开放资料的统一入口，原始书籍仅作为项目内部依据。"
@@ -15,8 +16,11 @@ export function ResourcesPage({ canEdit, data, onEdit, onDelete, onAdd }) {
         addLabel="新增资源"
       />
       <div className="resource-list">
-        {data.resources.map((item) => (
+        {data.resources.map((item, itemIndex) => (
           <article className="resource-row" key={item.id}>
+            <span className="resource-number" aria-hidden="true">
+              {String(itemIndex + 1).padStart(2, '0')}
+            </span>
             <div className={'resource-kind ' + (item.kind === '书籍' ? 'yellow' : 'blue')}>
               {item.kind === '书籍' ? <BookOpen size={18} /> : <ExternalLink size={18} />}
             </div>
@@ -25,6 +29,7 @@ export function ResourcesPage({ canEdit, data, onEdit, onDelete, onAdd }) {
               <h2>{item.title}</h2>
               <p>{item.description}</p>
             </div>
+            <span className="resource-direction" aria-hidden="true">OUT / ↗</span>
             <div className="row-actions">
               <a
                 className="icon-button"
