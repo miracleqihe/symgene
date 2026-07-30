@@ -13,11 +13,12 @@
     "verify": "npm run check:data && npm test && npm run build && npm run check:build"
   },
   "dependencies": {
+    "@remotion/player": "4.0.502",
     "@vitejs/plugin-react": "6.0.4",
-    "vite": "8.1.5",
+    "lucide-react": "1.27.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "lucide-react": "1.27.0"
-  },
-  "devDependencies": {}
+    "remotion": "4.0.502",
+    "vite": "8.1.5"
+  }
 }
