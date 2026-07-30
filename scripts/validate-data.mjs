@@ -1,9 +1,14 @@
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { cloneSeed } from '../src/data.js';
-import { DATA_COLLECTIONS, validateData } from '../src/validation/dataValidation.js';
+import {
+  DATA_COLLECTIONS,
+  validateData as validateKnowledgeData
+} from '../src/validation/dataValidation.js';
 
-export { validateData };
+export function validateData(data) {
+  return validateKnowledgeData(data, { requireDrugSideEffects: true });
+}
 
 export function reportValidation(data, output = console) {
   const errors = validateData(data);

@@ -80,7 +80,9 @@ function validateResourceUrl(errors, item, id) {
   }
 }
 
-export function validateData(data) {
+export function validateData(data, {
+  requireDrugSideEffects = false
+} = {}) {
   const errors = [];
   const collections = {};
 
@@ -123,7 +125,10 @@ export function validateData(data) {
   collections.drugs.forEach((item, index) => {
     if (!item || typeof item !== 'object' || Array.isArray(item)) return;
     const id = isNonEmptyString(item.id) ? item.id.trim() : `#${index}`;
-    validateRequiredStrings(errors, 'drugs', item, id, ['name', 'source']);
+    const requiredFields = requireDrugSideEffects
+      ? ['name', 'sideEffects', 'source']
+      : ['name', 'source'];
+    validateRequiredStrings(errors, 'drugs', item, id, requiredFields);
     if (!isNonEmptyString(item.className) && !isNonEmptyString(item.categoryLabel)) {
       addError(errors, 'drugs', id, 'className/categoryLabel', '至少一个字段必须是非空字符串');
     }

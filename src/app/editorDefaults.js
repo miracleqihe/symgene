@@ -9,6 +9,7 @@ export function createBlankEntry(type, data, now = new Date()) {
       action: '',
       kinetics: '',
       interactions: '',
+      sideEffects: '',
       contraindications: '',
       source: '待补充来源',
       updated: now.toISOString().slice(0, 10)

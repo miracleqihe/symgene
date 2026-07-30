@@ -412,7 +412,7 @@ describe('药物详情分区导航', () => {
     await user.click(screen.getByRole('button', { name }));
   }
 
-  test('默认选择适用情境并提供四个关联的 Tab 与面板', async () => {
+  test('默认选择适用情境并提供五个关联的 Tab 与面板', async () => {
     const { user } = await renderApp();
     await openDrugDetail(user);
 
@@ -424,7 +424,8 @@ describe('药物详情分区导航', () => {
       '01适用情境',
       '02药物作用',
       '03药物动力学',
-      '04药物联用'
+      '04药物联用',
+      '05副作用'
     ]);
     expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
     expect(tabs[0]).toHaveAttribute('tabindex', '0');
@@ -432,7 +433,7 @@ describe('药物详情分区导航', () => {
       expect(tab).toHaveAttribute('aria-selected', 'false');
       expect(tab).toHaveAttribute('tabindex', '-1');
     });
-    expect(panels).toHaveLength(4);
+    expect(panels).toHaveLength(5);
     panels.forEach((panel, index) => {
       expect(tabs[index]).toHaveAttribute('aria-controls', panel.id);
       expect(panel).toHaveAttribute('aria-labelledby', tabs[index].id);
@@ -457,6 +458,18 @@ describe('药物详情分区导航', () => {
     expect(screen.getByText('测试警示')).toBeVisible();
   });
 
+  test('点击副作用会显示最新 main 新增的内容分区', async () => {
+    const { user } = await renderApp();
+    await openDrugDetail(user);
+
+    const sideEffectsTab = screen.getByRole('tab', { name: '副作用' });
+    await user.click(sideEffectsTab);
+
+    expect(sideEffectsTab).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel', { name: '副作用' })).toHaveTextContent('测试副作用');
+    expect(screen.getByText('测试警示')).toBeVisible();
+  });
+
   test('ArrowRight 切换到下一项并移动焦点', async () => {
     const { user } = await renderApp();
     await openDrugDetail(user);
@@ -475,7 +488,7 @@ describe('药物详情分区导航', () => {
     await openDrugDetail(user);
 
     const firstTab = screen.getByRole('tab', { name: '适用情境' });
-    const lastTab = screen.getByRole('tab', { name: '药物联用' });
+    const lastTab = screen.getByRole('tab', { name: '副作用' });
     firstTab.focus();
     await user.keyboard('{ArrowLeft}');
 
@@ -503,7 +516,7 @@ describe('药物详情分区导航', () => {
     await openDrugDetail(user);
 
     const firstTab = screen.getByRole('tab', { name: '适用情境' });
-    const lastTab = screen.getByRole('tab', { name: '药物联用' });
+    const lastTab = screen.getByRole('tab', { name: '副作用' });
     firstTab.focus();
     await user.keyboard('{End}');
     expect(lastTab).toHaveFocus();

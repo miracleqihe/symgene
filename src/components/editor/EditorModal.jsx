@@ -96,6 +96,7 @@ export function EditorModal({ editor, disorders, onClose, onSave }) {
                 {field('药物作用', 'action', { textarea: true, wide: true })}
                 {field('药物动力学', 'kinetics', { textarea: true, wide: true })}
                 {field('药物联用效果', 'interactions', { textarea: true, wide: true })}
+                {field('副作用', 'sideEffects', { textarea: true, wide: true })}
                 {field('禁忌与警示', 'contraindications', { textarea: true, wide: true })}
                 {field('来源说明', 'source', { textarea: true, wide: true })}
               </>

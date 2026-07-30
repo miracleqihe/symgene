@@ -18,6 +18,7 @@ export function createStoredData() {
       action: '测试药物作用',
       kinetics: '测试动力学',
       interactions: '测试联用说明',
+      sideEffects: '测试副作用',
       contraindications: '测试警示',
       source: '公开测试来源',
       updated: '2026-07-29'

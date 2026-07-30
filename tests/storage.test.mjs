@@ -359,6 +359,24 @@ test('25j legacy format new seed entry 合并结果通过正式 envelope 验证�
   assert.deepEqual(validateEnvelope(result.envelope), []);
 });
 
+test('25k 同 ID 药物保留用户修改并补入新种子的副作用字段', () => {
+  const savedData = makeSeed();
+  savedData.drugs[0].name = '用户保留值';
+  const nextSeed = clone(savedData);
+  nextSeed.drugs[0].name = '种子默认值';
+  nextSeed.drugs[0].sideEffects = '新种子副作用说明';
+  const result = migrateKnowledge(
+    JSON.stringify(createEnvelope(savedData, { savedAt: NOW.toISOString() })),
+    nextSeed,
+    { now: NOW }
+  );
+
+  assert.equal(result.ok, true);
+  assert.equal(result.needsWrite, true);
+  assert.equal(result.envelope.data.drugs[0].name, '用户保留值');
+  assert.equal(result.envelope.data.drugs[0].sideEffects, '新种子副作用说明');
+});
+
 test('26 迁移写入前创建旧数据的逐字备份', () => {
   const raw = JSON.stringify(makeLegacy());
   const storage = new MemoryStorage([[STORAGE_KEY, raw]]);

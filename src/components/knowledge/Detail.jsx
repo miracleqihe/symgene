@@ -5,7 +5,8 @@ const DRUG_DETAIL_SECTIONS = [
   { id: 'indication', label: '适用情境', color: '#2A475F', foreground: '#FFFFFF' },
   { id: 'action', label: '药物作用', color: '#2E7D32', foreground: '#FFFFFF' },
   { id: 'kinetics', label: '药物动力学', color: '#8DB67A', foreground: '#18311B' },
-  { id: 'interactions', label: '药物联用', color: '#2E292B', foreground: '#FFFFFF' }
+  { id: 'interactions', label: '药物联用', color: '#2E292B', foreground: '#FFFFFF' },
+  { id: 'sideEffects', label: '副作用', color: '#D23918', foreground: '#FFFFFF' }
 ];
 
 export function Fact({ label, text, warning, priority, className = '' }) {

@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { cloneSeed } from '../src/data.js';
 import { reportValidation, validateData } from '../scripts/validate-data.mjs';
+import { validateData as validateLocalData } from '../src/validation/dataValidation.js';
 
 function makeValidData() {
   return {
     drugs: [
-      { id: 'sertraline', name: '舍曲林', className: 'SSRI', source: '公开药物资料' }
+      { id: 'sertraline', name: '舍曲林', className: 'SSRI', sideEffects: '恶心、头痛等。', source: '公开药物资料' }
     ],
     disorders: [
       {
@@ -112,11 +113,23 @@ test('跨实体类型的相同 ID 不作为阻断错误', () => {
 
 test('药物必填字段为空时失败', () => {
   const data = makeValidData();
+  data.drugs[0].sideEffects = '';
   data.drugs[0].source = ' ';
   data.drugs[0].className = '';
   const errors = validateData(data);
+  assert.ok(errors.some((error) => error.type === 'drugs' && error.field === 'sideEffects'));
   assert.ok(errors.some((error) => error.type === 'drugs' && error.field === 'source'));
   assert.ok(errors.some((error) => error.type === 'drugs' && error.field === 'className/categoryLabel'));
+});
+
+test('本地数据验证兼容尚未包含副作用字段的旧备份', () => {
+  const data = makeValidData();
+  delete data.drugs[0].sideEffects;
+
+  assert.deepEqual(validateLocalData(data), []);
+  assert.ok(validateData(data).some((error) =>
+    error.type === 'drugs' && error.field === 'sideEffects'
+  ));
 });
 
 test('药物仅提供 categoryLabel 时仍满足分类必填规则', () => {

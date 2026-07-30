@@ -41,10 +41,24 @@ export function createEnvelope(data, {
 export function mergeWithSeed(savedData, seedData, deletedIds = createDeletedIds()) {
   const normalizedDeletedIds = createDeletedIds(deletedIds);
   return Object.fromEntries(DATA_COLLECTIONS.map((type) => {
-    const savedItems = Array.isArray(savedData?.[type]) ? cloneValue(savedData[type]) : [];
+    const seedItems = Array.isArray(seedData?.[type]) ? seedData[type] : [];
+    const seedById = new Map(seedItems.map((item) => [item.id, item]));
+    const savedItems = (Array.isArray(savedData?.[type]) ? cloneValue(savedData[type]) : [])
+      .map((item) => {
+        const seedItem = seedById.get(item?.id);
+        if (
+          type !== 'drugs'
+          || !seedItem
+          || Object.hasOwn(item, 'sideEffects')
+          || typeof seedItem.sideEffects !== 'string'
+        ) {
+          return item;
+        }
+        return { ...item, sideEffects: seedItem.sideEffects };
+      });
     const savedIds = new Set(savedItems.map((item) => item?.id).filter(Boolean));
     const deleted = new Set(normalizedDeletedIds[type]);
-    const additions = (seedData?.[type] || [])
+    const additions = seedItems
       .filter((item) => !savedIds.has(item.id) && !deleted.has(item.id))
       .map((item) => cloneValue(item));
     return [type, [...savedItems, ...additions]];
