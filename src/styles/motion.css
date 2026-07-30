@@ -429,6 +429,12 @@
 }
 
 @media (max-width: 780px) {
+  .presence-page:has(.library-page),
+  .presence-page > .presence-layer:has(.library-page) {
+    height: auto;
+    min-height: 100%;
+  }
+
   .presence-overlay > .presence-current.is-entering .editor-modal {
     animation-name: modal-sheet-enter;
   }
