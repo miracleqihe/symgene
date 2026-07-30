@@ -3,3 +3,25 @@
 @import './styles/layout.css';
 @import './styles/components.css';
 @import './styles/motion.css';
+
+.local-data-button { margin-top: auto; margin-bottom: 18px; width: 100%; min-height: 39px; border: 1px solid var(--line); border-radius: 6px; background: rgba(255,255,255,.7); color: #587277; display: flex; align-items: center; gap: 9px; padding: 0 12px; font-size: 11px; font-weight: 700; }
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.local-data-content { padding: 22px 27px 27px; }
+.local-data-note { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.75; }
+.local-data-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.local-data-actions .danger-action { color: var(--danger); }
+.local-data-error { margin: 16px 0 0; padding: 10px 12px; background: #fff1ef; color: #873b34; font-size: 11px; line-height: 1.6; }
+.backup-list { margin-top: 24px; border-top: 1px solid var(--line); }
+.backup-list-heading { min-height: 49px; display: flex; align-items: center; gap: 8px; color: var(--ink); }
+.backup-list-heading span { margin-left: auto; color: #8ca2a4; font-family: 'DM Mono', monospace; font-size: 10px; }
+.backup-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 14px 0; border-top: 1px solid #e5eded; }
+.backup-row strong, .backup-row small { display: block; }
+.backup-row strong { font-size: 12px; }
+.backup-row small { margin-top: 4px; color: var(--muted); font-size: 10px; }
+.backup-row > div:last-child { flex: none; display: flex; gap: 13px; }
+
+@media (max-width: 780px) {
+  .local-data-content { padding-left: 20px; padding-right: 20px; }
+  .backup-row { align-items: flex-start; flex-direction: column; }
+  .backup-row > div:last-child { width: 100%; justify-content: space-between; }
+}

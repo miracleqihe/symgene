@@ -1554,10 +1554,6 @@
   width: min(100%, 780px);
 }
 
-.drug-section-panel.is-active {
-  animation: drug-section-reveal 240ms var(--ease-state) both;
-}
-
 .drug-section-kicker {
   display: block;
   color: var(--section-color);
@@ -1583,18 +1579,6 @@
   font-size: 15px;
   line-height: 1.9;
   text-wrap: pretty;
-}
-
-@keyframes drug-section-reveal {
-  from {
-    opacity: 0;
-    transform: translateY(7px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .fact-grid,
@@ -1711,17 +1695,11 @@
 
 .fact.warning.drug-warning {
   margin-top: 28px;
-  counter-set: fact 4;
+  counter-set: fact 5;
 }
 
 .fact.warning.drug-warning p {
   color: #3B3A3E;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .drug-section-panel.is-active {
-    animation: none;
-  }
 }
 
 .source-line {

@@ -218,6 +218,10 @@
 .presence-detail > .presence-current.is-entering .fact:nth-child(7) { animation-delay: 220ms; }
 .presence-detail > .presence-current.is-entering .fact:nth-child(8) { animation-delay: 245ms; }
 
+.drug-section-panel.is-active {
+  animation: drug-section-reveal 240ms var(--ease-state) both;
+}
+
 .presence-gateway > .presence-current.is-entering .welcome-symbol,
 .presence-gateway > .presence-current.is-entering .welcome-content h1,
 .presence-gateway > .presence-current.is-entering .welcome-subtitle,
@@ -405,6 +409,18 @@
   }
 }
 
+@keyframes drug-section-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes welcome-step-in {
   from {
     opacity: 0;
@@ -453,10 +469,15 @@
   .page-header > *,
   .drug-section,
   .disorder-category,
+  .drug-section-panel,
   .fact {
     opacity: 1 !important;
     transform: none !important;
     filter: none !important;
     letter-spacing: inherit;
+  }
+
+  .drug-section-panel.is-active {
+    animation: none;
   }
 }
