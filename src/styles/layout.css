@@ -124,13 +124,14 @@
   overflow: hidden;
 }
 
+/* 优化：侧栏整体更紧凑 */
 .sidebar {
   position: relative;
   z-index: 20;
   width: var(--sidebar-width);
   height: 100dvh;
   min-height: 0;
-  padding: clamp(20px, 2.4vh, 32px) 18px 18px;
+  padding: clamp(14px, 1.8vh, 24px) 14px 14px;
   border-right: 1px solid rgba(205, 220, 216, .92);
   display: flex;
   flex-direction: column;
@@ -143,9 +144,10 @@
     var(--surface-soft);
 }
 
+/* 优化：品牌块更紧凑 */
 .side-brand-block {
   position: relative;
-  padding: 0 10px 22px;
+  padding: 0 8px 16px;
   border-bottom: 1px solid var(--line-strong);
 }
 
@@ -168,9 +170,10 @@
   letter-spacing: .1em;
 }
 
+/* 优化：Intro 区域更紧凑 */
 .side-intro {
   position: relative;
-  padding: clamp(20px, 3vh, 34px) 11px clamp(18px, 2.8vh, 30px);
+  padding: clamp(14px, 2vh, 24px) 8px clamp(12px, 1.8vh, 20px);
 }
 
 .side-intro::after {
@@ -186,18 +189,20 @@
   pointer-events: none;
 }
 
+/* 优化：减小 intro 段落间距与行高 */
 .side-intro p {
-  margin: 11px 0 0;
+  margin: 8px 0 0;
   color: #3d5b62;
-  font-size: clamp(15px, 1vw, 17px);
+  font-size: clamp(14px, .95vw, 16px);
   font-weight: 700;
   letter-spacing: -.025em;
-  line-height: 1.65;
+  line-height: 1.5;
 }
 
+/* 优化：导航更紧凑 */
 .main-nav {
-  --item-height: 46px;
-  --item-gap: 5px;
+  --item-height: 40px;
+  --item-gap: 3px;
   position: relative;
   display: grid;
   gap: var(--item-gap);
@@ -231,17 +236,18 @@
   transform: translateY(-50%);
 }
 
+/* 优化：导航按钮更紧凑 */
 .main-nav button {
   position: relative;
   z-index: 1;
   width: 100%;
   height: var(--item-height);
-  padding: 0 12px;
+  padding: 0 10px;
   border: 0;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 9px;
   color: #607a7f;
   background: transparent;
   text-align: left;
@@ -284,12 +290,13 @@
   transform: translateX(2px);
 }
 
+/* 优化：底部区域更紧凑 */
 .side-bottom {
   margin-top: auto;
-  padding: 18px 11px 0;
+  padding: 14px 8px 0;
   border-top: 1px solid var(--line);
   display: grid;
-  gap: 13px;
+  gap: 10px;
 }
 
 .side-bottom .status-dot {
@@ -359,12 +366,13 @@
   overflow: hidden;
 }
 
+/* 优化：工作区网格 - 索引面板收窄，阅读区增大 */
 .workspace-grid {
   width: 100%;
   min-width: 0;
   min-height: 0;
   display: grid;
-  grid-template-columns: clamp(300px, 25vw, 460px) var(--workspace-gap) minmax(0, 1fr);
+  grid-template-columns: clamp(260px, 20vw, 380px) var(--workspace-gap) minmax(0, 1fr);
   gap: 0;
   border-top: 1px solid var(--line-strong);
   border-bottom: 1px solid var(--line);
@@ -427,20 +435,21 @@
   }
 }
 
+/* 优化：矮屏下的侧栏紧凑适配 */
 @media (max-height: 680px) and (min-width: 781px) {
   .sidebar {
-    padding-top: 20px;
-    padding-bottom: 16px;
+    padding-top: 14px;
+    padding-bottom: 12px;
   }
 
   .side-intro {
-    padding-bottom: 18px;
+    padding-bottom: 14px;
   }
 
   .side-intro p {
-    margin-top: 7px;
-    font-size: 14px;
-    line-height: 1.45;
+    margin-top: 6px;
+    font-size: 13px;
+    line-height: 1.4;
   }
 
   .side-foot {
@@ -459,8 +468,8 @@
   }
 
   .side-bottom {
-    gap: 8px;
-    padding-top: 10px;
+    gap: 6px;
+    padding-top: 8px;
   }
 }
 
@@ -471,7 +480,7 @@
   }
 
   .workspace-grid {
-    grid-template-columns: minmax(280px, 36%) var(--workspace-gap) minmax(0, 1fr);
+    grid-template-columns: minmax(260px, 34%) var(--workspace-gap) minmax(0, 1fr);
   }
 }
 
