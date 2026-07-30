@@ -27,6 +27,16 @@ function easeInOutCubic(progress) {
     : 1 - ((-2 * progress + 2) ** 3) / 2;
 }
 
+const PAPER_PLANE_IDLE_DURATION_MS = 6800;
+const PAPER_PLANE_IDLE_KEYFRAMES = [
+  { offset: 0, transform: 'translate3d(0, 0, 0) rotate(0deg) scale(1)', easing: 'cubic-bezier(.45, 0, .55, 1)' },
+  { offset: 0.18, transform: 'translate3d(4px, -5px, 0) rotate(-1.1deg) scale(1.002)', easing: 'cubic-bezier(.16, 1, .3, 1)' },
+  { offset: 0.43, transform: 'translate3d(1px, -13px, 0) rotate(-.35deg) scale(1.004)', easing: 'cubic-bezier(.45, 0, .2, 1)' },
+  { offset: 0.68, transform: 'translate3d(-6px, -6px, 0) rotate(1.15deg) scale(1.001)', easing: 'cubic-bezier(.22, 1, .36, 1)' },
+  { offset: 0.87, transform: 'translate3d(-3px, 4px, 0) rotate(.65deg) scale(.999)', easing: 'cubic-bezier(.4, 0, .2, 1)' },
+  { offset: 1, transform: 'translate3d(0, 0, 0) rotate(0deg) scale(1)' },
+];
+
 function useReducedMotion() {
   const [reduced, setReduced] = useState(() =>
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -90,15 +100,9 @@ export default function PaperPlaneLetter({ onOpenChange }) {
     stage.style.transition = '';
     stage.style.transform = '';
     idleMotionRef.current = stage.animate(
-      [
-        { offset: 0, transform: 'translate3d(0, 0, 0) rotate(0deg) scale(1)', easing: 'cubic-bezier(.37, 0, .63, 1)' },
-        { offset: 0.23, transform: 'translate3d(6px, -9px, 0) rotate(-2.2deg) scale(1.006)', easing: 'cubic-bezier(.16, 1, .3, 1)' },
-        { offset: 0.52, transform: 'translate3d(-1px, -12px, 0) rotate(.45deg) scale(1.003)', easing: 'cubic-bezier(.37, 0, .63, 1)' },
-        { offset: 0.78, transform: 'translate3d(-5px, 9px, 0) rotate(2.3deg) scale(.998)', easing: 'cubic-bezier(.22, .61, .36, 1)' },
-        { offset: 1, transform: 'translate3d(0, 0, 0) rotate(0deg) scale(1)' },
-      ],
+      PAPER_PLANE_IDLE_KEYFRAMES,
       {
-        duration: 3800,
+        duration: PAPER_PLANE_IDLE_DURATION_MS,
         iterations: Infinity,
         easing: 'linear',
       },
