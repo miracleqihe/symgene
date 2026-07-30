@@ -28,14 +28,118 @@ function easeInOutCubic(progress) {
 }
 
 const PAPER_PLANE_IDLE_DURATION_MS = 6800;
-const PAPER_PLANE_IDLE_KEYFRAMES = [
-  { offset: 0, transform: 'translate3d(0, 0, 0) rotate(0deg) scale(1)', easing: 'cubic-bezier(.45, 0, .55, 1)' },
-  { offset: 0.18, transform: 'translate3d(4px, -5px, 0) rotate(-1.1deg) scale(1.002)', easing: 'cubic-bezier(.16, 1, .3, 1)' },
-  { offset: 0.43, transform: 'translate3d(1px, -13px, 0) rotate(-.35deg) scale(1.004)', easing: 'cubic-bezier(.45, 0, .2, 1)' },
-  { offset: 0.68, transform: 'translate3d(-6px, -6px, 0) rotate(1.15deg) scale(1.001)', easing: 'cubic-bezier(.22, 1, .36, 1)' },
-  { offset: 0.87, transform: 'translate3d(-3px, 4px, 0) rotate(.65deg) scale(.999)', easing: 'cubic-bezier(.4, 0, .2, 1)' },
-  { offset: 1, transform: 'translate3d(0, 0, 0) rotate(0deg) scale(1)' },
+const PAPER_PLANE_IDLE_SAMPLES_PER_SEGMENT = 12;
+const PAPER_PLANE_IDLE_DENSE_SAMPLES_PER_SEGMENT = 48;
+const PAPER_PLANE_IDLE_PATH = [
+  { x: 0, y: 0, rotation: 0, scale: 1 },
+  { x: 4, y: -5, rotation: -1.1, scale: 1.002 },
+  { x: 1, y: -13, rotation: -0.35, scale: 1.004 },
+  { x: -6, y: -6, rotation: 1.15, scale: 1.001 },
+  { x: -3, y: 4, rotation: 0.65, scale: 0.999 },
 ];
+
+function interpolateClosedPathValue(previous, current, next, following, progress) {
+  const squared = progress * progress;
+  const cubed = squared * progress;
+  return 0.5 * (
+    (2 * current)
+    + (-previous + next) * progress
+    + (2 * previous - 5 * current + 4 * next - following) * squared
+    + (-previous + 3 * current - 3 * next + following) * cubed
+  );
+}
+
+function createIdleTransform(point) {
+  const x = Number(point.x.toFixed(3));
+  const y = Number(point.y.toFixed(3));
+  const rotation = Number(point.rotation.toFixed(3));
+  const scale = Number(point.scale.toFixed(4));
+  return `translate3d(${x}px, ${y}px, 0) rotate(${rotation}deg) scale(${scale})`;
+}
+
+function interpolateIdlePathPoint(segment, progress) {
+  const pointCount = PAPER_PLANE_IDLE_PATH.length;
+  const previous = PAPER_PLANE_IDLE_PATH[(segment - 1 + pointCount) % pointCount];
+  const current = PAPER_PLANE_IDLE_PATH[segment];
+  const next = PAPER_PLANE_IDLE_PATH[(segment + 1) % pointCount];
+  const following = PAPER_PLANE_IDLE_PATH[(segment + 2) % pointCount];
+  const point = {};
+
+  ['x', 'y', 'rotation', 'scale'].forEach((property) => {
+    point[property] = interpolateClosedPathValue(
+      previous[property],
+      current[property],
+      next[property],
+      following[property],
+      progress,
+    );
+  });
+
+  return point;
+}
+
+function createIdleKeyframes() {
+  const pointCount = PAPER_PLANE_IDLE_PATH.length;
+  const keyframeCount = pointCount * PAPER_PLANE_IDLE_SAMPLES_PER_SEGMENT;
+  const denseSampleCount = pointCount * PAPER_PLANE_IDLE_DENSE_SAMPLES_PER_SEGMENT;
+  const densePath = [];
+  const cumulativeDistances = [0];
+
+  for (let sample = 0; sample <= denseSampleCount; sample += 1) {
+    const isLastSample = sample === denseSampleCount;
+    const segment = isLastSample
+      ? pointCount - 1
+      : Math.floor(sample / PAPER_PLANE_IDLE_DENSE_SAMPLES_PER_SEGMENT);
+    const progress = isLastSample
+      ? 1
+      : (sample % PAPER_PLANE_IDLE_DENSE_SAMPLES_PER_SEGMENT) / PAPER_PLANE_IDLE_DENSE_SAMPLES_PER_SEGMENT;
+    const point = interpolateIdlePathPoint(segment, progress);
+    densePath.push(point);
+
+    if (sample > 0) {
+      const previousPoint = densePath[sample - 1];
+      cumulativeDistances.push(
+        cumulativeDistances[sample - 1] + Math.hypot(
+          point.x - previousPoint.x,
+          point.y - previousPoint.y,
+        ),
+      );
+    }
+  }
+
+  const totalDistance = cumulativeDistances.at(-1);
+  const keyframes = [];
+  let denseIndex = 1;
+
+  for (let sample = 0; sample < keyframeCount; sample += 1) {
+    const targetDistance = totalDistance * sample / keyframeCount;
+    while (cumulativeDistances[denseIndex] < targetDistance) denseIndex += 1;
+
+    const previousDistance = cumulativeDistances[denseIndex - 1];
+    const nextDistance = cumulativeDistances[denseIndex];
+    const distanceProgress = nextDistance === previousDistance
+      ? 0
+      : (targetDistance - previousDistance) / (nextDistance - previousDistance);
+    const previousPoint = densePath[denseIndex - 1];
+    const nextPoint = densePath[denseIndex];
+    const point = {};
+
+    ['x', 'y', 'rotation', 'scale'].forEach((property) => {
+      point[property] = previousPoint[property]
+        + (nextPoint[property] - previousPoint[property]) * distanceProgress;
+    });
+
+    keyframes.push({
+      offset: sample / keyframeCount,
+      transform: createIdleTransform(point),
+    });
+  }
+
+  keyframes.push({ offset: 1, transform: createIdleTransform(PAPER_PLANE_IDLE_PATH[0]) });
+  return keyframes;
+}
+
+const PAPER_PLANE_IDLE_KEYFRAMES = createIdleKeyframes();
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(() =>
