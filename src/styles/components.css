@@ -1566,7 +1566,9 @@
   font-weight: 700;
   letter-spacing: 0;
 }
-
+.drug-section-panel p {
+  white-space: pre-line;
+}
 .drug-section-panel h3 {
   margin: 10px 0 0;
   color: var(--section-color);
