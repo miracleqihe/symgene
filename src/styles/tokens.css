@@ -85,6 +85,7 @@ html {
   background: var(--surface-soft);
 }
 
+/* 优化：增大基础行高，更适合中文阅读 */
 body {
   color: var(--ink);
   background:
@@ -96,6 +97,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  line-height: 1.75;
 }
 
 button,
