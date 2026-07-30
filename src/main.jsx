@@ -182,7 +182,7 @@ function App() {
   }
 
   function makeBlank(type) {
-    if (type === 'drugs') return { id: 'drug-' + Date.now(), name: '', aliases: '', className: '待补充分类', indication: '', action: '', kinetics: '', interactions: '', contraindications: '', source: '待补充来源', updated: new Date().toISOString().slice(0, 10) };
+    if (type === 'drugs') return { id: 'drug-' + Date.now(), name: '', aliases: '', className: '待补充分类', indication: '', action: '', kinetics: '', interactions: '', sideEffects: '', contraindications: '', source: '待补充来源', updated: new Date().toISOString().slice(0, 10) };
     if (type === 'disorders') return { id: 'disorder-' + Date.now(), name: '', aliases: [], category: '待分类', summary: '', details: '', symptoms: [], patientPhrases: [], courseClues: [], functionalImpact: [], assessment: [], differentials: [], treatmentOverview: [], emergencySignals: [], relatedDrugIds: [], source: '待补充来源' };
     if (type === 'cases') return { id: 'case-' + Date.now(), disorderId: data.disorders[0]?.id || '', title: '', stage: '待整理', tags: [], summary: '', presentation: [], timeline: '', functionImpact: '', riskSignals: '', assessmentFocus: [], differentialClues: [], safetyNote: '', source: '待补充来源' };
     return { id: 'resource-' + Date.now(), kind: '网站', title: '', description: '', url: '', source: '' };
@@ -524,7 +524,8 @@ const DRUG_DETAIL_SECTIONS = [
   { id: 'indication', label: '适用情境', color: '#2A475F', foreground: '#FFFFFF' },
   { id: 'action', label: '药物作用', color: '#2E7D32', foreground: '#FFFFFF' },
   { id: 'kinetics', label: '药物动力学', color: '#8DB67A', foreground: '#18311B' },
-  { id: 'interactions', label: '药物联用', color: '#2E292B', foreground: '#FFFFFF' }
+  { id: 'interactions', label: '药物联用', color: '#2E292B', foreground: '#FFFFFF' },
+  { id: 'sideEffects', label: '副作用', color: '#D23918', foreground: '#FFFFFF' }
 ];
 
 function Detail({ type, item, onBack, onEdit, onDelete }) {
@@ -671,7 +672,7 @@ function EditorModal({ editor, disorders, onClose, onSave }) {
   };
   const listField = (label, key) => field(label, key, { textarea: true, wide: true, list: true, rows: 3 });
   return <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><div className="editor-modal" role="dialog" aria-modal="true" aria-label="编辑词条"><div className="modal-head"><div><span className="eyebrow">LOCAL EDITOR</span><h2>{editor.item.name || editor.item.title ? '编辑词条' : '新增词条'}</h2></div><button className="icon-button" onClick={onClose} aria-label="关闭"><X size={18} /></button></div><form onSubmit={submit}><div className="form-grid">
-    {type === 'drugs' && <>{field('名称', 'name')}{field('别名', 'aliases')}{field('章节', 'section')}{field('子分类', 'categoryLabel')}{field('分类全称', 'className', { wide: true })}{field('适用情境', 'indication', { textarea: true, wide: true })}{field('药物作用', 'action', { textarea: true, wide: true })}{field('药物动力学', 'kinetics', { textarea: true, wide: true })}{field('药物联用效果', 'interactions', { textarea: true, wide: true })}{field('禁忌与警示', 'contraindications', { textarea: true, wide: true })}{field('来源说明', 'source', { textarea: true, wide: true })}</>}
+    {type === 'drugs' && <>{field('名称', 'name')}{field('别名', 'aliases')}{field('章节', 'section')}{field('子分类', 'categoryLabel')}{field('分类全称', 'className', { wide: true })}{field('适用情境', 'indication', { textarea: true, wide: true })}{field('药物作用', 'action', { textarea: true, wide: true })}{field('药物动力学', 'kinetics', { textarea: true, wide: true })}{field('药物联用效果', 'interactions', { textarea: true, wide: true })}{field('副作用', 'sideEffects', { textarea: true, wide: true })}{field('禁忌与警示', 'contraindications', { textarea: true, wide: true })}{field('来源说明', 'source', { textarea: true, wide: true })}</>}
     {type === 'disorders' && <>{field('名称', 'name')}{field('分类', 'category')}{listField('别名（每行一项）', 'aliases')}{field('一句话介绍', 'summary', { textarea: true, wide: true })}{field('如何理解', 'details', { textarea: true, wide: true })}{listField('常见体验', 'symptoms')}{listField('来访者可能这样描述', 'patientPhrases')}{listField('病程线索', 'courseClues')}{listField('可能影响', 'functionalImpact')}{listField('评估时会关注', 'assessment')}{listField('需要鉴别', 'differentials')}{listField('治疗与支持概览', 'treatmentOverview')}{listField('需要尽快求助的信号', 'emergencySignals')}{listField('关联药物 ID', 'relatedDrugIds')}{field('来源说明', 'source', { textarea: true, wide: true })}</>}
     {type === 'cases' && <>{field('案例标题', 'title', { wide: true })}{field('所属疾病', 'disorderId', { select: disorders.map((item) => ({ value: item.id, label: item.name })) })}{field('阶段标签', 'stage')}{field('案例摘要', 'summary', { textarea: true, wide: true })}{listField('主题标签', 'tags')}{listField('表现', 'presentation')}{field('时间线', 'timeline', { textarea: true, wide: true })}{field('功能影响', 'functionImpact', { textarea: true, wide: true })}{field('风险线索', 'riskSignals', { textarea: true, wide: true })}{listField('评估重点', 'assessmentFocus')}{listField('鉴别提示', 'differentialClues')}{field('安全提醒', 'safetyNote', { textarea: true, wide: true })}{field('来源说明', 'source', { textarea: true, wide: true })}</>}
     {type === 'resources' && <>{field('资源标题', 'title', { wide: true })}{field('类型', 'kind', { select: [{ value: '网站', label: '网站' }, { value: '书籍', label: '书籍' }, { value: '指南', label: '指南' }, { value: '其他', label: '其他' }] })}{field('来源', 'source')}{field('描述', 'description', { textarea: true, wide: true })}{field('外部网址', 'url', { wide: true })}</>}

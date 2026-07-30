@@ -6,7 +6,7 @@ import { reportValidation, validateData } from '../scripts/validate-data.mjs';
 function makeValidData() {
   return {
     drugs: [
-      { id: 'sertraline', name: '舍曲林', className: 'SSRI', source: '公开药物资料' }
+      { id: 'sertraline', name: '舍曲林', className: 'SSRI', sideEffects: '恶心、头痛等。', source: '公开药物资料' }
     ],
     disorders: [
       {
@@ -112,9 +112,11 @@ test('跨实体类型的相同 ID 不作为阻断错误', () => {
 
 test('药物必填字段为空时失败', () => {
   const data = makeValidData();
+  data.drugs[0].sideEffects = '';
   data.drugs[0].source = ' ';
   data.drugs[0].className = '';
   const errors = validateData(data);
+  assert.ok(errors.some((error) => error.type === 'drugs' && error.field === 'sideEffects'));
   assert.ok(errors.some((error) => error.type === 'drugs' && error.field === 'source'));
   assert.ok(errors.some((error) => error.type === 'drugs' && error.field === 'className/categoryLabel'));
 });

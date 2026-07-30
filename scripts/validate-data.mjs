@@ -122,7 +122,7 @@ export function validateData(data) {
   collections.drugs.forEach((item, index) => {
     if (!item || typeof item !== 'object' || Array.isArray(item)) return;
     const id = isNonEmptyString(item.id) ? item.id.trim() : `#${index}`;
-    validateRequiredStrings(errors, 'drugs', item, id, ['name', 'source']);
+    validateRequiredStrings(errors, 'drugs', item, id, ['name', 'sideEffects', 'source']);
     if (!isNonEmptyString(item.className) && !isNonEmptyString(item.categoryLabel)) {
       addError(errors, 'drugs', id, 'className/categoryLabel', '至少一个字段必须是非空字符串');
     }

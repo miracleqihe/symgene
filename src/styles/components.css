@@ -2402,7 +2402,7 @@
     padding: 0;
     border-right: 0;
     border-bottom: 1px solid var(--line);
-    grid-template-columns: repeat(4, minmax(150px, 1fr));
+    grid-template-columns: repeat(5, minmax(150px, 1fr));
     overflow-x: auto;
     overscroll-behavior-inline: contain;
   }
@@ -2757,7 +2757,7 @@
     padding: 0;
     border-right: 0;
     border-bottom: 1px solid var(--line);
-    grid-template-columns: repeat(4, minmax(132px, 1fr));
+    grid-template-columns: repeat(5, minmax(132px, 1fr));
     overflow-x: auto;
     overscroll-behavior-inline: contain;
     scroll-snap-type: inline mandatory;
