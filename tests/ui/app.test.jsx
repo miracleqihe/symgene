@@ -37,6 +37,19 @@ function dataWithUnrelatedDisorder() {
   return data;
 }
 
+function dataWithSecondDrug() {
+  const data = createStoredData();
+  data.drugs.push({
+    ...data.drugs[0],
+    id: 'drug-second-test',
+    name: '虚构第二药物',
+    aliases: 'Second Test Drug',
+    indication: '第二药物适用情境',
+    action: '第二药物作用'
+  });
+  return data;
+}
+
 function currentEnvelope() {
   return JSON.parse(window.localStorage.getItem(STORAGE_KEY));
 }
@@ -315,6 +328,7 @@ describe('详情', () => {
     const { user } = await renderApp({ canEdit: true });
     await openPage(user, '精神药物');
     await user.click(screen.getByRole('button', { name: /舍曲林/ }));
+    await user.click(screen.getByRole('tab', { name: '药物作用' }));
     expect(screen.getByText('测试药物作用')).toBeVisible();
     const file = importFileFromCurrent((envelope) => {
       envelope.data.drugs[0].action = '导入后更新的虚构药物作用';
@@ -362,6 +376,7 @@ describe('详情', () => {
     });
     await openPage(user, '精神药物');
     await user.click(screen.getByRole('button', { name: /舍曲林/ }));
+    await user.click(screen.getByRole('tab', { name: '药物作用' }));
     await user.click(screen.getByRole('button', { name: '本地数据' }));
     await user.click(screen.getAllByRole('button', { name: '恢复' }).at(-1));
     await user.click(screen.getByRole('button', { name: '关闭本地数据' }));
@@ -376,6 +391,7 @@ describe('详情', () => {
     const { user } = await renderApp({ canEdit: true });
     await openPage(user, '精神药物');
     await user.click(screen.getByRole('button', { name: /舍曲林/ }));
+    await user.click(screen.getByRole('tab', { name: '药物作用' }));
     const file = importFileFromCurrent((envelope) => {
       envelope.data.disorders[0].summary = '仅更新无关疾病的虚构测试摘要。';
     });
@@ -387,6 +403,143 @@ describe('详情', () => {
     expect(screen.getByRole('heading', { name: '舍曲林', level: 2 })).toBeVisible();
     expect(screen.getByText('测试药物作用')).toBeVisible();
     expect(consoleError.mock.calls.flat().join(' ')).not.toContain('Maximum update depth exceeded');
+  });
+});
+
+describe('药物详情分区导航', () => {
+  async function openDrugDetail(user, name = /舍曲林/) {
+    await openPage(user, '精神药物');
+    await user.click(screen.getByRole('button', { name }));
+  }
+
+  test('默认选择适用情境并提供四个关联的 Tab 与面板', async () => {
+    const { user } = await renderApp();
+    await openDrugDetail(user);
+
+    const tablist = screen.getByRole('tablist', { name: '舍曲林内容目录' });
+    const tabs = within(tablist).getAllByRole('tab');
+    const panels = screen.getAllByRole('tabpanel', { hidden: true });
+
+    expect(tabs.map((tab) => tab.textContent)).toEqual([
+      '01适用情境',
+      '02药物作用',
+      '03药物动力学',
+      '04药物联用'
+    ]);
+    expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
+    expect(tabs[0]).toHaveAttribute('tabindex', '0');
+    tabs.slice(1).forEach((tab) => {
+      expect(tab).toHaveAttribute('aria-selected', 'false');
+      expect(tab).toHaveAttribute('tabindex', '-1');
+    });
+    expect(panels).toHaveLength(4);
+    panels.forEach((panel, index) => {
+      expect(tabs[index]).toHaveAttribute('aria-controls', panel.id);
+      expect(panel).toHaveAttribute('aria-labelledby', tabs[index].id);
+      if (index === 0) expect(panel).not.toHaveAttribute('hidden');
+      else expect(panel).toHaveAttribute('hidden');
+    });
+  });
+
+  test('点击药物作用会切换内容并隐藏不活动面板', async () => {
+    const { user } = await renderApp();
+    await openDrugDetail(user);
+
+    const actionTab = screen.getByRole('tab', { name: '药物作用' });
+    const indicationTab = screen.getByRole('tab', { name: '适用情境' });
+    await user.click(actionTab);
+
+    expect(actionTab).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel', { name: '药物作用' })).toHaveTextContent('测试药物作用');
+    const indicationPanel = screen.getAllByRole('tabpanel', { hidden: true })
+      .find((panel) => panel.id === indicationTab.getAttribute('aria-controls'));
+    expect(indicationPanel).toHaveAttribute('hidden');
+    expect(screen.getByText('测试警示')).toBeVisible();
+  });
+
+  test('ArrowRight 切换到下一项并移动焦点', async () => {
+    const { user } = await renderApp();
+    await openDrugDetail(user);
+
+    const firstTab = screen.getByRole('tab', { name: '适用情境' });
+    const actionTab = screen.getByRole('tab', { name: '药物作用' });
+    firstTab.focus();
+    await user.keyboard('{ArrowRight}');
+
+    expect(actionTab).toHaveFocus();
+    expect(actionTab).toHaveAttribute('aria-selected', 'true');
+  });
+
+  test('ArrowLeft 从第一项反向循环到最后一项', async () => {
+    const { user } = await renderApp();
+    await openDrugDetail(user);
+
+    const firstTab = screen.getByRole('tab', { name: '适用情境' });
+    const lastTab = screen.getByRole('tab', { name: '药物联用' });
+    firstTab.focus();
+    await user.keyboard('{ArrowLeft}');
+
+    expect(lastTab).toHaveFocus();
+    expect(lastTab).toHaveAttribute('aria-selected', 'true');
+  });
+
+  test('ArrowDown 和 ArrowUp 均可切换并移动焦点', async () => {
+    const { user } = await renderApp();
+    await openDrugDetail(user);
+
+    const firstTab = screen.getByRole('tab', { name: '适用情境' });
+    const actionTab = screen.getByRole('tab', { name: '药物作用' });
+    firstTab.focus();
+    await user.keyboard('{ArrowDown}');
+    expect(actionTab).toHaveFocus();
+
+    await user.keyboard('{ArrowUp}');
+    expect(firstTab).toHaveFocus();
+    expect(firstTab).toHaveAttribute('aria-selected', 'true');
+  });
+
+  test('End 和 Home 可跳转到末项与首项', async () => {
+    const { user } = await renderApp();
+    await openDrugDetail(user);
+
+    const firstTab = screen.getByRole('tab', { name: '适用情境' });
+    const lastTab = screen.getByRole('tab', { name: '药物联用' });
+    firstTab.focus();
+    await user.keyboard('{End}');
+    expect(lastTab).toHaveFocus();
+    expect(lastTab).toHaveAttribute('aria-selected', 'true');
+
+    await user.keyboard('{Home}');
+    expect(firstTab).toHaveFocus();
+    expect(firstTab).toHaveAttribute('aria-selected', 'true');
+  });
+
+  test('更换药物词条后重置到第一个分区', async () => {
+    const { user } = await renderApp({ storedData: dataWithSecondDrug() });
+    await openDrugDetail(user);
+    await user.click(screen.getByRole('tab', { name: '药物作用' }));
+    expect(screen.getByRole('tab', { name: '药物作用' })).toHaveAttribute('aria-selected', 'true');
+
+    await user.click(screen.getByRole('button', { name: /虚构第二药物/ }));
+
+    expect(await screen.findByRole('heading', { name: '虚构第二药物', level: 2 })).toBeVisible();
+    await waitFor(() => {
+      expect(screen.getByRole('tab', { name: '适用情境' })).toHaveAttribute('aria-selected', 'true');
+    });
+    expect(screen.getByRole('tabpanel', { name: '适用情境' })).toHaveTextContent('第二药物适用情境');
+  });
+
+  test('reduced-motion 下键盘切换功能不受影响', async () => {
+    const { user } = await renderApp({ reducedMotion: true });
+    await openDrugDetail(user);
+
+    const firstTab = screen.getByRole('tab', { name: '适用情境' });
+    const actionTab = screen.getByRole('tab', { name: '药物作用' });
+    firstTab.focus();
+    await user.keyboard('{ArrowRight}');
+
+    expect(actionTab).toHaveFocus();
+    expect(screen.getByRole('tabpanel', { name: '药物作用' })).toHaveTextContent('测试药物作用');
   });
 });
 

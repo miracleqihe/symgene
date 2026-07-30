@@ -1,9 +1,16 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowUpRight, BookOpen, Brain, Edit3, ShieldCheck, Trash2 } from 'lucide-react';
 
-export function Fact({ label, text, warning, priority }) {
+const DRUG_DETAIL_SECTIONS = [
+  { id: 'indication', label: '适用情境', color: '#2A475F', foreground: '#FFFFFF' },
+  { id: 'action', label: '药物作用', color: '#2E7D32', foreground: '#FFFFFF' },
+  { id: 'kinetics', label: '药物动力学', color: '#8DB67A', foreground: '#18311B' },
+  { id: 'interactions', label: '药物联用', color: '#2E292B', foreground: '#FFFFFF' }
+];
+
+export function Fact({ label, text, warning, priority, className = '' }) {
   return (
-    <div className={'fact ' + (warning ? 'warning ' : '') + (priority ? 'fact-primary' : 'fact-secondary')}>
+    <div className={'fact ' + (warning ? 'warning ' : '') + (priority ? 'fact-primary ' : 'fact-secondary ') + className}>
       <span>{warning && <ShieldCheck size={14} />}{label}</span>
       <p>{text || '待补充'}</p>
     </div>
@@ -40,6 +47,95 @@ function DiseaseFacts({ item }) {
   );
 }
 
+function DrugDetailSections({ item }) {
+  const [activeSection, setActiveSection] = useState(DRUG_DETAIL_SECTIONS[0].id);
+  const tabRefs = useRef([]);
+
+  useEffect(() => {
+    setActiveSection(DRUG_DETAIL_SECTIONS[0].id);
+  }, [item.id]);
+
+  function selectFromKeyboard(event, index) {
+    const lastIndex = DRUG_DETAIL_SECTIONS.length - 1;
+    let nextIndex = null;
+
+    if (event.key === 'Home') nextIndex = 0;
+    if (event.key === 'End') nextIndex = lastIndex;
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      nextIndex = index === lastIndex ? 0 : index + 1;
+    }
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      nextIndex = index === 0 ? lastIndex : index - 1;
+    }
+    if (nextIndex === null) return;
+
+    event.preventDefault();
+    setActiveSection(DRUG_DETAIL_SECTIONS[nextIndex].id);
+    tabRefs.current[nextIndex]?.focus();
+  }
+
+  return (
+    <div className="drug-detail-sections">
+      <div className="drug-section-layout">
+        <div className="drug-section-tabs" role="tablist" aria-label={`${item.name}内容目录`}>
+          {DRUG_DETAIL_SECTIONS.map((section, index) => {
+            const selected = activeSection === section.id;
+            const tabId = `drug-tab-${item.id}-${section.id}`;
+            const panelId = `drug-panel-${item.id}-${section.id}`;
+            return (
+              <button
+                type="button"
+                role="tab"
+                id={tabId}
+                aria-controls={panelId}
+                aria-selected={selected}
+                tabIndex={selected ? 0 : -1}
+                ref={(node) => {
+                  tabRefs.current[index] = node;
+                }}
+                className="drug-section-tab"
+                style={{
+                  '--section-color': section.color,
+                  '--section-foreground': section.foreground
+                }}
+                onClick={() => setActiveSection(section.id)}
+                onKeyDown={(event) => selectFromKeyboard(event, index)}
+                key={section.id}
+              >
+                <span className="drug-section-tab-index" aria-hidden="true">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <span className="drug-section-tab-label">{section.label}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="drug-section-content">
+          {DRUG_DETAIL_SECTIONS.map((section) => {
+            const selected = activeSection === section.id;
+            return (
+              <section
+                role="tabpanel"
+                id={`drug-panel-${item.id}-${section.id}`}
+                aria-labelledby={`drug-tab-${item.id}-${section.id}`}
+                hidden={!selected}
+                className={'drug-section-panel ' + (selected ? 'is-active' : '')}
+                style={{ '--section-color': section.color }}
+                key={section.id}
+              >
+                <span className="drug-section-kicker">药物手册 · {section.label}</span>
+                <h3>{section.label}</h3>
+                <p>{item[section.id] || '待补充'}</p>
+              </section>
+            );
+          })}
+        </div>
+      </div>
+      <Fact label="禁忌与警示" text={item.contraindications} warning className="drug-warning" />
+    </div>
+  );
+}
+
 export function Detail({ canEdit, type, item, onBack, onEdit, onDelete }) {
   const isDrug = type === 'drugs';
   const aliasText = Array.isArray(item.aliases) ? item.aliases.join(' · ') : item.aliases || '';
@@ -72,15 +168,7 @@ export function Detail({ canEdit, type, item, onBack, onEdit, onDelete }) {
           </div>
         )}
       </div>
-      {isDrug ? (
-        <div className="fact-grid">
-          <Fact label="适用情境" text={item.indication} priority />
-          <Fact label="药物作用" text={item.action} priority />
-          <Fact label="药物动力学" text={item.kinetics} />
-          <Fact label="药物联用效果" text={item.interactions} />
-          <Fact label="禁忌与警示" text={item.contraindications} warning />
-        </div>
-      ) : <DiseaseFacts item={item} />}
+      {isDrug ? <DrugDetailSections item={item} /> : <DiseaseFacts item={item} />}
       <SourceLine text={item.source} />
     </article>
   );

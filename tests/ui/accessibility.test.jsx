@@ -72,6 +72,13 @@ describe('axe 可访问性基线', () => {
     }
   );
 
+  test('药物详情分区导航无 critical 或 serious 错误', async () => {
+    const { container, user } = await renderApp();
+    await user.click(navButton('精神药物'));
+    await user.click(screen.getByRole('button', { name: /舍曲林/ }));
+    await expectNoSeriousAxeViolations(container);
+  });
+
   test('编辑器无 critical 或 serious 错误', async () => {
     const { container, user } = await renderApp({ canEdit: true });
     await user.click(navButton('疾病科普'));
