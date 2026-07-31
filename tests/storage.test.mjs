@@ -418,11 +418,13 @@ test('25m 西酞普兰真正的本地自定义字段不会被种子升级覆盖'
     .map((id) => id === 'drug-core' ? 'citalopram' : id);
   seed.drugs[0].kinetics = '协作者更新的药代动力学';
   seed.drugs[0].contraindications = '协作者更新的禁忌与警示';
+  seed.drugs[0].interactions = '协作者更新的联用信息';
   seed.drugs[0].sideEffects = '协作者更新的详细副作用';
 
   const savedData = clone(seed);
   savedData.drugs[0].kinetics = '用户自定义药代';
   savedData.drugs[0].contraindications = '用户自定义警示';
+  savedData.drugs[0].interactions = '用户自定义联用';
   savedData.drugs[0].sideEffects = '用户自定义副作用';
 
   const result = migrateKnowledge(
@@ -437,6 +439,7 @@ test('25m 西酞普兰真正的本地自定义字段不会被种子升级覆盖'
   assert.equal(result.ok, true);
   assert.equal(result.envelope.data.drugs[0].kinetics, '用户自定义药代');
   assert.equal(result.envelope.data.drugs[0].contraindications, '用户自定义警示');
+  assert.equal(result.envelope.data.drugs[0].interactions, '用户自定义联用');
   assert.equal(result.envelope.data.drugs[0].sideEffects, '用户自定义副作用');
 });
 
@@ -485,6 +488,44 @@ test('25o 西酞普兰副作用标点修正会升级现有本地数据', () => {
   assert.equal(result.error, null);
   assert.equal(result.envelope.data.drugs.find((item) => item.id === 'citalopram').sideEffects, seedDrug.sideEffects);
   assert.ok(result.backupKey.startsWith(BACKUP_KEY_PREFIX));
+});
+
+test('25p 西酞普兰和艾司西酞普兰旧版联用文本会升级为当前内容', () => {
+  const seed = cloneProjectSeed();
+  const savedData = clone(seed);
+  const legacySsriInteractions = '与 MAOI、亚甲蓝、部分 5-HT 能药物合用可能增加血清素综合征风险；与 NSAID、阿司匹林、抗凝或抗血小板药物合用需关注出血风险。';
+  const citalopram = savedData.drugs.find((item) => item.id === 'citalopram');
+  const escitalopram = savedData.drugs.find((item) => item.id === 'escitalopram');
+
+  citalopram.interactions = legacySsriInteractions;
+  escitalopram.interactions = legacySsriInteractions;
+  const storage = new MemoryStorage([[
+    STORAGE_KEY,
+    JSON.stringify(createEnvelope(savedData, { savedAt: NOW.toISOString() }))
+  ]]);
+  const result = readKnowledge(storage, seed, { now: NOW });
+
+  assert.equal(result.error, null);
+  assert.equal(result.envelope.data.drugs.find((item) => item.id === 'citalopram').interactions, seed.drugs.find((item) => item.id === 'citalopram').interactions);
+  assert.equal(result.envelope.data.drugs.find((item) => item.id === 'escitalopram').interactions, seed.drugs.find((item) => item.id === 'escitalopram').interactions);
+  assert.ok(result.backupKey.startsWith(BACKUP_KEY_PREFIX));
+});
+
+test('25q 艾司西酞普兰自定义联用文本不会被种子升级覆盖', () => {
+  const seed = cloneProjectSeed();
+  const savedData = clone(seed);
+  const savedDrug = savedData.drugs.find((item) => item.id === 'escitalopram');
+
+  savedDrug.interactions = '用户自定义联用';
+  const storage = new MemoryStorage([[
+    STORAGE_KEY,
+    JSON.stringify(createEnvelope(savedData, { savedAt: NOW.toISOString() }))
+  ]]);
+  const result = readKnowledge(storage, seed, { now: NOW });
+
+  assert.equal(result.error, null);
+  assert.equal(result.envelope.data.drugs.find((item) => item.id === 'escitalopram').interactions, '用户自定义联用');
+  assert.equal(result.backupKey, null);
 });
 
 test('26 迁移写入前创建旧数据的逐字备份', () => {

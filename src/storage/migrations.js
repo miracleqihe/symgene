@@ -14,6 +14,8 @@ function isObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
+const LEGACY_SSRI_INTERACTIONS = '与 MAOI、亚甲蓝、部分 5-HT 能药物合用可能增加血清素综合征风险；与 NSAID、阿司匹林、抗凝或抗血小板药物合用需关注出血风险。';
+
 const LEGACY_SEED_FIELD_VALUES = Object.freeze({
   citalopram: Object.freeze({
     kinetics: Object.freeze([
@@ -21,6 +23,9 @@ const LEGACY_SEED_FIELD_VALUES = Object.freeze({
     ]),
     contraindications: Object.freeze([
       '剂量依赖性 QT 间期延长是重要警示；先天性长 QT、心动过缓、低钾低镁或合并延长 QT 药物时需避免或严密监测。'
+    ]),
+    interactions: Object.freeze([
+      LEGACY_SSRI_INTERACTIONS
     ]),
     sideEffects: Object.freeze([
       '常见恶心、腹泻或消化不适、头痛、出汗、失眠或嗜睡，以及性欲下降、延迟射精或高潮困难。开始用药或调整剂量后，少数人会短暂感到焦虑或激越。',
@@ -31,6 +36,11 @@ const LEGACY_SEED_FIELD_VALUES = Object.freeze({
 • 消化系统：常见恶心、呕吐，少数人出现腹泻、厌食或体重减轻。
 • 泌尿生殖系统：可能出现性欲下降、勃起障碍、性快感缺失或延迟高潮。
 • 过敏及其他：极少数人出现皮疹；也有脱发、鼻炎、夜尿或骨量变化等报告。`
+    ])
+  }),
+  escitalopram: Object.freeze({
+    interactions: Object.freeze([
+      LEGACY_SSRI_INTERACTIONS
     ])
   })
 });
