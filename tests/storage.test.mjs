@@ -473,7 +473,9 @@ test('25o 西酞普兰副作用标点修正会升级现有本地数据', () => {
   const seedDrug = seed.drugs.find((item) => item.id === 'citalopram');
   const savedDrug = savedData.drugs.find((item) => item.id === 'citalopram');
 
-  savedDrug.sideEffects = seedDrug.sideEffects.replace('严密监测；', '严密监测。；');
+  const legacySideEffects = drugSideEffectsById.citalopram;
+  savedDrug.sideEffects = legacySideEffects.replace('严密监测；', '严密监测。；');
+  assert.notEqual(savedDrug.sideEffects, legacySideEffects);
   const storage = new MemoryStorage([[
     STORAGE_KEY,
     JSON.stringify(createEnvelope(savedData, { savedAt: NOW.toISOString() }))

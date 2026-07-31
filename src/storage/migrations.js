@@ -45,7 +45,10 @@ function applyKnownSeedFieldUpdates(savedItem, seedItem) {
       savedItem.id === 'citalopram'
       && field === 'sideEffects'
       && typeof savedItem[field] === 'string'
-      && savedItem[field].replace('严密监测。；', '严密监测；') === seedItem[field]
+      && legacyValues.some((legacyValue) => (
+        typeof legacyValue === 'string'
+        && savedItem[field].replace('严密监测。；', '严密监测；') === legacyValue
+      ))
     );
     if (
       typeof seedItem[field] === 'string'
