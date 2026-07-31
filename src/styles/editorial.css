@@ -2263,7 +2263,7 @@ body,
   color: #405d60;
   font-size: clamp(16px, 1.02vw, 18px);
   line-height: 1.9;
-  white-space: normal;
+  white-space: pre-line;
   overflow-wrap: anywhere;
   text-wrap: pretty;
 }

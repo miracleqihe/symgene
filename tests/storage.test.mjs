@@ -467,6 +467,24 @@ test('25n 重设计版旧副作用文本升级为协作者完整西酞普兰资�
   assert.equal(migratedDrug.sideEffects, seedDrug.sideEffects);
 });
 
+test('25o 西酞普兰副作用标点修正会升级现有本地数据', () => {
+  const seed = cloneProjectSeed();
+  const savedData = clone(seed);
+  const seedDrug = seed.drugs.find((item) => item.id === 'citalopram');
+  const savedDrug = savedData.drugs.find((item) => item.id === 'citalopram');
+
+  savedDrug.sideEffects = seedDrug.sideEffects.replace('严密监测；', '严密监测。；');
+  const storage = new MemoryStorage([[
+    STORAGE_KEY,
+    JSON.stringify(createEnvelope(savedData, { savedAt: NOW.toISOString() }))
+  ]]);
+  const result = readKnowledge(storage, seed, { now: NOW });
+
+  assert.equal(result.error, null);
+  assert.equal(result.envelope.data.drugs.find((item) => item.id === 'citalopram').sideEffects, seedDrug.sideEffects);
+  assert.ok(result.backupKey.startsWith(BACKUP_KEY_PREFIX));
+});
+
 test('26 迁移写入前创建旧数据的逐字备份', () => {
   const raw = JSON.stringify(makeLegacy());
   const storage = new MemoryStorage([[STORAGE_KEY, raw]]);

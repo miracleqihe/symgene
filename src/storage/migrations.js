@@ -41,9 +41,15 @@ function applyKnownSeedFieldUpdates(savedItem, seedItem) {
 
   let nextItem = savedItem;
   Object.entries(fieldUpdates).forEach(([field, legacyValues]) => {
+    const isCitalopramSideEffectsPunctuationVariant = (
+      savedItem.id === 'citalopram'
+      && field === 'sideEffects'
+      && typeof savedItem[field] === 'string'
+      && savedItem[field].replace('严密监测。；', '严密监测；') === seedItem[field]
+    );
     if (
       typeof seedItem[field] === 'string'
-      && legacyValues.includes(savedItem[field])
+      && (legacyValues.includes(savedItem[field]) || isCitalopramSideEffectsPunctuationVariant)
       && savedItem[field] !== seedItem[field]
     ) {
       nextItem = { ...nextItem, [field]: seedItem[field] };
