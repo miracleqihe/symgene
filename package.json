@@ -8,9 +8,12 @@
     "build": "vite build --base=./",
     "preview": "vite preview",
     "check:data": "node scripts/validate-data.mjs",
-    "test": "node --test tests/*.test.mjs",
+    "check:links": "node scripts/check-links.mjs",
+    "check:links:remote": "node scripts/check-links-remote.mjs",
+    "test:unit": "node --test tests/*.test.mjs",
+    "test": "npm run test:unit",
     "check:build": "node scripts/check-build.mjs",
-    "verify": "npm run check:data && npm test && npm run build && npm run check:build"
+    "verify": "npm run check:data && npm run check:links && npm test && npm run build && npm run check:build"
   },
   "dependencies": {
     "@remotion/player": "4.0.502",

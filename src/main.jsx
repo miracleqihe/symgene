@@ -5,7 +5,7 @@ import {
   FileText, FlaskConical, HeartPulse, Home, Library, Menu, Plus, Search, ShieldCheck,
   Sparkles, Trash2, X
 } from 'lucide-react';
-import { cloneSeed, navItems, typeLabels } from './data';
+import { navItems, typeLabels } from './data';
 import { matchKnowledge } from './search';
 import AnimatedPresence from './components/AnimatedPresence';
 import FactSlider from './components/FactSlider';
@@ -13,12 +13,11 @@ import HeroLightField from './components/HeroLightField';
 import KineticTitle from './components/KineticTitle';
 import KnowledgeIndexGraphic from './components/KnowledgeIndexGraphic';
 import PaperPlaneLetter from './components/PaperPlaneLetter';
+import { useLocalKnowledge } from './hooks/useLocalKnowledge';
 import symGenMark from './assets/sym-gen-heart-mark.png';
 import './styles.css';
 
-const STORAGE_KEY = 'symgene-wiki-data-v1';
 const CAN_EDIT = import.meta.env.DEV;
-const DATA_VERSION = 10;
 const DISORDER_CATEGORY_ORDER = [
   '脑器质性及躯体疾病所致精神障碍', '中毒所致精神障碍', '精神活性物质与行为成瘾所致精神障碍',
   '物质所致精神障碍', '精神分裂症及其他妄想障碍', '心境障碍', '应激相关障碍', '神经症及癔症',
@@ -51,56 +50,19 @@ function resolveOverlayDirection() {
   return 'overlay';
 }
 
-function sanitizeData(value) {
-  const seed = cloneSeed();
-  const next = value || seed;
-  const isLegacy = next.meta?.version !== DATA_VERSION;
-  const savedDrugs = next.drugs || [];
-  const canonicalById = new Map(seed.drugs.map((item) => [item.id, item]));
-  const normalizedSavedDrugs = savedDrugs.map((saved) => {
-    const canonical = canonicalById.get(saved.id);
-    if (!canonical) return saved;
-    return { ...canonical, ...saved, className: canonical.className, categoryLabel: canonical.categoryLabel, section: canonical.section, classOrder: canonical.classOrder, source: canonical.source, updated: canonical.updated };
-  });
-  const mergedDrugs = isLegacy
-    ? [...normalizedSavedDrugs, ...seed.drugs.filter((item) => !savedDrugs.some((saved) => saved.id === item.id))]
-    : normalizedSavedDrugs;
-  const mergedDisorders = isLegacy ? seed.disorders : (next.disorders || seed.disorders);
-  const mergedCases = isLegacy ? seed.cases : (next.cases || seed.cases);
-  const savedResources = (next.resources || []).filter((item) =>
-    !item.localPath && /^https?:\/\//i.test(String(item.url || ''))
-  );
-  const mergedResources = isLegacy
-    ? [...savedResources, ...seed.resources.filter((item) => !savedResources.some((saved) => saved.id === item.id))]
-    : savedResources;
-  return {
-    ...next,
-    meta: { ...(next.meta || {}), version: DATA_VERSION },
-    drugs: mergedDrugs,
-    disorders: mergedDisorders,
-    cases: mergedCases,
-    resources: mergedResources
-  };
-}
-
-function readData() {
-  try {
-    const saved = window.localStorage.getItem(STORAGE_KEY);
-    return sanitizeData(saved ? JSON.parse(saved) : cloneSeed());
-  } catch {
-    return sanitizeData(null);
-  }
-}
-
 function App() {
-  const [data, setData] = useState(readData);
   const [activePage, setActivePage] = useState('home');
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState(null);
   const [editor, setEditor] = useState(null);
   const [mobileNav, setMobileNav] = useState(false);
   const [toast, setToast] = useState('');
-  const [storageError, setStorageError] = useState('');
+  const {
+    data,
+    removeEntry,
+    saveEntry,
+    storageError
+  } = useLocalKnowledge({ onSaved: setToast });
   const [mainScrolled, setMainScrolled] = useState(false);
   const [pageTransitionMode, setPageTransitionMode] = useState('menu');
   const [homeLetterOpen, setHomeLetterOpen] = useState(false);
@@ -108,29 +70,10 @@ function App() {
   const previousPageRef = useRef(activePage);
   const searchInputRef = useRef(null);
   const focusFrameRef = useRef(null);
-  const pendingStorageToastRef = useRef('');
   const wheelAccumulatorRef = useRef(0);
   const wheelResetTimerRef = useRef(null);
   const wheelUnlockTimerRef = useRef(null);
   const wheelLockedRef = useRef(false);
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      setStorageError('');
-      if (pendingStorageToastRef.current) {
-        setToast(pendingStorageToastRef.current);
-      }
-    } catch (error) {
-      setToast('');
-      setStorageError('本地保存失败，请检查浏览器存储权限或复制当前内容。');
-      if (import.meta.env.DEV) {
-        console.warn('无法将 Sym Gen 数据写入本地存储。', error);
-      }
-    } finally {
-      pendingStorageToastRef.current = '';
-    }
-  }, [data]);
 
   useEffect(() => {
     function focusSearch(event) {
@@ -210,20 +153,14 @@ function App() {
 
   function saveEditor(nextItem) {
     const type = editor.type;
-    pendingStorageToastRef.current = '已保存到本地浏览器';
-    setData((current) => {
-      const list = current[type] || [];
-      const found = list.some((item) => item.id === nextItem.id);
-      return { ...current, [type]: found ? list.map((item) => item.id === nextItem.id ? nextItem : item) : [nextItem, ...list] };
-    });
+    if (!saveEntry(type, nextItem)) return;
     setSelected(nextItem);
     setEditor(null);
   }
 
   function deleteItem(type, item) {
     if (!window.confirm('确定删除“' + (item.name || item.title) + '”吗？')) return;
-    pendingStorageToastRef.current = '词条已删除';
-    setData((current) => ({ ...current, [type]: current[type].filter((entry) => entry.id !== item.id) }));
+    if (!removeEntry(type, item.id)) return;
     setSelected(null);
   }
 
