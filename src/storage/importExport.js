@@ -3,7 +3,12 @@ import {
   SCHEMA_VERSION,
   SEED_VERSION
 } from './constants.js';
-import { migrateKnowledge, validateEnvelope } from './migrations.js';
+import {
+  createLocalOverrides,
+  createSeedIds,
+  migrateKnowledge,
+  validateEnvelope
+} from './migrations.js';
 import {
   KnowledgeStorageError,
   replaceKnowledge
@@ -47,7 +52,9 @@ export function createKnowledgeExport(envelope, {
     seedVersion: envelope.seedVersion,
     exportedAt: now.toISOString(),
     data: cloneValue(envelope.data),
-    deletedIds: cloneValue(envelope.deletedIds)
+    deletedIds: cloneValue(envelope.deletedIds),
+    localOverrides: cloneValue(envelope.localOverrides),
+    seedIds: cloneValue(envelope.seedIds)
   };
 }
 
@@ -88,6 +95,30 @@ function validateImportShape(value) {
   if (!deletedIdsValid) {
     throw new KnowledgeTransferError('import-deletions-invalid', '导入文件的删除记录格式无效。');
   }
+  if (value.schemaVersion === 3) {
+    const normalizedOverrides = createLocalOverrides({
+      drugs: value.localDrugOverrides
+    }).drugs;
+    if (JSON.stringify(value.localDrugOverrides) !== JSON.stringify(normalizedOverrides)) {
+      throw new KnowledgeTransferError('import-overrides-invalid', '导入文件的药物本地覆盖记录无效。');
+    }
+    const normalizedSeedDrugIds = createSeedIds({
+      drugs: value.seedDrugIds
+    }).drugs;
+    if (JSON.stringify(value.seedDrugIds) !== JSON.stringify(normalizedSeedDrugIds)) {
+      throw new KnowledgeTransferError('import-seed-ids-invalid', '导入文件的内置药物 ID 记录无效。');
+    }
+  }
+  if (value.schemaVersion >= 4) {
+    const normalizedOverrides = createLocalOverrides(value.localOverrides);
+    if (JSON.stringify(value.localOverrides) !== JSON.stringify(normalizedOverrides)) {
+      throw new KnowledgeTransferError('import-overrides-invalid', '导入文件的本地字段覆盖记录无效。');
+    }
+    const normalizedSeedIds = createSeedIds(value.seedIds);
+    if (JSON.stringify(value.seedIds) !== JSON.stringify(normalizedSeedIds)) {
+      throw new KnowledgeTransferError('import-seed-ids-invalid', '导入文件的内置词条 ID 记录无效。');
+    }
+  }
   const errors = validateData(value.data);
   if (errors.length) {
     throw new KnowledgeTransferError('validation-failed', '导入数据未通过完整性校验。', errors);
@@ -122,7 +153,11 @@ export function parseKnowledgeImport(text, {
     seedVersion: value.seedVersion,
     savedAt: value.exportedAt,
     data: value.data,
-    deletedIds: value.deletedIds
+    deletedIds: value.deletedIds,
+    localOverrides: value.localOverrides,
+    seedIds: value.seedIds,
+    localDrugOverrides: value.localDrugOverrides,
+    seedDrugIds: value.seedDrugIds
   }), seedData, {
     now,
     seedVersion: SEED_VERSION

@@ -390,3 +390,20 @@ export function cloneSeed() {
   clone.drugs = JSON.parse(JSON.stringify(handbookDrugs));
   return clone;
 }
+
+function createSeedRevision(value) {
+  const text = JSON.stringify(value);
+  let first = 2166136261;
+  let second = 2246822519;
+  for (let index = 0; index < text.length; index += 1) {
+    const code = text.charCodeAt(index);
+    first = Math.imul(first ^ code, 16777619);
+    second = Math.imul(second ^ code, 3266489917);
+  }
+  return `${text.length}-${(first >>> 0).toString(36)}-${(second >>> 0).toString(36)}`;
+}
+
+export const seedRevision = createSeedRevision({
+  ...seedData,
+  drugs: handbookDrugs
+});

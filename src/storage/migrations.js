@@ -14,61 +14,130 @@ function isObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
-const LEGACY_SSRI_INTERACTIONS = '与 MAOI、亚甲蓝、部分 5-HT 能药物合用可能增加血清素综合征风险；与 NSAID、阿司匹林、抗凝或抗血小板药物合用需关注出血风险。';
+function valuesEqual(left, right) {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
 
-const LEGACY_SEED_FIELD_VALUES = Object.freeze({
-  citalopram: Object.freeze({
-    kinetics: Object.freeze([
-      '经肝脏 CYP2C19、CYP3A4 和 CYP2D6 代谢，半衰期约 35 小时；老年、肝损害或 CYP2C19 抑制时暴露增加。'
-    ]),
-    contraindications: Object.freeze([
-      '剂量依赖性 QT 间期延长是重要警示；先天性长 QT、心动过缓、低钾低镁或合并延长 QT 药物时需避免或严密监测。'
-    ]),
-    interactions: Object.freeze([
-      LEGACY_SSRI_INTERACTIONS
-    ]),
-    sideEffects: Object.freeze([
-      '常见恶心、腹泻或消化不适、头痛、出汗、失眠或嗜睡，以及性欲下降、延迟射精或高潮困难。开始用药或调整剂量后，少数人会短暂感到焦虑或激越。',
-      `• 中枢神经系统：头痛；兴奋、激动或焦虑；失眠或嗜睡；少数人可能出现轻躁狂、认知变化、运动障碍或感觉异常。
-• 心血管：需特别关注剂量相关的 QT 间期延长；先天性长 QT、心动过缓、低钾低镁或合并延长 QT 药物时，应避免使用或严密监测；少数人可出现心动过速、心悸或头晕。
-• 血液系统：可能出现血小板减少或出血倾向；合用非甾体类抗炎药、阿司匹林或其他抗凝药物时需谨慎。
-• 内分泌与代谢：可能出现低钠血症，少数女性可能出现泌乳素升高。
-• 消化系统：常见恶心、呕吐，少数人出现腹泻、厌食或体重减轻。
-• 泌尿生殖系统：可能出现性欲下降、勃起障碍、性快感缺失或延迟高潮。
-• 过敏及其他：极少数人出现皮疹；也有脱发、鼻炎、夜尿或骨量变化等报告。`
-    ])
-  }),
-  escitalopram: Object.freeze({
-    interactions: Object.freeze([
-      LEGACY_SSRI_INTERACTIONS
-    ])
-  })
-});
+function createOverridesById(value = {}) {
+  if (!isObject(value)) return {};
+  return Object.fromEntries(Object.entries(value).flatMap(([id, fields]) => {
+    if (typeof id !== 'string' || !id.trim() || !Array.isArray(fields)) return [];
+    const normalizedFields = [...new Set(fields
+      .filter((field) => typeof field === 'string' && field.trim() && field !== 'id')
+      .map((field) => field.trim()))];
+    return normalizedFields.length ? [[id.trim(), normalizedFields]] : [];
+  }));
+}
 
-function applyKnownSeedFieldUpdates(savedItem, seedItem) {
-  const fieldUpdates = LEGACY_SEED_FIELD_VALUES[savedItem?.id];
-  if (!fieldUpdates || !seedItem) return savedItem;
+function createIdList(value = []) {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value
+    .filter((id) => typeof id === 'string' && id.trim())
+    .map((id) => id.trim()))];
+}
 
-  let nextItem = savedItem;
-  Object.entries(fieldUpdates).forEach(([field, legacyValues]) => {
-    const isCitalopramSideEffectsPunctuationVariant = (
-      savedItem.id === 'citalopram'
-      && field === 'sideEffects'
-      && typeof savedItem[field] === 'string'
-      && legacyValues.some((legacyValue) => (
-        typeof legacyValue === 'string'
-        && savedItem[field].replace('严密监测。；', '严密监测；') === legacyValue
-      ))
-    );
-    if (
-      typeof seedItem[field] === 'string'
-      && (legacyValues.includes(savedItem[field]) || isCitalopramSideEffectsPunctuationVariant)
-      && savedItem[field] !== seedItem[field]
-    ) {
-      nextItem = { ...nextItem, [field]: seedItem[field] };
+export function createLocalOverrides(value = {}) {
+  return Object.fromEntries(DATA_COLLECTIONS.map((type) => [
+    type,
+    createOverridesById(value?.[type])
+  ]));
+}
+
+export function createSeedIds(value = {}) {
+  return Object.fromEntries(DATA_COLLECTIONS.map((type) => [
+    type,
+    createIdList(value?.[type])
+  ]));
+}
+
+function seedIdsFromData(seedData) {
+  return createSeedIds(Object.fromEntries(DATA_COLLECTIONS.map((type) => [
+    type,
+    Array.isArray(seedData?.[type]) ? seedData[type].map((item) => item?.id) : []
+  ])));
+}
+
+function mergeCollectionWithSeed(
+  savedItems,
+  seedItems,
+  deletedIds,
+  localOverrides,
+  previousSeedIds
+) {
+  const seedById = new Map(seedItems.map((item) => [item.id, item]));
+  const savedIds = new Set();
+  const deleted = new Set(deletedIds);
+  const previousSeeded = new Set(previousSeedIds);
+  const merged = [];
+
+  savedItems.forEach((savedItem) => {
+    const id = savedItem?.id;
+    const seedItem = seedById.get(id);
+    if (seedItem) {
+      savedIds.add(id);
+      if (deleted.has(id)) return;
+      const nextItem = cloneValue(seedItem);
+      (localOverrides[id] || []).forEach((field) => {
+        if (!Object.hasOwn(seedItem, field)) return;
+        if (Object.hasOwn(savedItem, field)) nextItem[field] = cloneValue(savedItem[field]);
+        else delete nextItem[field];
+      });
+      merged.push(nextItem);
+      return;
+    }
+    if (!previousSeeded.has(id)) merged.push(cloneValue(savedItem));
+  });
+
+  seedItems.forEach((seedItem) => {
+    if (!savedIds.has(seedItem.id) && !deleted.has(seedItem.id)) {
+      merged.push(cloneValue(seedItem));
     }
   });
-  return nextItem;
+  return merged;
+}
+
+function reconcileReferences(mergedData, savedData, deletedIds, previousSeedIds) {
+  const retainedSeedIds = createSeedIds();
+  const drugIds = new Set(mergedData.drugs.map((item) => item.id));
+  mergedData.disorders = mergedData.disorders.map((item) => ({
+    ...item,
+    relatedDrugIds: Array.isArray(item.relatedDrugIds)
+      ? item.relatedDrugIds.filter((id) => drugIds.has(id))
+      : item.relatedDrugIds
+  }));
+
+  const disorderIds = new Set(mergedData.disorders.map((item) => item.id));
+  const savedDisorders = new Map(savedData.disorders.map((item) => [item.id, item]));
+  const previouslySeededDisorders = new Set(previousSeedIds.disorders);
+  const deletedDisorders = new Set(deletedIds.disorders);
+  mergedData.cases.forEach((item) => {
+    const id = item.disorderId;
+    if (disorderIds.has(id) || deletedDisorders.has(id)
+      || !previouslySeededDisorders.has(id) || !savedDisorders.has(id)) return;
+    mergedData.disorders.push(cloneValue(savedDisorders.get(id)));
+    disorderIds.add(id);
+    retainedSeedIds.disorders.push(id);
+  });
+  return retainedSeedIds;
+}
+
+function pruneLocalOverrides(value, mergedData, seedData) {
+  const normalized = createLocalOverrides(value);
+  return Object.fromEntries(DATA_COLLECTIONS.map((type) => {
+    const mergedById = new Map(mergedData[type].map((item) => [item.id, item]));
+    const seedById = new Map(seedData[type].map((item) => [item.id, item]));
+    const overrides = Object.fromEntries(Object.entries(normalized[type]).flatMap(([id, fields]) => {
+      const mergedItem = mergedById.get(id);
+      const seedItem = seedById.get(id);
+      if (!mergedItem || !seedItem) return [];
+      const activeFields = fields.filter((field) => (
+        Object.hasOwn(seedItem, field)
+        && (!Object.hasOwn(mergedItem, field) || !valuesEqual(mergedItem[field], seedItem[field]))
+      ));
+      return activeFields.length ? [[id, activeFields]] : [];
+    }));
+    return [type, overrides];
+  }));
 }
 
 export function createDeletedIds(value = {}) {
@@ -84,45 +153,48 @@ export function createEnvelope(data, {
   schemaVersion = SCHEMA_VERSION,
   seedVersion = SEED_VERSION,
   savedAt = new Date().toISOString(),
-  deletedIds = createDeletedIds()
+  deletedIds = createDeletedIds(),
+  localOverrides = createLocalOverrides(),
+  seedIds = seedIdsFromData(data)
 } = {}) {
   return {
     schemaVersion,
     seedVersion,
     savedAt,
     data: cloneValue(data),
-    deletedIds: createDeletedIds(deletedIds)
+    deletedIds: createDeletedIds(deletedIds),
+    localOverrides: createLocalOverrides(localOverrides),
+    seedIds: createSeedIds(seedIds)
   };
 }
 
-export function mergeWithSeed(savedData, seedData, deletedIds = createDeletedIds()) {
+function mergeWithSeedDetails(savedData, seedData, deletedIds = createDeletedIds(), {
+  localOverrides = createLocalOverrides(),
+  seedIds = createSeedIds()
+} = {}) {
   const normalizedDeletedIds = createDeletedIds(deletedIds);
-  return Object.fromEntries(DATA_COLLECTIONS.map((type) => {
+  const merged = Object.fromEntries(DATA_COLLECTIONS.map((type) => {
     const seedItems = Array.isArray(seedData?.[type]) ? seedData[type] : [];
-    const seedById = new Map(seedItems.map((item) => [item.id, item]));
-    const savedItems = (Array.isArray(savedData?.[type]) ? cloneValue(savedData[type]) : [])
-      .map((item) => {
-        const seedItem = seedById.get(item?.id);
-        const updatedItem = type === 'drugs'
-          ? applyKnownSeedFieldUpdates(item, seedItem)
-          : item;
-        if (
-          type !== 'drugs'
-          || !seedItem
-          || Object.hasOwn(updatedItem, 'sideEffects')
-          || typeof seedItem.sideEffects !== 'string'
-        ) {
-          return updatedItem;
-        }
-        return { ...updatedItem, sideEffects: seedItem.sideEffects };
-      });
-    const savedIds = new Set(savedItems.map((item) => item?.id).filter(Boolean));
-    const deleted = new Set(normalizedDeletedIds[type]);
-    const additions = seedItems
-      .filter((item) => !savedIds.has(item.id) && !deleted.has(item.id))
-      .map((item) => cloneValue(item));
-    return [type, [...savedItems, ...additions]];
+    const savedItems = Array.isArray(savedData?.[type]) ? cloneValue(savedData[type]) : [];
+    return [type, mergeCollectionWithSeed(
+      savedItems,
+      seedItems,
+      normalizedDeletedIds[type],
+      createOverridesById(localOverrides?.[type]),
+      createIdList(seedIds?.[type])
+    )];
   }));
+  const retainedSeedIds = reconcileReferences(
+    merged,
+    savedData,
+    normalizedDeletedIds,
+    createSeedIds(seedIds)
+  );
+  return { data: merged, retainedSeedIds };
+}
+
+export function mergeWithSeed(savedData, seedData, deletedIds, options) {
+  return mergeWithSeedDetails(savedData, seedData, deletedIds, options).data;
 }
 
 export function validateEnvelope(envelope) {
@@ -151,6 +223,50 @@ export function validateEnvelope(envelope) {
         errors.push({ field: `deletedIds.${type}`, message: '删除记录必须是数组' });
       }
     });
+  }
+  if (envelope.schemaVersion === 3) {
+    if (!isObject(envelope.localDrugOverrides)) {
+      errors.push({ field: 'localDrugOverrides', message: '药物本地覆盖记录必须是对象' });
+    } else {
+      Object.entries(envelope.localDrugOverrides).forEach(([id, fields]) => {
+        if (!id.trim() || !Array.isArray(fields)
+          || fields.some((field) => typeof field !== 'string' || !field.trim() || field === 'id')) {
+          errors.push({ field: `localDrugOverrides.${id}`, message: '药物本地覆盖字段必须是非空字符串数组' });
+        }
+      });
+    }
+    if (!Array.isArray(envelope.seedDrugIds)
+      || envelope.seedDrugIds.some((id) => typeof id !== 'string' || !id.trim())) {
+      errors.push({ field: 'seedDrugIds', message: '内置药物 ID 记录必须是非空字符串数组' });
+    }
+  }
+  if (envelope.schemaVersion >= 4) {
+    if (!isObject(envelope.localOverrides)) {
+      errors.push({ field: 'localOverrides', message: '本地字段覆盖记录必须是对象' });
+    } else {
+      DATA_COLLECTIONS.forEach((type) => {
+        if (!isObject(envelope.localOverrides[type])) {
+          errors.push({ field: `localOverrides.${type}`, message: '本地字段覆盖集合必须是对象' });
+          return;
+        }
+        Object.entries(envelope.localOverrides[type]).forEach(([id, fields]) => {
+          if (!id.trim() || !Array.isArray(fields)
+            || fields.some((field) => typeof field !== 'string' || !field.trim() || field === 'id')) {
+            errors.push({ field: `localOverrides.${type}.${id}`, message: '本地覆盖字段必须是非空字符串数组' });
+          }
+        });
+      });
+    }
+    if (!isObject(envelope.seedIds)) {
+      errors.push({ field: 'seedIds', message: '内置词条 ID 记录必须是对象' });
+    } else {
+      DATA_COLLECTIONS.forEach((type) => {
+        if (!Array.isArray(envelope.seedIds[type])
+          || envelope.seedIds[type].some((id) => typeof id !== 'string' || !id.trim())) {
+          errors.push({ field: `seedIds.${type}`, message: '内置词条 ID 记录必须是非空字符串数组' });
+        }
+      });
+    }
   }
   if (!isObject(envelope.data)) {
     errors.push({ field: 'data', message: '实际数据必须是对象' });
@@ -195,6 +311,8 @@ export function migrateKnowledge(rawValue, seedData, {
   const stored = parsed.value;
   let savedData;
   let deletedIds;
+  let localOverrides;
+  let previousSeedIds;
   let sourceSchemaVersion;
   let sourceSeedVersion;
 
@@ -223,8 +341,26 @@ export function migrateKnowledge(rawValue, seedData, {
         errors: [{ field: `data.${missingCollection}`, message: `${missingCollection} 必须是数组` }]
       };
     }
+    if (sourceSchemaVersion >= 3) {
+      const sourceErrors = validateEnvelope(stored);
+      if (sourceErrors.length) return { ok: false, errors: sourceErrors };
+    }
     savedData = stored.data;
     deletedIds = createDeletedIds(stored.deletedIds);
+    if (sourceSchemaVersion >= 4) {
+      localOverrides = createLocalOverrides(stored.localOverrides);
+      previousSeedIds = createSeedIds(stored.seedIds);
+    } else if (sourceSchemaVersion === 3) {
+      localOverrides = createLocalOverrides({
+        drugs: createOverridesById(stored.localDrugOverrides)
+      });
+      previousSeedIds = createSeedIds({
+        drugs: createIdList(stored.seedDrugIds)
+      });
+    } else {
+      localOverrides = createLocalOverrides();
+      previousSeedIds = createSeedIds();
+    }
   } else {
     sourceSchemaVersion = 1;
     sourceSeedVersion = Number.isInteger(stored.meta?.version)
@@ -239,18 +375,38 @@ export function migrateKnowledge(rawValue, seedData, {
     }
     savedData = Object.fromEntries(DATA_COLLECTIONS.map((type) => [type, stored[type]]));
     deletedIds = createDeletedIds();
+    localOverrides = createLocalOverrides();
+    previousSeedIds = createSeedIds();
   }
 
-  const mergedData = mergeWithSeed(savedData, seedData, deletedIds);
+  const mergeResult = mergeWithSeedDetails(savedData, seedData, deletedIds, {
+    localOverrides,
+    seedIds: previousSeedIds
+  });
+  const mergedData = mergeResult.data;
+  const nextLocalOverrides = pruneLocalOverrides(
+    localOverrides,
+    mergedData,
+    seedData
+  );
+  const currentSeedIds = seedIdsFromData(seedData);
+  const nextSeedIds = createSeedIds(Object.fromEntries(DATA_COLLECTIONS.map((type) => [
+    type,
+    [...currentSeedIds[type], ...mergeResult.retainedSeedIds[type]]
+  ])));
   const needsWrite = sourceSchemaVersion !== SCHEMA_VERSION
     || sourceSeedVersion !== seedVersion
     || JSON.stringify(stored.data) !== JSON.stringify(mergedData)
-    || JSON.stringify(stored.deletedIds) !== JSON.stringify(createDeletedIds(deletedIds));
+    || JSON.stringify(stored.deletedIds) !== JSON.stringify(createDeletedIds(deletedIds))
+    || JSON.stringify(stored.localOverrides) !== JSON.stringify(nextLocalOverrides)
+    || JSON.stringify(stored.seedIds) !== JSON.stringify(nextSeedIds);
   const envelope = createEnvelope(mergedData, {
     schemaVersion: SCHEMA_VERSION,
     seedVersion,
     savedAt: needsWrite ? now.toISOString() : stored.savedAt,
-    deletedIds
+    deletedIds,
+    localOverrides: nextLocalOverrides,
+    seedIds: nextSeedIds
   });
   const errors = validateEnvelope(envelope);
   if (errors.length) return { ok: false, errors };

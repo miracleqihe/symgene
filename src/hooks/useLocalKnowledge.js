@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { cloneSeed } from '../data.js';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { cloneSeed, seedRevision } from '../data.js';
 import { applyKnowledgeImport } from '../storage/importExport.js';
 import { deleteEntry, upsertEntry } from '../storage/operations.js';
 import {
@@ -13,8 +13,7 @@ import {
 
 const STORAGE_ERROR_MESSAGE = '本地保存失败，请检查浏览器存储权限或复制当前内容。';
 
-function initializeKnowledge() {
-  const seedData = cloneSeed();
+function initializeKnowledge(seedData = cloneSeed()) {
   const result = readKnowledge(window.localStorage, seedData);
   return { ...result, seedData };
 }
@@ -29,7 +28,8 @@ function warnStorageError(error) {
 }
 
 export function useLocalKnowledge({ onSaved } = {}) {
-  const [initial] = useState(initializeKnowledge);
+  const currentSeedData = useMemo(() => cloneSeed(), [seedRevision]);
+  const [initial] = useState(() => initializeKnowledge(currentSeedData));
   const [envelope, setEnvelope] = useState(initial.envelope);
   const [backups, setBackups] = useState(() => {
     try {
@@ -42,12 +42,26 @@ export function useLocalKnowledge({ onSaved } = {}) {
     initial.error ? STORAGE_ERROR_MESSAGE : ''
   );
   const blockedRef = useRef(Boolean(initial.error));
+  const seedDataRef = useRef(initial.seedData);
+  const loadedSeedRevisionRef = useRef(seedRevision);
   const onSavedRef = useRef(onSaved);
   onSavedRef.current = onSaved;
 
   useEffect(() => {
     if (initial.error) warnStorageError(initial.error);
   }, [initial]);
+
+  useEffect(() => {
+    if (loadedSeedRevisionRef.current === seedRevision) return;
+    const result = readKnowledge(window.localStorage, currentSeedData);
+    seedDataRef.current = currentSeedData;
+    loadedSeedRevisionRef.current = seedRevision;
+    setEnvelope(result.envelope);
+    blockedRef.current = Boolean(result.error);
+    setStorageError(result.error ? STORAGE_ERROR_MESSAGE : '');
+    if (result.error) warnStorageError(result.error);
+    refreshBackups();
+  }, [currentSeedData]);
 
   function persist(nextEnvelope, successMessage) {
     if (blockedRef.current) {
@@ -95,7 +109,7 @@ export function useLocalKnowledge({ onSaved } = {}) {
   function saveEntry(type, item) {
     try {
       return persist(
-        upsertEntry(envelope, type, item),
+        upsertEntry(envelope, type, item, { seedData: seedDataRef.current }),
         '已保存到本地浏览器'
       );
     } catch (error) {
@@ -108,7 +122,7 @@ export function useLocalKnowledge({ onSaved } = {}) {
   function removeEntry(type, id) {
     try {
       return persist(
-        deleteEntry(envelope, type, id, initial.seedData),
+        deleteEntry(envelope, type, id, seedDataRef.current),
         '词条已删除'
       );
     } catch (error) {
@@ -136,14 +150,14 @@ export function useLocalKnowledge({ onSaved } = {}) {
 
   function restoreLocalBackup(backupKey) {
     return recoverWith(
-      () => restoreBackup(window.localStorage, backupKey, initial.seedData),
+      () => restoreBackup(window.localStorage, backupKey, seedDataRef.current),
       '本地备份已恢复'
     );
   }
 
   function resetLocalKnowledge() {
     return recoverWith(
-      () => resetKnowledge(window.localStorage, initial.seedData),
+      () => resetKnowledge(window.localStorage, seedDataRef.current),
       '已恢复项目默认数据'
     );
   }
@@ -155,7 +169,7 @@ export function useLocalKnowledge({ onSaved } = {}) {
   return {
     data: envelope.data,
     envelope,
-    seedData: initial.seedData,
+    seedData: seedDataRef.current,
     backups,
     storageError,
     saveEntry,

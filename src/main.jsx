@@ -67,6 +67,13 @@ function App() {
   const [pageTransitionMode, setPageTransitionMode] = useState('menu');
   const [homeLetterOpen, setHomeLetterOpen] = useState(false);
   const mainContentRef = useRef(null);
+
+  useEffect(() => {
+    setSelected((current) => {
+      if (!current || !Array.isArray(data[activePage])) return current;
+      return data[activePage].find((item) => item.id === current.id) || null;
+    });
+  }, [activePage, data]);
   const previousPageRef = useRef(activePage);
   const searchInputRef = useRef(null);
   const focusFrameRef = useRef(null);

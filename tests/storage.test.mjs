@@ -47,8 +47,20 @@ function stored(storage) {
   return JSON.parse(storage.getItem(STORAGE_KEY));
 }
 
-function currentStorage(data = makeSeed()) {
-  const envelope = createEnvelope(data, { savedAt: NOW.toISOString() });
+function seedIdsFrom(seedData) {
+  return Object.fromEntries(
+    ['drugs', 'disorders', 'cases', 'resources'].map((type) => [
+      type,
+      seedData[type].map((item) => item.id)
+    ])
+  );
+}
+
+function currentStorage(data = makeSeed(), seedData = data) {
+  const envelope = createEnvelope(data, {
+    savedAt: NOW.toISOString(),
+    seedIds: seedIdsFrom(seedData)
+  });
   return new MemoryStorage([[STORAGE_KEY, JSON.stringify(envelope)]]);
 }
 
@@ -75,11 +87,11 @@ function entryId(type, suffix) {
   return `${prefix}-${suffix}`;
 }
 
-test('01 无本地数据时初始化当前种子并写入 schema v2', () => {
+test('01 无本地数据时初始化当前种子并写入 schema v4', () => {
   const storage = new MemoryStorage();
   const result = readKnowledge(storage, makeSeed(), { now: NOW });
   assert.equal(result.error, null);
-  assert.equal(result.envelope.schemaVersion, 2);
+  assert.equal(result.envelope.schemaVersion, 4);
   assert.deepEqual(stored(storage), result.envelope);
 });
 
@@ -93,12 +105,12 @@ test('02 当前 envelope 原样读取且不创建备份', () => {
   assert.deepEqual(listBackups(storage), []);
 });
 
-test('03 旧 meta.version 数据迁移为 schema v2', () => {
+test('03 旧 meta.version 数据迁移为 schema v4', () => {
   const storage = new MemoryStorage([[STORAGE_KEY, JSON.stringify(makeLegacy())]]);
   const result = readKnowledge(storage, makeSeed(), { now: NOW });
   assert.equal(result.error, null);
-  assert.equal(result.envelope.schemaVersion, 2);
-  assert.equal(result.envelope.seedVersion, 12);
+  assert.equal(result.envelope.schemaVersion, 4);
+  assert.equal(result.envelope.seedVersion, 13);
 });
 
 test('04 无效 JSON 不覆盖主存储值', () => {
@@ -116,9 +128,13 @@ test('05 非对象顶层数据不覆盖主存储值', () => {
   assert.equal(storage.getItem(STORAGE_KEY), raw);
 });
 
-test('06 交叉引用无效的旧数据迁移失败', () => {
+test('06 交叉引用无效的自定义旧案例迁移失败', () => {
   const legacy = makeLegacy();
-  legacy.cases[0].disorderId = 'missing';
+  legacy.cases.push({
+    ...customEntry('cases'),
+    id: 'case-invalid',
+    disorderId: 'missing'
+  });
   const result = migrateKnowledge(JSON.stringify(legacy), makeSeed(), { now: NOW });
   assert.equal(result.ok, false);
   assert.ok(result.errors.some((error) => error.field.includes('disorderId')));
@@ -129,7 +145,7 @@ for (const type of ['drugs', 'disorders', 'cases', 'resources']) {
     const seed = makeSeed();
     const data = clone(seed);
     data[type].unshift(customEntry(type));
-    const storage = currentStorage(data);
+    const storage = currentStorage(data, seed);
     const result = readKnowledge(storage, seed, { now: NOW });
     assert.ok(result.envelope.data[type].some((item) => item.id === customEntry(type).id));
   });
@@ -138,12 +154,18 @@ for (const type of ['drugs', 'disorders', 'cases', 'resources']) {
 for (const type of ['drugs', 'disorders', 'cases', 'resources']) {
   test(`${11 + ['drugs', 'disorders', 'cases', 'resources'].indexOf(type)} ${type} 用户修改覆盖同 ID 新种子内容`, () => {
     const seed = makeSeed();
-    const data = clone(seed);
     const field = type === 'cases' || type === 'resources' ? 'title' : 'name';
-    data[type][0][field] = '用户保留值';
+    const editedItem = { ...seed[type][0], [field]: '用户保留值' };
+    const envelope = upsertEntry(
+      createEnvelope(seed),
+      type,
+      editedItem,
+      { now: NOW, seedData: seed }
+    );
     const newerSeed = clone(seed);
     newerSeed[type][0][field] = '新版种子值';
-    const result = readKnowledge(currentStorage(data), newerSeed, { now: NOW });
+    const storage = new MemoryStorage([[STORAGE_KEY, JSON.stringify(envelope)]]);
+    const result = readKnowledge(storage, newerSeed, { now: NOW });
     assert.equal(result.envelope.data[type][0][field], '用户保留值');
   });
 }
@@ -294,7 +316,7 @@ test('25e legacy format 用户自定义条目在补充 new seed entry 后继续�
   assert.ok(result.envelope.data.resources.some((item) => item.id === 'resource-extra'));
 });
 
-test('25f legacy format 同 ID 用户修改优先于当前 new seed entry 内容', () => {
+test('25f legacy format 内置药物旧快照升级为当前种子内容', () => {
   const seed = makeSeed();
   const legacyData = clone(seed);
   legacyData.drugs[0].name = '用户保留值';
@@ -302,7 +324,7 @@ test('25f legacy format 同 ID 用户修改优先于当前 new seed entry 内容
   const result = migrateKnowledge(JSON.stringify(makeLegacy(legacyData)), seed, { now: NOW });
   assert.equal(
     result.envelope.data.drugs.find((item) => item.id === 'drug-core').name,
-    '用户保留值'
+    '核心药物'
   );
   assert.ok(result.envelope.data.drugs.some((item) => item.id === 'drug-extra'));
 });
@@ -362,13 +384,18 @@ test('25j legacy format new seed entry 合并结果通过正式 envelope 验证�
 });
 
 test('25k 同 ID 药物保留用户修改并补入新种子的副作用字段', () => {
-  const savedData = makeSeed();
-  savedData.drugs[0].name = '用户保留值';
-  const nextSeed = clone(savedData);
+  const seed = makeSeed();
+  const saved = upsertEntry(
+    createEnvelope(seed),
+    'drugs',
+    { ...seed.drugs[0], name: '用户保留值' },
+    { now: NOW, seedData: seed }
+  );
+  const nextSeed = clone(seed);
   nextSeed.drugs[0].name = '种子默认值';
   nextSeed.drugs[0].sideEffects = '新种子副作用说明';
   const result = migrateKnowledge(
-    JSON.stringify(createEnvelope(savedData, { savedAt: NOW.toISOString() })),
+    JSON.stringify(saved),
     nextSeed,
     { now: NOW }
   );
@@ -379,7 +406,7 @@ test('25k 同 ID 药物保留用户修改并补入新种子的副作用字段', 
   assert.equal(result.envelope.data.drugs[0].sideEffects, '新种子副作用说明');
 });
 
-test('25l 西酞普兰旧版默认字段升级为协作者更新内容', () => {
+test('25l schema v2 西酞普兰旧快照整体升级为当前种子内容', () => {
   const seed = makeSeed();
   seed.drugs[0].id = 'citalopram';
   seed.disorders[0].relatedDrugIds = seed.disorders[0].relatedDrugIds
@@ -397,6 +424,7 @@ test('25l 西酞普兰旧版默认字段升级为协作者更新内容', () => {
   const result = migrateKnowledge(
     JSON.stringify(createEnvelope(savedData, {
       savedAt: NOW.toISOString(),
+      schemaVersion: 2,
       seedVersion: 11
     })),
     seed,
@@ -404,8 +432,8 @@ test('25l 西酞普兰旧版默认字段升级为协作者更新内容', () => {
   );
 
   assert.equal(result.ok, true);
-  assert.equal(result.envelope.seedVersion, 12);
-  assert.equal(result.envelope.data.drugs[0].name, '用户保留的药物名称');
+  assert.equal(result.envelope.seedVersion, 13);
+  assert.equal(result.envelope.data.drugs[0].name, seed.drugs[0].name);
   assert.equal(result.envelope.data.drugs[0].kinetics, '协作者更新的药代动力学');
   assert.equal(result.envelope.data.drugs[0].contraindications, '协作者更新的禁忌与警示');
   assert.equal(result.envelope.data.drugs[0].sideEffects, '协作者更新的详细副作用');
@@ -421,17 +449,22 @@ test('25m 西酞普兰真正的本地自定义字段不会被种子升级覆盖'
   seed.drugs[0].interactions = '协作者更新的联用信息';
   seed.drugs[0].sideEffects = '协作者更新的详细副作用';
 
-  const savedData = clone(seed);
-  savedData.drugs[0].kinetics = '用户自定义药代';
-  savedData.drugs[0].contraindications = '用户自定义警示';
-  savedData.drugs[0].interactions = '用户自定义联用';
-  savedData.drugs[0].sideEffects = '用户自定义副作用';
+  const savedItem = {
+    ...seed.drugs[0],
+    kinetics: '用户自定义药代',
+    contraindications: '用户自定义警示',
+    interactions: '用户自定义联用',
+    sideEffects: '用户自定义副作用'
+  };
+  const savedEnvelope = upsertEntry(
+    createEnvelope(seed, { seedVersion: 12 }),
+    'drugs',
+    savedItem,
+    { now: NOW, seedData: seed }
+  );
 
   const result = migrateKnowledge(
-    JSON.stringify(createEnvelope(savedData, {
-      savedAt: NOW.toISOString(),
-      seedVersion: 11
-    })),
+    JSON.stringify(savedEnvelope),
     seed,
     { now: NOW }
   );
@@ -513,19 +546,361 @@ test('25p 西酞普兰和艾司西酞普兰旧版联用文本会升级为当前�
 
 test('25q 艾司西酞普兰自定义联用文本不会被种子升级覆盖', () => {
   const seed = cloneProjectSeed();
-  const savedData = clone(seed);
-  const savedDrug = savedData.drugs.find((item) => item.id === 'escitalopram');
-
-  savedDrug.interactions = '用户自定义联用';
+  const seedDrug = seed.drugs.find((item) => item.id === 'escitalopram');
+  const savedEnvelope = upsertEntry(
+    createEnvelope(seed),
+    'drugs',
+    { ...seedDrug, interactions: '用户自定义联用' },
+    { now: NOW, seedData: seed }
+  );
   const storage = new MemoryStorage([[
     STORAGE_KEY,
-    JSON.stringify(createEnvelope(savedData, { savedAt: NOW.toISOString() }))
+    JSON.stringify(savedEnvelope)
   ]]);
   const result = readKnowledge(storage, seed, { now: NOW });
 
   assert.equal(result.error, null);
   assert.equal(result.envelope.data.drugs.find((item) => item.id === 'escitalopram').interactions, '用户自定义联用');
   assert.equal(result.backupKey, null);
+});
+
+test('25r 艾司西酞普兰旧版默认副作用会升级为当前内容', () => {
+  const seed = cloneProjectSeed();
+  const savedData = clone(seed);
+  const savedDrug = savedData.drugs.find((item) => item.id === 'escitalopram');
+
+  savedDrug.sideEffects = '常见恶心、腹泻或消化不适、头痛、出汗、失眠或嗜睡，以及性欲下降、延迟射精或高潮困难。开始用药或调整剂量后，少数人会短暂感到焦虑或激越。';
+  const storage = new MemoryStorage([[
+    STORAGE_KEY,
+    JSON.stringify(createEnvelope(savedData, {
+      savedAt: NOW.toISOString(),
+      seedVersion: 12
+    }))
+  ]]);
+  const result = readKnowledge(storage, seed, { now: NOW });
+
+  assert.equal(result.error, null);
+  assert.equal(result.envelope.seedVersion, 13);
+  assert.equal(result.envelope.data.drugs.find((item) => item.id === 'escitalopram').sideEffects, '同西酞普兰');
+  assert.ok(result.backupKey.startsWith(BACKUP_KEY_PREFIX));
+});
+
+test('25s 艾司西酞普兰自定义副作用不会被种子升级覆盖', () => {
+  const seed = cloneProjectSeed();
+  const seedDrug = seed.drugs.find((item) => item.id === 'escitalopram');
+  const savedEnvelope = upsertEntry(
+    createEnvelope(seed, { seedVersion: 12 }),
+    'drugs',
+    { ...seedDrug, sideEffects: '用户自定义副作用' },
+    { now: NOW, seedData: seed }
+  );
+  const storage = new MemoryStorage([[
+    STORAGE_KEY,
+    JSON.stringify(savedEnvelope)
+  ]]);
+  const result = readKnowledge(storage, seed, { now: NOW });
+
+  assert.equal(result.error, null);
+  assert.equal(result.envelope.seedVersion, 13);
+  assert.equal(result.envelope.data.drugs.find((item) => item.id === 'escitalopram').sideEffects, '用户自定义副作用');
+  assert.ok(result.backupKey.startsWith(BACKUP_KEY_PREFIX));
+});
+
+test('25t schema v2 艾司西酞普兰旧 action 自动同步当前 handbookDrugs', () => {
+  const seed = cloneProjectSeed();
+  const savedData = clone(seed);
+  const seedDrug = seed.drugs.find((item) => item.id === 'escitalopram');
+  const savedDrug = savedData.drugs.find((item) => item.id === 'escitalopram');
+  savedDrug.action = '旧版本地药物作用';
+  const storage = new MemoryStorage([[
+    STORAGE_KEY,
+    JSON.stringify(createEnvelope(savedData, {
+      schemaVersion: 2,
+      seedVersion: 12,
+      savedAt: NOW.toISOString()
+    }))
+  ]]);
+
+  const result = readKnowledge(storage, seed, { now: NOW });
+
+  assert.equal(result.error, null);
+  assert.equal(result.envelope.data.drugs.find((item) => item.id === 'escitalopram').action, seedDrug.action);
+  assert.match(seedDrug.action, /同效果摄入剂量更低/);
+  assert.ok(result.backupKey.startsWith(BACKUP_KEY_PREFIX));
+});
+
+test('25u 未提升种子版本时内置药物代码修改仍会自动同步', () => {
+  const seed = makeSeed();
+  const nextSeed = clone(seed);
+  nextSeed.drugs[0].name = '代码更新名称';
+  nextSeed.drugs[0].sideEffects = '代码新增副作用字段';
+  const result = readKnowledge(currentStorage(seed), nextSeed, { now: NOW });
+
+  assert.equal(result.error, null);
+  assert.equal(result.envelope.seedVersion, 13);
+  assert.equal(result.envelope.data.drugs[0].name, '代码更新名称');
+  assert.equal(result.envelope.data.drugs[0].sideEffects, '代码新增副作用字段');
+  assert.ok(result.backupKey.startsWith(BACKUP_KEY_PREFIX));
+});
+
+test('25v 内置药物代码删除字段会从浏览器数据同步删除', () => {
+  const seed = makeSeed();
+  seed.drugs[0].legacyNote = '待从代码删除';
+  const nextSeed = clone(seed);
+  delete nextSeed.drugs[0].legacyNote;
+  const result = readKnowledge(currentStorage(seed), nextSeed, { now: NOW });
+
+  assert.equal(result.error, null);
+  assert.equal(Object.hasOwn(result.envelope.data.drugs[0], 'legacyNote'), false);
+});
+
+test('25w 删除内置药物会同步移除且不会误删本地新增药物', () => {
+  const seed = makeSeed();
+  seed.disorders[0].relatedDrugIds.push('drug-extra');
+  const withCustom = upsertEntry(
+    createEnvelope(seed),
+    'drugs',
+    customEntry('drugs'),
+    { now: NOW, seedData: seed }
+  );
+  const nextSeed = clone(seed);
+  nextSeed.drugs = nextSeed.drugs.filter((item) => item.id !== 'drug-extra');
+  const result = migrateKnowledge(JSON.stringify(withCustom), nextSeed, { now: NOW });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.envelope.data.drugs.some((item) => item.id === 'drug-extra'), false);
+  assert.equal(result.envelope.data.drugs.some((item) => item.id === 'drug-custom'), true);
+  assert.equal(result.envelope.data.disorders[0].relatedDrugIds.includes('drug-extra'), false);
+});
+
+test('25x 编辑器只覆盖实际修改字段，其他字段继续跟随代码', () => {
+  const seed = makeSeed();
+  const edited = upsertEntry(
+    createEnvelope(seed),
+    'drugs',
+    { ...seed.drugs[0], name: '本地名称' },
+    { now: NOW, seedData: seed }
+  );
+  const nextSeed = clone(seed);
+  nextSeed.drugs[0].name = '代码名称';
+  nextSeed.drugs[0].source = '代码更新来源';
+  const result = migrateKnowledge(JSON.stringify(edited), nextSeed, { now: NOW });
+
+  assert.deepEqual(edited.localOverrides.drugs, { 'drug-core': ['name'] });
+  assert.equal(result.envelope.data.drugs[0].name, '本地名称');
+  assert.equal(result.envelope.data.drugs[0].source, '代码更新来源');
+});
+
+test('25y 编辑字段恢复为代码值后会清除本地覆盖标记', () => {
+  const seed = makeSeed();
+  const edited = upsertEntry(
+    createEnvelope(seed),
+    'drugs',
+    { ...seed.drugs[0], name: '本地名称' },
+    { now: NOW, seedData: seed }
+  );
+  const restored = upsertEntry(
+    edited,
+    'drugs',
+    seed.drugs[0],
+    { now: NOW, seedData: seed }
+  );
+
+  assert.deepEqual(restored.localOverrides.drugs, {});
+});
+
+for (const [type, field] of [
+  ['disorders', 'summary'],
+  ['cases', 'summary']
+]) {
+  test(`25z ${type} 内置字段修改和新增无需提升种子版本即可同步`, () => {
+    const seed = makeSeed();
+    const nextSeed = clone(seed);
+    nextSeed[type][0][field] = `${type} 代码更新内容`;
+    nextSeed[type][0].codeAddedNote = `${type} 代码新增字段`;
+
+    const result = readKnowledge(currentStorage(seed), nextSeed, { now: NOW });
+
+    assert.equal(result.error, null);
+    assert.equal(result.envelope.data[type][0][field], `${type} 代码更新内容`);
+    assert.equal(result.envelope.data[type][0].codeAddedNote, `${type} 代码新增字段`);
+    assert.ok(result.backupKey.startsWith(BACKUP_KEY_PREFIX));
+  });
+
+  test(`25za ${type} 代码删除字段会从浏览器数据同步删除`, () => {
+    const seed = makeSeed();
+    seed[type][0].legacyNote = `${type} 待删除字段`;
+    const nextSeed = clone(seed);
+    delete nextSeed[type][0].legacyNote;
+
+    const result = readKnowledge(currentStorage(seed), nextSeed, { now: NOW });
+
+    assert.equal(result.error, null);
+    assert.equal(Object.hasOwn(result.envelope.data[type][0], 'legacyNote'), false);
+  });
+
+  test(`25zb ${type} 本地编辑字段保留，未编辑字段继续跟随代码`, () => {
+    const seed = makeSeed();
+    const edited = upsertEntry(
+      createEnvelope(seed),
+      type,
+      { ...seed[type][0], [field]: `${type} 本地内容` },
+      { now: NOW, seedData: seed }
+    );
+    const nextSeed = clone(seed);
+    nextSeed[type][0][field] = `${type} 代码冲突内容`;
+    nextSeed[type][0].source = `${type} 代码更新来源`;
+
+    const result = migrateKnowledge(JSON.stringify(edited), nextSeed, { now: NOW });
+
+    assert.deepEqual(edited.localOverrides[type], {
+      [seed[type][0].id]: [field]
+    });
+    assert.equal(result.envelope.data[type][0][field], `${type} 本地内容`);
+    assert.equal(result.envelope.data[type][0].source, `${type} 代码更新来源`);
+  });
+
+  test(`25zc ${type} 编辑字段恢复代码值后清除覆盖标记`, () => {
+    const seed = makeSeed();
+    const edited = upsertEntry(
+      createEnvelope(seed),
+      type,
+      { ...seed[type][0], [field]: `${type} 本地内容` },
+      { now: NOW, seedData: seed }
+    );
+    const restored = upsertEntry(
+      edited,
+      type,
+      seed[type][0],
+      { now: NOW, seedData: seed }
+    );
+
+    assert.deepEqual(restored.localOverrides[type], {});
+  });
+}
+
+test('25zd 代码删除内置案例会同步移除且保留本地新增案例', () => {
+  const seed = makeSeed();
+  const withCustom = upsertEntry(
+    createEnvelope(seed),
+    'cases',
+    customEntry('cases'),
+    { now: NOW, seedData: seed }
+  );
+  const nextSeed = clone(seed);
+  nextSeed.cases = nextSeed.cases.filter((item) => item.id !== 'case-extra');
+
+  const result = migrateKnowledge(JSON.stringify(withCustom), nextSeed, { now: NOW });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.envelope.data.cases.some((item) => item.id === 'case-extra'), false);
+  assert.equal(result.envelope.data.cases.some((item) => item.id === 'case-custom'), true);
+});
+
+test('25ze 代码删除无案例依赖的内置疾病会同步移除且保留本地新增疾病', () => {
+  const seed = makeSeed();
+  const withCustom = upsertEntry(
+    createEnvelope(seed),
+    'disorders',
+    customEntry('disorders'),
+    { now: NOW, seedData: seed }
+  );
+  const nextSeed = clone(seed);
+  nextSeed.disorders = nextSeed.disorders.filter((item) => item.id !== 'disorder-extra');
+
+  const result = migrateKnowledge(JSON.stringify(withCustom), nextSeed, { now: NOW });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.envelope.data.disorders.some((item) => item.id === 'disorder-extra'), false);
+  assert.equal(result.envelope.data.disorders.some((item) => item.id === 'disorder-custom'), true);
+});
+
+test('25zf 代码同时删除内置疾病及其案例时两者都会同步移除', () => {
+  const seed = makeSeed();
+  const nextSeed = clone(seed);
+  nextSeed.disorders = nextSeed.disorders.filter((item) => item.id !== 'disorder-core');
+  nextSeed.cases = nextSeed.cases.filter((item) => item.disorderId !== 'disorder-core');
+
+  const result = migrateKnowledge(
+    JSON.stringify(createEnvelope(seed)),
+    nextSeed,
+    { now: NOW }
+  );
+
+  assert.equal(result.ok, true);
+  assert.equal(result.envelope.data.disorders.some((item) => item.id === 'disorder-core'), false);
+  assert.equal(result.envelope.data.cases.some((item) => item.disorderId === 'disorder-core'), false);
+});
+
+test('25zg 本地案例仍引用已从代码删除的疾病时暂时保留该疾病', () => {
+  const seed = makeSeed();
+  const customCase = {
+    ...customEntry('cases'),
+    disorderId: 'disorder-extra'
+  };
+  const withCustomCase = upsertEntry(
+    createEnvelope(seed),
+    'cases',
+    customCase,
+    { now: NOW, seedData: seed }
+  );
+  const nextSeed = clone(seed);
+  nextSeed.disorders = nextSeed.disorders.filter((item) => item.id !== 'disorder-extra');
+
+  const retained = migrateKnowledge(JSON.stringify(withCustomCase), nextSeed, { now: NOW });
+
+  assert.equal(retained.ok, true);
+  assert.equal(retained.envelope.data.disorders.some((item) => item.id === 'disorder-extra'), true);
+  assert.equal(retained.envelope.seedIds.disorders.includes('disorder-extra'), true);
+
+  const withoutCustomCase = deleteEntry(
+    retained.envelope,
+    'cases',
+    customCase.id,
+    nextSeed,
+    { now: NOW }
+  );
+  const released = migrateKnowledge(JSON.stringify(withoutCustomCase), nextSeed, { now: NOW });
+
+  assert.equal(released.ok, true);
+  assert.equal(released.envelope.data.disorders.some((item) => item.id === 'disorder-extra'), false);
+});
+
+test('25zh schema v3 药物覆盖迁移到通用覆盖，疾病与案例旧快照同步代码', () => {
+  const seed = makeSeed();
+  const savedData = clone(seed);
+  savedData.drugs[0].name = 'schema v3 本地药物名称';
+  savedData.disorders[0].summary = 'schema v3 旧疾病摘要';
+  savedData.cases[0].summary = 'schema v3 旧案例摘要';
+  const schemaV3 = {
+    schemaVersion: 3,
+    seedVersion: 13,
+    savedAt: NOW.toISOString(),
+    data: savedData,
+    deletedIds: {
+      drugs: [],
+      disorders: [],
+      cases: [],
+      resources: []
+    },
+    localDrugOverrides: { 'drug-core': ['name'] },
+    seedDrugIds: seed.drugs.map((item) => item.id)
+  };
+  const nextSeed = clone(seed);
+  nextSeed.drugs[0].name = 'schema v4 代码药物名称';
+  nextSeed.disorders[0].summary = 'schema v4 代码疾病摘要';
+  nextSeed.cases[0].summary = 'schema v4 代码案例摘要';
+
+  const result = migrateKnowledge(JSON.stringify(schemaV3), nextSeed, { now: NOW });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.envelope.schemaVersion, 4);
+  assert.equal(result.envelope.data.drugs[0].name, 'schema v3 本地药物名称');
+  assert.equal(result.envelope.data.disorders[0].summary, 'schema v4 代码疾病摘要');
+  assert.equal(result.envelope.data.cases[0].summary, 'schema v4 代码案例摘要');
+  assert.deepEqual(result.envelope.localOverrides.drugs, { 'drug-core': ['name'] });
+  assert.deepEqual(result.envelope.localOverrides.disorders, {});
+  assert.deepEqual(result.envelope.localOverrides.cases, {});
 });
 
 test('26 迁移写入前创建旧数据的逐字备份', () => {
@@ -541,6 +916,19 @@ test('27 迁移失败时原始主数据保持不变', () => {
   const storage = new MemoryStorage([[STORAGE_KEY, raw]]);
   readKnowledge(storage, makeSeed(), { now: NOW });
   assert.equal(storage.getItem(STORAGE_KEY), raw);
+});
+
+test('27b 当前结构缺少来源元数据时停止迁移并保留原始主数据', () => {
+  const malformed = createEnvelope(makeSeed());
+  delete malformed.localOverrides;
+  const raw = JSON.stringify(malformed);
+  const storage = new MemoryStorage([[STORAGE_KEY, raw]]);
+
+  const result = readKnowledge(storage, makeSeed(), { now: NOW });
+
+  assert.equal(result.error?.code, 'migration-failed');
+  assert.equal(storage.getItem(STORAGE_KEY), raw);
+  assert.ok(result.backupKey.startsWith(BACKUP_KEY_PREFIX));
 });
 
 test('28 自动备份最多保留五份且淘汰最旧项', () => {
@@ -689,8 +1077,8 @@ test('33 导出包含固定格式标识', () => {
 
 test('34 导出包含结构和种子版本', () => {
   const exported = createKnowledgeExport(createEnvelope(makeSeed()), { now: NOW });
-  assert.equal(exported.schemaVersion, 2);
-  assert.equal(exported.seedVersion, 12);
+  assert.equal(exported.schemaVersion, 4);
+  assert.equal(exported.seedVersion, 13);
 });
 
 test('35 导出包含 ISO 时间', () => {
@@ -711,7 +1099,9 @@ test('37 导出不包含浏览器和身份信息', () => {
     'deletedIds',
     'exportedAt',
     'format',
+    'localOverrides',
     'schemaVersion',
+    'seedIds',
     'seedVersion'
   ]);
 });
@@ -741,6 +1131,40 @@ test('39 导出后重新导入可往返保持数据与删除记录', () => {
   );
   assert.deepEqual(parsed.envelope.data, source.data);
   assert.deepEqual(parsed.envelope.deletedIds, source.deletedIds);
+  assert.deepEqual(parsed.envelope.localOverrides, source.localOverrides);
+  assert.deepEqual(parsed.envelope.seedIds, source.seedIds);
+});
+
+test('39b schema v3 导出可迁移导入并保留药物字段覆盖', () => {
+  const seed = makeSeed();
+  const savedData = clone(seed);
+  savedData.drugs[0].name = '旧备份本地药物名称';
+  savedData.disorders[0].summary = '旧备份疾病摘要';
+  const schemaV3Export = {
+    format: BACKUP_FORMAT,
+    schemaVersion: 3,
+    seedVersion: 13,
+    exportedAt: NOW.toISOString(),
+    data: savedData,
+    deletedIds: {
+      drugs: [],
+      disorders: [],
+      cases: [],
+      resources: []
+    },
+    localDrugOverrides: { 'drug-core': ['name'] },
+    seedDrugIds: seed.drugs.map((item) => item.id)
+  };
+
+  const parsed = parseKnowledgeImport(JSON.stringify(schemaV3Export), {
+    seedData: seed,
+    now: NOW
+  });
+
+  assert.equal(parsed.envelope.schemaVersion, 4);
+  assert.equal(parsed.envelope.data.drugs[0].name, '旧备份本地药物名称');
+  assert.equal(parsed.envelope.data.disorders[0].summary, seed.disorders[0].summary);
+  assert.deepEqual(parsed.envelope.localOverrides.drugs, { 'drug-core': ['name'] });
 });
 
 test('40 非文本文件内容被拒绝', () => {
@@ -793,6 +1217,24 @@ test('44 未知未来版本被拒绝', () => {
   assert.throws(
     () => parseKnowledgeImport(JSON.stringify(exported), { seedData: makeSeed() }),
     { code: 'import-version-future' }
+  );
+});
+
+test('44b schema v4 缺少本地覆盖记录的导入被拒绝', () => {
+  const exported = createKnowledgeExport(createEnvelope(makeSeed()), { now: NOW });
+  delete exported.localOverrides;
+  assert.throws(
+    () => parseKnowledgeImport(JSON.stringify(exported), { seedData: makeSeed() }),
+    { code: 'import-overrides-invalid' }
+  );
+});
+
+test('44c schema v4 内置词条 ID 记录无效的导入被拒绝', () => {
+  const exported = createKnowledgeExport(createEnvelope(makeSeed()), { now: NOW });
+  exported.seedIds.drugs = ['drug-core', 'drug-core'];
+  assert.throws(
+    () => parseKnowledgeImport(JSON.stringify(exported), { seedData: makeSeed() }),
+    { code: 'import-seed-ids-invalid' }
   );
 });
 
