@@ -14,6 +14,44 @@ function isObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
+const LEGACY_SEED_FIELD_VALUES = Object.freeze({
+  citalopram: Object.freeze({
+    kinetics: Object.freeze([
+      '经肝脏 CYP2C19、CYP3A4 和 CYP2D6 代谢，半衰期约 35 小时；老年、肝损害或 CYP2C19 抑制时暴露增加。'
+    ]),
+    contraindications: Object.freeze([
+      '剂量依赖性 QT 间期延长是重要警示；先天性长 QT、心动过缓、低钾低镁或合并延长 QT 药物时需避免或严密监测。'
+    ]),
+    sideEffects: Object.freeze([
+      '常见恶心、腹泻或消化不适、头痛、出汗、失眠或嗜睡，以及性欲下降、延迟射精或高潮困难。开始用药或调整剂量后，少数人会短暂感到焦虑或激越。',
+      `• 中枢神经系统：头痛；兴奋、激动或焦虑；失眠或嗜睡；少数人可能出现轻躁狂、认知变化、运动障碍或感觉异常。
+• 心血管：需特别关注剂量相关的 QT 间期延长；先天性长 QT、心动过缓、低钾低镁或合并延长 QT 药物时，应避免使用或严密监测；少数人可出现心动过速、心悸或头晕。
+• 血液系统：可能出现血小板减少或出血倾向；合用非甾体类抗炎药、阿司匹林或其他抗凝药物时需谨慎。
+• 内分泌与代谢：可能出现低钠血症，少数女性可能出现泌乳素升高。
+• 消化系统：常见恶心、呕吐，少数人出现腹泻、厌食或体重减轻。
+• 泌尿生殖系统：可能出现性欲下降、勃起障碍、性快感缺失或延迟高潮。
+• 过敏及其他：极少数人出现皮疹；也有脱发、鼻炎、夜尿或骨量变化等报告。`
+    ])
+  })
+});
+
+function applyKnownSeedFieldUpdates(savedItem, seedItem) {
+  const fieldUpdates = LEGACY_SEED_FIELD_VALUES[savedItem?.id];
+  if (!fieldUpdates || !seedItem) return savedItem;
+
+  let nextItem = savedItem;
+  Object.entries(fieldUpdates).forEach(([field, legacyValues]) => {
+    if (
+      typeof seedItem[field] === 'string'
+      && legacyValues.includes(savedItem[field])
+      && savedItem[field] !== seedItem[field]
+    ) {
+      nextItem = { ...nextItem, [field]: seedItem[field] };
+    }
+  });
+  return nextItem;
+}
+
 export function createDeletedIds(value = {}) {
   return Object.fromEntries(DATA_COLLECTIONS.map((type) => {
     const ids = Array.isArray(value?.[type])
@@ -46,15 +84,18 @@ export function mergeWithSeed(savedData, seedData, deletedIds = createDeletedIds
     const savedItems = (Array.isArray(savedData?.[type]) ? cloneValue(savedData[type]) : [])
       .map((item) => {
         const seedItem = seedById.get(item?.id);
+        const updatedItem = type === 'drugs'
+          ? applyKnownSeedFieldUpdates(item, seedItem)
+          : item;
         if (
           type !== 'drugs'
           || !seedItem
-          || Object.hasOwn(item, 'sideEffects')
+          || Object.hasOwn(updatedItem, 'sideEffects')
           || typeof seedItem.sideEffects !== 'string'
         ) {
-          return item;
+          return updatedItem;
         }
-        return { ...item, sideEffects: seedItem.sideEffects };
+        return { ...updatedItem, sideEffects: seedItem.sideEffects };
       });
     const savedIds = new Set(savedItems.map((item) => item?.id).filter(Boolean));
     const deleted = new Set(normalizedDeletedIds[type]);
