@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { cloneSeed as cloneProjectSeed } from '../src/data.js';
+import { drugSideEffectsById } from '../src/drugSideEffects.js';
 import {
   BACKUP_KEY_PREFIX,
   BACKUP_RETENTION_LIMIT,
@@ -96,7 +98,7 @@ test('03 旧 meta.version 数据迁移为 schema v2', () => {
   const result = readKnowledge(storage, makeSeed(), { now: NOW });
   assert.equal(result.error, null);
   assert.equal(result.envelope.schemaVersion, 2);
-  assert.equal(result.envelope.seedVersion, 11);
+  assert.equal(result.envelope.seedVersion, 12);
 });
 
 test('04 无效 JSON 不覆盖主存储值', () => {
@@ -377,6 +379,94 @@ test('25k 同 ID 药物保留用户修改并补入新种子的副作用字段', 
   assert.equal(result.envelope.data.drugs[0].sideEffects, '新种子副作用说明');
 });
 
+test('25l 西酞普兰旧版默认字段升级为协作者更新内容', () => {
+  const seed = makeSeed();
+  seed.drugs[0].id = 'citalopram';
+  seed.disorders[0].relatedDrugIds = seed.disorders[0].relatedDrugIds
+    .map((id) => id === 'drug-core' ? 'citalopram' : id);
+  seed.drugs[0].kinetics = '协作者更新的药代动力学';
+  seed.drugs[0].contraindications = '协作者更新的禁忌与警示';
+  seed.drugs[0].sideEffects = '协作者更新的详细副作用';
+
+  const savedData = clone(seed);
+  savedData.drugs[0].name = '用户保留的药物名称';
+  savedData.drugs[0].kinetics = '经肝脏 CYP2C19、CYP3A4 和 CYP2D6 代谢，半衰期约 35 小时；老年、肝损害或 CYP2C19 抑制时暴露增加。';
+  savedData.drugs[0].contraindications = '剂量依赖性 QT 间期延长是重要警示；先天性长 QT、心动过缓、低钾低镁或合并延长 QT 药物时需避免或严密监测。';
+  savedData.drugs[0].sideEffects = '常见恶心、腹泻或消化不适、头痛、出汗、失眠或嗜睡，以及性欲下降、延迟射精或高潮困难。开始用药或调整剂量后，少数人会短暂感到焦虑或激越。';
+
+  const result = migrateKnowledge(
+    JSON.stringify(createEnvelope(savedData, {
+      savedAt: NOW.toISOString(),
+      seedVersion: 11
+    })),
+    seed,
+    { now: NOW }
+  );
+
+  assert.equal(result.ok, true);
+  assert.equal(result.envelope.seedVersion, 12);
+  assert.equal(result.envelope.data.drugs[0].name, '用户保留的药物名称');
+  assert.equal(result.envelope.data.drugs[0].kinetics, '协作者更新的药代动力学');
+  assert.equal(result.envelope.data.drugs[0].contraindications, '协作者更新的禁忌与警示');
+  assert.equal(result.envelope.data.drugs[0].sideEffects, '协作者更新的详细副作用');
+});
+
+test('25m 西酞普兰真正的本地自定义字段不会被种子升级覆盖', () => {
+  const seed = makeSeed();
+  seed.drugs[0].id = 'citalopram';
+  seed.disorders[0].relatedDrugIds = seed.disorders[0].relatedDrugIds
+    .map((id) => id === 'drug-core' ? 'citalopram' : id);
+  seed.drugs[0].kinetics = '协作者更新的药代动力学';
+  seed.drugs[0].contraindications = '协作者更新的禁忌与警示';
+  seed.drugs[0].sideEffects = '协作者更新的详细副作用';
+
+  const savedData = clone(seed);
+  savedData.drugs[0].kinetics = '用户自定义药代';
+  savedData.drugs[0].contraindications = '用户自定义警示';
+  savedData.drugs[0].sideEffects = '用户自定义副作用';
+
+  const result = migrateKnowledge(
+    JSON.stringify(createEnvelope(savedData, {
+      savedAt: NOW.toISOString(),
+      seedVersion: 11
+    })),
+    seed,
+    { now: NOW }
+  );
+
+  assert.equal(result.ok, true);
+  assert.equal(result.envelope.data.drugs[0].kinetics, '用户自定义药代');
+  assert.equal(result.envelope.data.drugs[0].contraindications, '用户自定义警示');
+  assert.equal(result.envelope.data.drugs[0].sideEffects, '用户自定义副作用');
+});
+
+test('25n 重设计版旧副作用文本升级为协作者完整西酞普兰资料', () => {
+  const seed = cloneProjectSeed();
+  const savedData = clone(seed);
+  const seedDrug = seed.drugs.find((item) => item.id === 'citalopram');
+  const savedDrug = savedData.drugs.find((item) => item.id === 'citalopram');
+
+  savedDrug.kinetics = '经肝脏 CYP2C19、CYP3A4 和 CYP2D6 代谢，半衰期约 35 小时；老年、肝损害或 CYP2C19 抑制时暴露增加。';
+  savedDrug.contraindications = '剂量依赖性 QT 间期延长是重要警示；先天性长 QT、心动过缓、低钾低镁或合并延长 QT 药物时需避免或严密监测。';
+  savedDrug.sideEffects = drugSideEffectsById.citalopram;
+
+  const result = migrateKnowledge(
+    JSON.stringify(createEnvelope(savedData, {
+      savedAt: NOW.toISOString(),
+      seedVersion: 11
+    })),
+    seed,
+    { now: NOW }
+  );
+  const migratedDrug = result.envelope.data.drugs
+    .find((item) => item.id === 'citalopram');
+
+  assert.equal(result.ok, true);
+  assert.equal(migratedDrug.kinetics, seedDrug.kinetics);
+  assert.equal(migratedDrug.contraindications, seedDrug.contraindications);
+  assert.equal(migratedDrug.sideEffects, seedDrug.sideEffects);
+});
+
 test('26 迁移写入前创建旧数据的逐字备份', () => {
   const raw = JSON.stringify(makeLegacy());
   const storage = new MemoryStorage([[STORAGE_KEY, raw]]);
@@ -539,7 +629,7 @@ test('33 导出包含固定格式标识', () => {
 test('34 导出包含结构和种子版本', () => {
   const exported = createKnowledgeExport(createEnvelope(makeSeed()), { now: NOW });
   assert.equal(exported.schemaVersion, 2);
-  assert.equal(exported.seedVersion, 11);
+  assert.equal(exported.seedVersion, 12);
 });
 
 test('35 导出包含 ISO 时间', () => {

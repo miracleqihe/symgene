@@ -15,7 +15,7 @@ symgene-wiki-data-v1
 ```json
 {
   "schemaVersion": 2,
-  "seedVersion": 11,
+  "seedVersion": 12,
   "savedAt": "2026-07-29T12:00:00.000Z",
   "data": {
     "drugs": [],
