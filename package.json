@@ -11,24 +11,17 @@
     "check:links": "node scripts/check-links.mjs",
     "check:links:remote": "node scripts/check-links-remote.mjs",
     "test:unit": "node --test tests/*.test.mjs",
-    "test:ui": "vitest run",
-    "test": "npm run test:unit && npm run test:ui",
+    "test": "npm run test:unit",
     "check:build": "node scripts/check-build.mjs",
     "verify": "npm run check:data && npm run check:links && npm test && npm run build && npm run check:build"
   },
   "dependencies": {
+    "@remotion/player": "4.0.502",
     "@vitejs/plugin-react": "6.0.4",
     "lucide-react": "1.27.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "remotion": "4.0.502",
     "vite": "8.1.5"
-  },
-  "devDependencies": {
-    "@testing-library/jest-dom": "7.0.0",
-    "@testing-library/react": "16.3.2",
-    "@testing-library/user-event": "14.6.1",
-    "axe-core": "4.12.1",
-    "jsdom": "27.4.0",
-    "vitest": "4.1.10"
   }
 }

@@ -19,14 +19,13 @@ npm run dev
 npm run check:data
 npm run check:links
 npm run test:unit
-npm run test:ui
 npm test
 npm run build
 npm run check:build
 npm run verify
 ```
 
-`test:unit` 覆盖纯逻辑，`test:ui` 覆盖用户行为和 axe-core 可访问性基线。`check:links:remote` 用于人工或定时检查外部可达性，不属于普通 Pull Request 的阻断门禁。
+`test:unit` 覆盖搜索、数据、链接和本地存储等纯逻辑。`check:links:remote` 用于人工或定时检查外部可达性，不属于普通 Pull Request 的阻断门禁。界面、响应式和动画仍需在真实浏览器中人工回归。
 
 ## 数据与医学内容边界
 

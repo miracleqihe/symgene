@@ -1,3 +1,5 @@
+import { drugSideEffectsById, drugSideEffectsByProfile } from './drugSideEffects.js';
+
 const source = '依据本项目本地资料《精神药物手册》相关分类与药物专论整理；面向公众改写，不保留页码。';
 
 const profiles = {
@@ -420,6 +422,7 @@ function drug(id, name, aliases, profile, extra = {}) {
     name,
     aliases,
     ...profiles[profile],
+    sideEffects: drugSideEffectsById[id] || drugSideEffectsByProfile[profile] || '待补充',
     section: meta.section,
     categoryLabel: categoryLabels[profile] || profiles[profile]?.className || '待补充分类',
     classOrder: meta.order,

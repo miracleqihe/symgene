@@ -218,10 +218,6 @@
 .presence-detail > .presence-current.is-entering .fact:nth-child(7) { animation-delay: 220ms; }
 .presence-detail > .presence-current.is-entering .fact:nth-child(8) { animation-delay: 245ms; }
 
-.drug-section-panel.is-active {
-  animation: drug-section-reveal 240ms var(--ease-state) both;
-}
-
 .presence-gateway > .presence-current.is-entering .welcome-symbol,
 .presence-gateway > .presence-current.is-entering .welcome-content h1,
 .presence-gateway > .presence-current.is-entering .welcome-subtitle,
@@ -240,6 +236,26 @@
 .presence-gateway > .presence-current.is-entering .welcome-date { animation-delay: 175ms; }
 .presence-gateway > .presence-current.is-entering .welcome-divider { animation-delay: 195ms; }
 .presence-gateway > .presence-current.is-entering .welcome-enter { animation-delay: 215ms; }
+
+.presence-page.page-scroll-presence > .presence-exiting.direction-forward,
+.presence-page.page-scroll-presence > .presence-exiting.direction-lateral-forward {
+  animation: page-scroll-forward-exit var(--presence-exit-duration) cubic-bezier(.55, 0, 1, .45) both;
+}
+
+.presence-page.page-scroll-presence > .presence-current.is-entering.direction-forward,
+.presence-page.page-scroll-presence > .presence-current.is-entering.direction-lateral-forward {
+  animation: page-scroll-forward-enter var(--presence-enter-duration) cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.presence-page.page-scroll-presence > .presence-exiting.direction-backward,
+.presence-page.page-scroll-presence > .presence-exiting.direction-lateral-backward {
+  animation: page-scroll-backward-exit var(--presence-exit-duration) cubic-bezier(.55, 0, 1, .45) both;
+}
+
+.presence-page.page-scroll-presence > .presence-current.is-entering.direction-backward,
+.presence-page.page-scroll-presence > .presence-current.is-entering.direction-lateral-backward {
+  animation: page-scroll-backward-enter var(--presence-enter-duration) cubic-bezier(.22, 1, .36, 1) both;
+}
 
 @keyframes presence-forward-exit {
   to {
@@ -294,6 +310,34 @@
   from {
     opacity: 0;
     transform: translateX(-18px);
+  }
+}
+
+@keyframes page-scroll-forward-exit {
+  to {
+    opacity: 0;
+    transform: translate3d(0, -18px, 0);
+  }
+}
+
+@keyframes page-scroll-forward-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0);
+  }
+}
+
+@keyframes page-scroll-backward-exit {
+  to {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+}
+
+@keyframes page-scroll-backward-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -28px, 0);
   }
 }
 
@@ -409,18 +453,6 @@
   }
 }
 
-@keyframes drug-section-reveal {
-  from {
-    opacity: 0;
-    transform: translateY(7px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @keyframes welcome-step-in {
   from {
     opacity: 0;
@@ -429,10 +461,13 @@
 }
 
 @media (max-width: 780px) {
+  .presence-page,
+  .presence-page > .presence-layer,
   .presence-page:has(.library-page),
   .presence-page > .presence-layer:has(.library-page) {
     height: auto;
     min-height: 100%;
+    overflow: visible;
   }
 
   .presence-overlay > .presence-current.is-entering .editor-modal {
@@ -475,15 +510,10 @@
   .page-header > *,
   .drug-section,
   .disorder-category,
-  .drug-section-panel,
   .fact {
     opacity: 1 !important;
     transform: none !important;
     filter: none !important;
     letter-spacing: inherit;
-  }
-
-  .drug-section-panel.is-active {
-    animation: none;
   }
 }
