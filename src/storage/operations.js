@@ -1,4 +1,4 @@
-import { DATA_COLLECTIONS, SEED_VERSION } from './constants.js';
+import { DATA_COLLECTIONS } from './constants.js';
 import {
   createDeletedIds,
   createEnvelope,
@@ -12,8 +12,11 @@ function valuesEqual(left, right) {
 }
 
 function buildEnvelope(envelope, data, deletedIds, localOverrides, now) {
+  if (validateEnvelope(envelope).length) {
+    throw new KnowledgeStorageError('validation-failed', '现有本地数据未通过完整性校验。');
+  }
   const next = createEnvelope(data, {
-    seedVersion: envelope.seedVersion || SEED_VERSION,
+    seedVersion: envelope.seedVersion,
     savedAt: now.toISOString(),
     deletedIds,
     localOverrides,
