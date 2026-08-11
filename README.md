@@ -49,10 +49,11 @@ npm run check:build
 npm run verify
 ```
 
-`verify` 会依次执行正式数据检查、静态链接检查、逻辑测试、生产构建和构建产物边界检查。逻辑测试也可以单独运行：
+`verify` 会依次执行正式数据检查、静态链接检查、逻辑测试、界面与无障碍回归、生产构建和构建产物边界检查。两类测试也可以单独运行：
 
 ```bash
 npm run test:unit
+npm run test:ui
 ```
 
 ## 开发交接

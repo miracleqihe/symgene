@@ -728,7 +728,7 @@
   background: var(--yellow-pale);
 }
 
-.risk-banner.high {
+.risk-banner.critical {
   color: #814944;
   border-color: #e5c0ba;
   background: var(--danger-soft);

@@ -514,21 +514,25 @@
     height: calc(100dvh - var(--topbar-height));
     padding: 24px 20px 20px;
     box-shadow: var(--shadow-overlay);
+    visibility: hidden;
     opacity: 0;
     transform: translateX(-104%);
     pointer-events: none;
     transition:
       transform 180ms var(--ease-page-exit),
-      opacity 150ms var(--ease-fade-out);
+      opacity 150ms var(--ease-fade-out),
+      visibility 0s linear 180ms;
   }
 
   .sidebar.is-open {
+    visibility: visible;
     opacity: 1;
     transform: translateX(0);
     pointer-events: auto;
     transition:
       transform 420ms var(--ease-nav),
-      opacity 280ms var(--ease-fade-in);
+      opacity 280ms var(--ease-fade-in),
+      visibility 0s;
   }
 
   .sidebar.is-open .main-nav button {

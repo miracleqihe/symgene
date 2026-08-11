@@ -138,9 +138,10 @@ test('只有宽泛药物分类词时不会触发直接药物提示', () => {
 });
 
 for (const [label, query] of [
-  ['自伤或自杀', '我想自杀'],
-  ['伤人或暴力', '我想拿刀伤人'],
-  ['急性躯体或中毒', '服药过量后意识不清']
+  ['自伤或自杀', '我想自杀，同时持续疲惫'],
+  ['代码已有同义表达“想死”', '我想死，同时持续疲惫'],
+  ['伤人或暴力', '我想拿刀伤人，同时持续疲惫'],
+  ['急性躯体或中毒', '持续疲惫，服药过量后意识不清']
 ]) {
   test(`${label}严重风险抑制所有普通结果`, () => {
     const result = matchKnowledge(query, makeSearchData());
@@ -148,6 +149,27 @@ for (const [label, query] of [
     assert.deepEqual(result.disorders, []);
     assert.deepEqual(result.cases, []);
     assert.deepEqual(result.drugs, []);
+  });
+}
+
+for (const [label, query] of [
+  ['否定表达', '我没有自杀想法'],
+  ['过去时', '十年前想过自杀，现在很安全'],
+  ['第三人称', '他说他想自杀'],
+  ['条件句', '如果有人想自杀应该怎么办']
+]) {
+  test(`当前关键词策略对${label}保持保守触发`, () => {
+    assert.equal(matchKnowledge(query, makeSearchData()).risk?.level, 'critical');
+  });
+}
+
+for (const [label, query] of [
+  ['常见错别字', '我想自沙'],
+  ['未收录近义表达', '我想结束生命'],
+  ['模糊高风险表达', '我想永远消失']
+]) {
+  test(`当前关键词策略暂不识别${label}`, () => {
+    assert.equal(matchKnowledge(query, makeSearchData()).risk, null);
   });
 }
 
