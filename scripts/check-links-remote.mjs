@@ -1,9 +1,12 @@
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { cloneSeed } from '../src/data.js';
 
 const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
 const HEAD_FALLBACK_STATUSES = new Set([403, 405, 501]);
 const DEFAULT_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_REDIRECTS = 5;
+const NHC_HOME_URL = 'https://www.nhc.gov.cn/';
 
 async function request(url, method, {
   fetchImpl,
@@ -30,11 +33,21 @@ async function request(url, method, {
 
     if (!REDIRECT_STATUSES.has(response.status)) {
       if (method === 'GET' && response.body) await response.body.cancel();
-      return { status: response.status, finalUrl: currentUrl, redirects: redirectCount };
+      return {
+        status: response.status,
+        finalUrl: currentUrl,
+        redirects: redirectCount,
+        wafRay: response.headers.get('wzws-ray') || ''
+      };
     }
     const location = response.headers.get('location');
     if (!location) {
-      return { status: response.status, finalUrl: currentUrl, redirects: redirectCount };
+      return {
+        status: response.status,
+        finalUrl: currentUrl,
+        redirects: redirectCount,
+        wafRay: response.headers.get('wzws-ray') || ''
+      };
     }
     if (response.body) await response.body.cancel();
     currentUrl = new URL(location, currentUrl).href;
@@ -52,18 +65,39 @@ export async function checkRemoteUrl(url, {
   return request(url, 'GET', { fetchImpl, maxRedirects, timeoutMs });
 }
 
-export async function reportRemoteLinks(data, output = console) {
+export function classifyRemoteResult(url, result) {
+  if (result.status >= 200 && result.status < 400) return 'ok';
+  const normalizedUrl = new URL(url).href;
+  // NHC's WZWS WAF returns a stable 412 challenge to CI clients. Keep this
+  // exception exact so unrelated 412 responses and genuinely broken links fail.
+  if (normalizedUrl === NHC_HOME_URL
+    && result.finalUrl === NHC_HOME_URL
+    && result.status === 412
+    && /-w-waf/i.test(result.wafRay)) {
+    return 'access-blocked';
+  }
+  return 'failed';
+}
+
+export async function reportRemoteLinks(data, output = console, checkOptions = {}) {
   const urls = [...new Set(data.resources.map((resource) => resource.url))];
   let failed = 0;
+  let accessBlocked = 0;
   for (const url of urls) {
     try {
-      const result = await checkRemoteUrl(url);
-      const ok = result.status >= 200 && result.status < 400;
-      output[ok ? 'log' : 'error'](
-        `${ok ? 'OK' : 'FAIL'} ${result.status} ${url}`
-        + (result.finalUrl !== url ? ` -> ${result.finalUrl}` : '')
-      );
-      if (!ok) failed += 1;
+      const result = await checkRemoteUrl(url, checkOptions);
+      const classification = classifyRemoteResult(url, result);
+      const redirect = result.finalUrl !== url ? ` -> ${result.finalUrl}` : '';
+      if (classification === 'ok') {
+        output.log(`OK ${result.status} ${url}${redirect}`);
+      } else if (classification === 'access-blocked') {
+        accessBlocked += 1;
+        const warn = typeof output.warn === 'function' ? output.warn.bind(output) : output.log.bind(output);
+        warn(`ACCESS-BLOCKED ${result.status} ${url} (confirmed WAF challenge)`);
+      } else {
+        failed += 1;
+        output.error(`FAIL ${result.status} ${url}${redirect}`);
+      }
     } catch (error) {
       failed += 1;
       output.error(`FAIL network ${url}: ${error.name}`);
@@ -73,8 +107,18 @@ export async function reportRemoteLinks(data, output = console) {
     output.error(`Remote link validation failed: ${failed}/${urls.length} unavailable.`);
     return 1;
   }
-  output.log(`Remote link validation passed: ${urls.length}/${urls.length} reachable.`);
+  if (accessBlocked) {
+    output.log(
+      `Remote link validation passed: ${urls.length - accessBlocked}/${urls.length} reachable; `
+      + `${accessBlocked} access-blocked by a confirmed WAF challenge.`
+    );
+  } else {
+    output.log(`Remote link validation passed: ${urls.length}/${urls.length} reachable.`);
+  }
   return 0;
 }
 
-process.exitCode = await reportRemoteLinks(cloneSeed());
+const entryPath = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : '';
+if (import.meta.url === entryPath) {
+  process.exitCode = await reportRemoteLinks(cloneSeed());
+}
