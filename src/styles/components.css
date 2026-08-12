@@ -734,6 +734,12 @@
   background: var(--danger-soft);
 }
 
+.risk-banner.guidance {
+  color: var(--navy-deep);
+  border-color: rgba(52, 127, 145, .28);
+  background: var(--cyan-wash);
+}
+
 .risk-banner svg {
   flex: none;
   margin-top: 2px;

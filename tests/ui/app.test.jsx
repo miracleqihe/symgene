@@ -131,11 +131,11 @@ async function expectNoSeriousAxeViolations(container) {
 }
 
 describe('safety UI gate', () => {
-  test('“想死”显示 critical alert 并抑制疾病、案例和关联药物结果', async () => {
+  test('当前“想死”显示 critical alert 并抑制疾病、案例和关联药物结果', async () => {
     const { user, container } = await renderApp();
     await user.type(
       screen.getByRole('textbox', { name: '描述你正在经历的情况' }),
-      '我想死，同时持续疲惫'
+      '我现在想死，同时持续疲惫'
     );
 
     const alert = screen.getByRole('alert');
@@ -145,6 +145,33 @@ describe('safety UI gate', () => {
     expect(screen.queryByText('相似案例')).not.toBeInTheDocument();
     expect(screen.queryByText('关联治疗与药物资料')).not.toBeInTheDocument();
     await expectNoSeriousAxeViolations(container);
+  });
+
+  test('第三人称假设显示 guidance status 并保留普通结果', async () => {
+    const { user, container } = await renderApp();
+    await user.type(
+      screen.getByRole('textbox', { name: '描述你正在经历的情况' }),
+      '如果有人想自杀应该怎么办，同时持续疲惫'
+    );
+
+    const status = screen.getByRole('status');
+    expect(status).toHaveClass('risk-banner', 'guidance');
+    expect(status).toHaveTextContent('若危险正在发生');
+    expect(screen.getByText('可能相关的疾病线索')).toBeInTheDocument();
+    await expectNoSeriousAxeViolations(container);
+  });
+
+  test('否定的自杀片段不会掩盖同句已经发生的吞药风险', async () => {
+    const { user } = await renderApp();
+    await user.type(
+      screen.getByRole('textbox', { name: '描述你正在经历的情况' }),
+      '我没有自杀想法，但是刚刚吞了几十片安眠药'
+    );
+
+    const alert = screen.getByRole('alert');
+    expect(alert).toHaveClass('risk-banner', 'critical');
+    expect(alert).toHaveTextContent('急性躯体/中毒风险');
+    expect(alert).not.toHaveTextContent('自伤/自杀风险');
   });
 });
 

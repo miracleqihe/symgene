@@ -208,12 +208,38 @@ const TARGET_RULES = [
 ];
 
 const RISK_RULES = [
-  { level: 'critical', label: '自伤/自杀风险', terms: ['自杀', '轻生', '不想活', '活着没有意义', '伤害自己', '自伤', '想死', '跳楼', '割腕', '命令性声音'] },
-  { level: 'critical', label: '伤人或暴力风险', terms: ['伤人', '杀人', '攻击', '拿刀', '武器', '暴力', '要报复', '放火', '纵火', '伤婴', '伤害婴儿', '伤害孩子'] },
-  { level: 'critical', label: '急性躯体/中毒风险', terms: ['胸痛', '严重呼吸困难', '晕厥', '抽搐', '高热', '意识不清', '呼吸变慢', '服药过量', '中毒', '不醒', '吞电池', '吞磁铁'] },
-  { level: 'warning', label: '反复身体伤害风险', terms: ['撞头', '咬伤自己', '反复打自己'] },
-  { level: 'warning', label: '需要尽快专业评估', terms: ['几天不睡', '无法进食', '无法喝水', '走失', '幻觉', '被害', '戒断', '严重失眠'] }
+  { id: 'self-harm', defaultLevel: 'warning', label: '自伤/自杀风险', terms: ['自杀', '轻生', '不想活', '活着没有意义', '伤害自己', '自伤', '想死', '跳楼', '割腕', '命令性声音'] },
+  { id: 'violence', defaultLevel: 'warning', label: '伤人或暴力风险', terms: ['伤人', '杀人', '攻击', '拿刀', '武器', '暴力', '要报复', '放火', '纵火', '伤婴', '伤害婴儿', '伤害孩子'] },
+  { id: 'acute-medical', defaultLevel: 'critical', label: '急性躯体/中毒风险', terms: ['胸痛', '严重呼吸困难', '晕厥', '抽搐', '高热', '意识不清', '呼吸变慢', '服药过量', '中毒', '不醒', '吞电池', '吞磁铁'] },
+  { id: 'repeated-harm', defaultLevel: 'warning', label: '反复身体伤害风险', terms: ['撞头', '咬伤自己', '反复打自己'] },
+  { id: 'professional-assessment', defaultLevel: 'warning', label: '需要尽快专业评估', terms: ['几天不睡', '无法进食', '无法喝水', '走失', '幻觉', '被害', '戒断', '严重失眠'] }
 ];
+
+const RISK_PATTERN_RULES = [
+  {
+    ruleId: 'acute-medical',
+    term: '疑似服药过量',
+    pattern: /(?:吞|吃|服)(?:了|下)?(?:\d+|几十|很多|大量)片?(?:安眠药|药物?|药)/
+  },
+  {
+    ruleId: 'acute-medical',
+    term: '疑似服药过量',
+    pattern: /(?:大量|过量)(?:吞|吃|服)(?:用)?(?:安眠药|药物?|药)/
+  }
+];
+
+const RISK_LEVEL_PRIORITY = { guidance: 1, warning: 2, critical: 3 };
+const CRITICAL_TERMS = new Set([
+  '命令性声音', '跳楼', '割腕', '拿刀', '武器', '放火', '纵火', '伤婴', '伤害婴儿', '伤害孩子',
+  '胸痛', '严重呼吸困难', '晕厥', '抽搐', '高热', '意识不清', '呼吸变慢', '服药过量', '中毒', '不醒',
+  '吞电池', '吞磁铁', '疑似服药过量'
+]);
+
+const RISK_MESSAGES = {
+  critical: '描述中出现了正在发生、已经实施或可能很快实施的危险线索。请立即联系身边可信任的人、当地急救或危机干预服务，不要独处。',
+  warning: '描述中出现了需要进一步确认的风险线索。请先确认危险是否正在发生、是否已有计划或行动；如是，请立即联系当地急救或危机干预服务。',
+  guidance: '描述涉及他人、假设或已经结束的高风险情境。若危险正在发生，请立即联系当地急救或危机干预服务；否则可继续查看相关帮助。'
+};
 
 function normalize(value) {
   return String(value || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '').trim();
@@ -294,16 +320,133 @@ function trimRanked(results, limit = 5) {
   return results.filter((result) => result.score >= threshold).slice(0, limit);
 }
 
+function splitRiskClauses(query) {
+  return String(query || '')
+    .split(/[，。！？；,!?;\n]+|(?:但是|不过|然而|可是|同时|但)/)
+    .map((clause) => clause.trim())
+    .filter(Boolean);
+}
+
+function subjectForMatch(clause, matchIndex) {
+  const beforeMatch = normalize(clause).slice(0, matchIndex);
+  const subjectMarkers = [
+    { subject: 'self', terms: ['本人', '我'] },
+    { subject: 'other', terms: ['朋友', '家人', '孩子', '同学', '伴侣', '患者', '他', '她', '有人'] }
+  ];
+  let nearest = { subject: 'unknown', index: -1 };
+  subjectMarkers.forEach(({ subject, terms }) => {
+    terms.forEach((term) => {
+      const index = beforeMatch.lastIndexOf(term);
+      if (index > nearest.index) nearest = { subject, index };
+    });
+  });
+  return nearest.subject;
+}
+
+function isNegatedMatch(clause, matchIndex) {
+  const normalizedClause = normalize(clause);
+  const prefix = normalizedClause.slice(Math.max(0, matchIndex - 10), matchIndex);
+  return /(?:没有|并没有|并无|不存在)(?:任何|过)?$/.test(prefix)
+    || /否认(?:有|存在)?$/.test(prefix)
+    || /(?:从未|不曾)(?:有过|有|想过)?$/.test(prefix)
+    || /(?:不会|没想过|不想|不是想|不是)$/.test(prefix);
+}
+
+function isBenignSleepIdiom(clause, term) {
+  if (term !== '不醒') return false;
+  const normalizedClause = normalize(clause);
+  return normalizedClause.includes('睡不醒')
+    && !/(?:服药|吞药|吃药|药物|中毒|呼吸|意识|叫不醒|摇不醒)/.test(normalizedClause);
+}
+
+function hasPastContext(clause) {
+  return /(?:十年前|多年前|几年前|以前|过去|曾经|小时候|去年|上个月|前阵子|想过|有过)/.test(normalize(clause));
+}
+
+function hasCurrentSafetyStatement(query) {
+  return /(?:现在|目前|此刻)(?:很|已经)?(?:安全|没事|没有危险|无危险)/.test(normalize(query));
+}
+
+function isConditional(clause) {
+  return /(?:如果|假如|假设|万一)/.test(normalize(clause));
+}
+
+function isReportedOrEducational(clause) {
+  return /(?:新闻报道|报道说|科普|讨论预防)/.test(normalize(clause));
+}
+
+function hasCurrentOrActionEvidence(clause) {
+  const normalizedClause = normalize(clause);
+  return /(?:现在|正在|此刻|马上|立刻|刚刚|刚才|已经|今晚|今天|准备|打算|计划|就要|正要)/.test(normalizedClause)
+    || /(?:吞了|吃了|服了|割了|跳了|点燃|放了火|伤了|捅了)/.test(normalizedClause);
+}
+
+function classifyRiskEvent({ clause, matchIndex, rule, term, query }) {
+  if (isNegatedMatch(clause, matchIndex) || isBenignSleepIdiom(clause, term)) return null;
+
+  const subject = subjectForMatch(clause, matchIndex);
+  const currentOrAction = hasCurrentOrActionEvidence(clause);
+  const inherentlyCritical = CRITICAL_TERMS.has(term);
+  let level = rule.defaultLevel;
+  let context = 'unresolved';
+
+  if (hasPastContext(clause) && hasCurrentSafetyStatement(query)) {
+    level = 'guidance';
+    context = 'past-safe';
+  } else if (isReportedOrEducational(clause)) {
+    level = 'guidance';
+    context = 'reported-or-educational';
+  } else if (currentOrAction || inherentlyCritical) {
+    level = 'critical';
+    context = currentOrAction ? 'current-or-action' : 'specific-acute-signal';
+  } else if (isConditional(clause)) {
+    level = 'guidance';
+    context = 'hypothetical';
+  } else if (subject === 'other') {
+    level = 'guidance';
+    context = 'other-person';
+  } else if (rule.defaultLevel === 'critical') {
+    level = 'warning';
+    context = 'acute-signal-needs-context';
+  }
+
+  return { type: rule.id, label: rule.label, term, level, subject, context };
+}
+
+function riskMatchesForClause(clause, query) {
+  const normalizedClause = normalize(clause);
+  const matches = [];
+  RISK_RULES.forEach((rule) => {
+    rule.terms.forEach((term) => {
+      const matchIndex = normalizedClause.indexOf(normalize(term));
+      if (matchIndex < 0) return;
+      const event = classifyRiskEvent({ clause, matchIndex, rule, term, query });
+      if (event) matches.push(event);
+    });
+  });
+  RISK_PATTERN_RULES.forEach(({ ruleId, term, pattern }) => {
+    const patternMatch = clause.match(pattern);
+    if (!patternMatch) return;
+    const rule = RISK_RULES.find((candidate) => candidate.id === ruleId);
+    const matchIndex = normalize(clause.slice(0, patternMatch.index)).length;
+    const event = classifyRiskEvent({ clause, matchIndex, rule, term, query });
+    if (event) matches.push(event);
+  });
+  return matches;
+}
+
 export function detectRisk(query) {
-  const normalized = normalize(query);
-  const matches = RISK_RULES.filter((rule) => rule.terms.some((term) => normalized.includes(normalize(term))));
-  if (!matches.length) return null;
+  const events = splitRiskClauses(query).flatMap((clause) => riskMatchesForClause(clause, query));
+  if (!events.length) return null;
+  const level = events.reduce((highest, event) => (
+    RISK_LEVEL_PRIORITY[event.level] > RISK_LEVEL_PRIORITY[highest] ? event.level : highest
+  ), 'guidance');
   return {
-    level: matches.some((rule) => rule.level === 'critical') ? 'critical' : 'warning',
-    labels: matches.map((rule) => rule.label),
-    message: matches.some((rule) => rule.level === 'critical')
-      ? '描述中出现了需要优先处理的危险线索。请先联系身边可信任的人、当地急救或危机干预服务，不要独处。'
-      : '描述中出现了需要尽快进行专业评估的线索。若情况正在加重，请联系当地医疗服务。'
+    level,
+    labels: [...new Set(events.map((event) => event.label))],
+    message: RISK_MESSAGES[level],
+    needsClarification: level === 'warning',
+    events
   };
 }
 

@@ -73,7 +73,7 @@ export function classifyRemoteResult(url, result) {
   if (normalizedUrl === NHC_HOME_URL
     && result.finalUrl === NHC_HOME_URL
     && result.status === 412
-    && /-w-waf/i.test(result.wafRay)) {
+    && /-(?:w-waf|waf\d+[a-z0-9]*)/i.test(result.wafRay)) {
     return 'access-blocked';
   }
   return 'failed';

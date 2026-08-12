@@ -29,10 +29,26 @@ test('精确 NHC 首页的 412 + WZWS WAF 签名分类为 access-blocked', async
   assert.equal(classifyRemoteResult(url, result), 'access-blocked');
 });
 
+test('精确 NHC 首页接受当前观测到的 waf 节点签名格式', async () => {
+  const url = 'https://www.nhc.gov.cn/';
+  const result = await checkRemoteUrl(url, {
+    fetchImpl: async () => response(412, { 'WZWS-RAY': '1149-1786586113.126-waf01bjtp3' })
+  });
+  assert.equal(classifyRemoteResult(url, result), 'access-blocked');
+});
+
 test('NHC 412 缺少已确认 WAF 签名仍然失败', async () => {
   const url = 'https://www.nhc.gov.cn/';
   const result = await checkRemoteUrl(url, {
     fetchImpl: async () => response(412)
+  });
+  assert.equal(classifyRemoteResult(url, result), 'failed');
+});
+
+test('NHC 412 的宽泛 waf 字样不能伪装成已确认节点签名', async () => {
+  const url = 'https://www.nhc.gov.cn/';
+  const result = await checkRemoteUrl(url, {
+    fetchImpl: async () => response(412, { 'WZWS-RAY': 'generic-waf-challenge' })
   });
   assert.equal(classifyRemoteResult(url, result), 'failed');
 });
