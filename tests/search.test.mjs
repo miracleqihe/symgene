@@ -138,9 +138,10 @@ test('只有宽泛药物分类词时不会触发直接药物提示', () => {
 });
 
 for (const [label, query] of [
-  ['自伤或自杀', '我想自杀'],
-  ['伤人或暴力', '我想拿刀伤人'],
-  ['急性躯体或中毒', '服药过量后意识不清']
+  ['当前自伤或自杀', '我现在想自杀，同时持续疲惫'],
+  ['当前同义表达“想死”', '我现在想死，同时持续疲惫'],
+  ['持有手段的伤人或暴力', '我想拿刀伤人，同时持续疲惫'],
+  ['急性躯体或中毒', '持续疲惫，服药过量后意识不清']
 ]) {
   test(`${label}严重风险抑制所有普通结果`, () => {
     const result = matchKnowledge(query, makeSearchData());
@@ -148,6 +149,85 @@ for (const [label, query] of [
     assert.deepEqual(result.disorders, []);
     assert.deepEqual(result.cases, []);
     assert.deepEqual(result.drugs, []);
+  });
+}
+
+test('未确认当前行动的本人风险表达降为 warning 并保留普通结果', () => {
+  const result = matchKnowledge('我想死，同时持续疲惫', makeSearchData());
+  assert.equal(result.risk?.level, 'warning');
+  assert.equal(result.risk?.needsClarification, true);
+  assert.equal(result.disorders[0]?.item.id, 'depression');
+});
+
+test('明确否定只排除所在风险事件', () => {
+  assert.equal(matchKnowledge('我没有自杀想法', makeSearchData()).risk, null);
+});
+
+for (const [label, query, expectedContext] of [
+  ['过去且当前安全', '十年前想过自杀，现在很安全', 'past-safe'],
+  ['没有当前性的第三人称', '他说他想自杀', 'other-person'],
+  ['条件或假设', '如果有人想自杀应该怎么办', 'hypothetical']
+]) {
+  test(`${label}风险表达提供 guidance 而不冒充即时危险`, () => {
+    const risk = matchKnowledge(query, makeSearchData()).risk;
+    assert.equal(risk?.level, 'guidance');
+    assert.equal(risk?.events[0]?.context, expectedContext);
+  });
+}
+
+test('常见“睡不醒”表达不会仅凭“不醒”触发急性中毒风险', () => {
+  assert.equal(matchKnowledge('每天都睡不醒', makeSearchData()).risk, null);
+});
+
+test('真正叫不醒仍保持急性风险', () => {
+  assert.equal(matchKnowledge('怎么叫都不醒', makeSearchData()).risk?.level, 'critical');
+});
+
+test('第三人称当前急性身体危险仍直接升级 critical', () => {
+  assert.equal(matchKnowledge('他现在正在抽搐', makeSearchData()).risk?.level, 'critical');
+});
+
+test('条件句中已经发生的吞药危险仍直接升级 critical', () => {
+  assert.equal(matchKnowledge('如果朋友已经吞了很多药怎么办', makeSearchData()).risk?.level, 'critical');
+});
+
+test('新闻或科普语境不会因具体危险词冒充现场急症', () => {
+  const risk = matchKnowledge('新闻报道有人拿刀伤人', makeSearchData()).risk;
+  assert.equal(risk?.level, 'guidance');
+  assert.ok(risk?.events.every((event) => event.context === 'reported-or-educational'));
+});
+
+test('被否定的自杀片段不会掩盖同句已经发生的服药过量', () => {
+  const risk = matchKnowledge('我没有自杀想法，但是刚刚吞了几十片安眠药', makeSearchData()).risk;
+  assert.equal(risk?.level, 'critical');
+  assert.deepEqual(risk?.labels, ['急性躯体/中毒风险']);
+  assert.equal(risk?.events[0]?.term, '疑似服药过量');
+});
+
+test('否定词不能跨越“放弃”错误消除当前自杀计划', () => {
+  assert.equal(matchKnowledge('我没有放弃自杀计划', makeSearchData()).risk?.level, 'critical');
+});
+
+test('前一个被否定的同类事件不能掩盖后一个当前事件', () => {
+  const risk = matchKnowledge('我没有自杀想法，但是我现在想死', makeSearchData()).risk;
+  assert.equal(risk?.level, 'critical');
+  assert.equal(risk?.events.length, 1);
+  assert.equal(risk?.events[0]?.term, '想死');
+});
+
+test('既往安全的自杀片段不会掩盖同句当前伤人计划', () => {
+  const risk = matchKnowledge('十年前想过自杀，现在很安全，但是我正要拿刀伤人', makeSearchData()).risk;
+  assert.equal(risk?.level, 'critical');
+  assert.ok(risk?.events.some((event) => event.type === 'violence' && event.level === 'critical'));
+});
+
+for (const [label, query] of [
+  ['常见错别字', '我想自沙'],
+  ['未收录近义表达', '我想结束生命'],
+  ['模糊高风险表达', '我想永远消失']
+]) {
+  test(`当前关键词策略暂不识别${label}`, () => {
+    assert.equal(matchKnowledge(query, makeSearchData()).risk, null);
   });
 }
 

@@ -5,6 +5,7 @@ import { drugSideEffectsById } from '../src/drugSideEffects.js';
 import {
   BACKUP_KEY_PREFIX,
   BACKUP_RETENTION_LIMIT,
+  SEED_VERSION,
   STORAGE_KEY
 } from '../src/storage/constants.js';
 import {
@@ -111,6 +112,63 @@ test('03 旧 meta.version 数据迁移为 schema v4', () => {
   assert.equal(result.error, null);
   assert.equal(result.envelope.schemaVersion, 4);
   assert.equal(result.envelope.seedVersion, 13);
+});
+
+test('03a seedVersion 0 是合法非负版本且通过完整 envelope 校验', () => {
+  const envelope = createEnvelope(makeSeed(), { seedVersion: 0 });
+  assert.equal(envelope.seedVersion, 0);
+  assert.deepEqual(validateEnvelope(envelope), []);
+});
+
+test('03b 缺省 seedVersion 使用当前版本，null、负数和非整数被校验拒绝', () => {
+  assert.equal(createEnvelope(makeSeed(), { seedVersion: undefined }).seedVersion, SEED_VERSION);
+  for (const value of [null, undefined, -1, 1.5]) {
+    const envelope = createEnvelope(makeSeed());
+    envelope.seedVersion = value;
+    assert.ok(
+      validateEnvelope(envelope).some((error) => error.field === 'seedVersion'),
+      `seedVersion=${String(value)} should be rejected`
+    );
+  }
+});
+
+test('03c upsertEntry 保留 seedVersion 0 并通过浏览器存储序列化往返', () => {
+  const seed = makeSeed();
+  const envelope = createEnvelope(seed, { seedVersion: 0, savedAt: NOW.toISOString() });
+  const updated = upsertEntry(
+    envelope,
+    'resources',
+    customEntry('resources'),
+    { now: NOW, seedData: seed }
+  );
+  assert.equal(updated.seedVersion, 0);
+  assert.deepEqual(validateEnvelope(updated), []);
+
+  const storage = new MemoryStorage();
+  writeKnowledge(storage, updated);
+  const roundTripped = stored(storage);
+  assert.equal(roundTripped.seedVersion, 0);
+  assert.deepEqual(roundTripped, updated);
+});
+
+test('03d deleteEntry 保留 seedVersion 0，operations 拒绝无效或缺失版本', () => {
+  const seed = makeSeed();
+  const envelope = createEnvelope(seed, { seedVersion: 0 });
+  const deleted = deleteEntry(envelope, 'resources', 'resource-extra', seed, { now: NOW });
+  assert.equal(deleted.seedVersion, 0);
+
+  for (const value of [null, undefined, -1, 1.5]) {
+    const invalid = createEnvelope(seed);
+    invalid.seedVersion = value;
+    assert.throws(
+      () => upsertEntry(invalid, 'resources', customEntry('resources'), { now: NOW, seedData: seed }),
+      { code: 'validation-failed' }
+    );
+    assert.throws(
+      () => deleteEntry(invalid, 'resources', 'resource-extra', seed, { now: NOW }),
+      { code: 'validation-failed' }
+    );
+  }
 });
 
 test('04 无效 JSON 不覆盖主存储值', () => {

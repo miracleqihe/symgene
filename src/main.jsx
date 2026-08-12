@@ -50,11 +50,12 @@ function resolveOverlayDirection() {
   return 'overlay';
 }
 
-function App() {
+export function App({ canEdit = CAN_EDIT } = {}) {
   const [activePage, setActivePage] = useState('home');
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState(null);
   const [editor, setEditor] = useState(null);
+  const [editorLayerActive, setEditorLayerActive] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
   const [toast, setToast] = useState('');
   const {
@@ -67,6 +68,7 @@ function App() {
   const [pageTransitionMode, setPageTransitionMode] = useState('menu');
   const [homeLetterOpen, setHomeLetterOpen] = useState(false);
   const mainContentRef = useRef(null);
+  const menuToggleRef = useRef(null);
 
   useEffect(() => {
     setSelected((current) => {
@@ -76,7 +78,9 @@ function App() {
   }, [activePage, data]);
   const previousPageRef = useRef(activePage);
   const searchInputRef = useRef(null);
-  const focusFrameRef = useRef(null);
+  const [searchFocusRequest, setSearchFocusRequest] = useState(0);
+  const [pageFocusRequest, setPageFocusRequest] = useState(null);
+  const [detailFocusRequest, setDetailFocusRequest] = useState(null);
   const wheelAccumulatorRef = useRef(0);
   const wheelResetTimerRef = useRef(null);
   const wheelUnlockTimerRef = useRef(null);
@@ -90,18 +94,22 @@ function App() {
       setActivePage('home');
       setSelected(null);
       setMobileNav(false);
-      if (focusFrameRef.current) window.cancelAnimationFrame(focusFrameRef.current);
-      focusFrameRef.current = window.requestAnimationFrame(() => {
-        searchInputRef.current?.focus();
-        focusFrameRef.current = null;
-      });
+      setSearchFocusRequest((current) => current + 1);
     }
     window.addEventListener('keydown', focusSearch);
-    return () => {
-      window.removeEventListener('keydown', focusSearch);
-      if (focusFrameRef.current) window.cancelAnimationFrame(focusFrameRef.current);
-    };
+    return () => window.removeEventListener('keydown', focusSearch);
   }, []);
+
+  useEffect(() => {
+    if (!mobileNav) return undefined;
+    const closeOnEscape = (event) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      closeMobileNav({ restoreFocus: true });
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [mobileNav]);
 
   useEffect(() => {
     if (!toast) return undefined;
@@ -131,6 +139,22 @@ function App() {
   const searchResults = useMemo(() => matchKnowledge(query, data), [data, query]);
 
   function go(page, source = 'menu') {
+    const activeElement = document.activeElement;
+    const fromMobileNav = Boolean(mobileNav && activeElement instanceof HTMLElement
+      && activeElement.closest('#main-sidebar'));
+    const focusMovesWithPage = page !== activePage
+      && activeElement instanceof HTMLElement
+      && (mainContentRef.current?.contains(activeElement)
+        || fromMobileNav);
+    setPageFocusRequest(focusMovesWithPage && page !== 'home'
+      ? { page }
+      : null);
+    setDetailFocusRequest(null);
+    if (fromMobileNav && page === 'home' && page !== activePage) {
+      setSearchFocusRequest((current) => current + 1);
+    } else if (fromMobileNav && page === activePage) {
+      window.requestAnimationFrame(() => menuToggleRef.current?.focus({ preventScroll: true }));
+    }
     setPageTransitionMode(source);
     setActivePage(page);
     setSelected(null);
@@ -140,6 +164,12 @@ function App() {
   }
 
   function openItem(type, item) {
+    const focusMovesWithDetail = document.activeElement instanceof HTMLElement
+      && mainContentRef.current?.contains(document.activeElement);
+    setDetailFocusRequest(focusMovesWithDetail
+      ? { type, id: item.id }
+      : null);
+    setPageFocusRequest(null);
     setPageTransitionMode('menu');
     setActivePage(type);
     setSelected(item);
@@ -148,7 +178,15 @@ function App() {
   }
 
   function startEdit(type, item = null) {
+    setEditorLayerActive(true);
     setEditor({ type, item: item ? { ...item } : makeBlank(type) });
+  }
+
+  function closeMobileNav({ restoreFocus = false } = {}) {
+    setMobileNav(false);
+    if (restoreFocus) {
+      window.requestAnimationFrame(() => menuToggleRef.current?.focus({ preventScroll: true }));
+    }
   }
 
   function makeBlank(type) {
@@ -232,18 +270,25 @@ function App() {
       data-scrolled={mainScrolled ? 'true' : 'false'}
       data-mobile-nav={mobileNav ? 'open' : 'closed'}
     >
-      <header className="topbar">
+      <header className="topbar" inert={CAN_EDIT && canEdit && editorLayerActive ? true : undefined}>
         <button className="brand mobile-brand" onClick={() => go('home')} aria-label="Sym Gen 心鉴，回到首页">
           <span className="brand-mark"><img src={symGenMark} alt="" /></span>
           <span><strong>Sym Gen</strong><em>{activePageLabel}</em></span>
         </button>
         <div className="topbar-actions">
-          <button className="icon-button menu-toggle" onClick={() => setMobileNav(!mobileNav)} aria-label="打开导航"><Menu size={20} /></button>
+          <button
+            ref={menuToggleRef}
+            className="icon-button menu-toggle"
+            onClick={() => setMobileNav(!mobileNav)}
+            aria-label={mobileNav ? '关闭导航' : '打开导航'}
+            aria-expanded={mobileNav}
+            aria-controls="main-sidebar"
+          ><Menu size={20} /></button>
         </div>
       </header>
 
-      <div className="layout">
-        <aside className={'sidebar ' + (mobileNav ? 'is-open' : '')}>
+      <div className="layout" inert={CAN_EDIT && canEdit && editorLayerActive ? true : undefined}>
+        <aside id="main-sidebar" className={'sidebar ' + (mobileNav ? 'is-open' : '')}>
           <div className="side-brand-block">
             <button className="brand side-brand" onClick={() => go('home')} aria-label="Sym Gen 心鉴，回到首页">
               <span className="brand-mark"><img src={symGenMark} alt="" /></span>
@@ -259,11 +304,11 @@ function App() {
             {navItems.map((item, itemIndex) => <button key={item.id} style={{ '--nav-order': itemIndex }} className={activePage === item.id ? 'active' : ''} onClick={() => go(item.id)}><NavIcon id={item.id} /><span>{item.label}</span>{item.id !== 'home' && <small>{counts[item.id]}</small>}<ChevronRight size={15} /></button>)}
           </nav>
           <div className="side-bottom">
-            <span className="status-dot"><i /> {CAN_EDIT ? '本地编辑模式' : '公开阅读模式'}</span>
+            <span className="status-dot"><i /> {CAN_EDIT && canEdit ? '本地编辑模式' : '公开阅读模式'}</span>
             <div className="side-foot"><ShieldCheck size={15} /><span>仅供公共科普，不替代专业诊疗</span></div>
           </div>
         </aside>
-        <button className="nav-scrim" onClick={() => setMobileNav(false)} aria-label="关闭导航" tabIndex={mobileNav ? 0 : -1} />
+        <button className="nav-scrim" onClick={() => closeMobileNav({ restoreFocus: true })} aria-label="关闭导航" tabIndex={mobileNav ? 0 : -1} />
 
         <main
           className={'main-content ' + (activePage === 'home' ? 'home-main-content' : '')}
@@ -284,24 +329,24 @@ function App() {
             settleMs={pageTransitionMode === 'wheel' ? 470 : (activePage === 'cases' ? 520 : 580)}
             resolveDirection={resolvePageDirection}
           >
-            {activePage === 'home' && <HomePage counts={counts} onNavigate={go} onOpen={openItem} query={query} setQuery={setQuery} searchResults={searchResults} searchInputRef={searchInputRef} onLetterOpenChange={setHomeLetterOpen} />}
-            {activePage === 'drugs' && <ListPage type="drugs" data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} mainContentRef={mainContentRef} />}
-            {activePage === 'disorders' && <ListPage type="disorders" data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} mainContentRef={mainContentRef} />}
-            {activePage === 'cases' && <CasesPage data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} onOpenDisorder={(disorder) => openItem('disorders', disorder)} mainContentRef={mainContentRef} />}
-            {activePage === 'resources' && <ResourcesPage data={data} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} />}
+            {activePage === 'home' && <HomePage counts={counts} onNavigate={go} onOpen={openItem} query={query} setQuery={setQuery} searchResults={searchResults} searchInputRef={searchInputRef} searchFocusRequest={searchFocusRequest} onLetterOpenChange={setHomeLetterOpen} />}
+            {activePage === 'drugs' && <ListPage type="drugs" data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} mainContentRef={mainContentRef} canEdit={canEdit} focusOnMount={pageFocusRequest?.page === 'drugs'} onPageFocused={() => setPageFocusRequest(null)} focusSelected={detailFocusRequest?.type === 'drugs' && detailFocusRequest.id === selected?.id} onSelectedFocused={() => setDetailFocusRequest(null)} />}
+            {activePage === 'disorders' && <ListPage type="disorders" data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} mainContentRef={mainContentRef} canEdit={canEdit} focusOnMount={pageFocusRequest?.page === 'disorders'} onPageFocused={() => setPageFocusRequest(null)} focusSelected={detailFocusRequest?.type === 'disorders' && detailFocusRequest.id === selected?.id} onSelectedFocused={() => setDetailFocusRequest(null)} />}
+            {activePage === 'cases' && <CasesPage data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} onOpenDisorder={(disorder) => openItem('disorders', disorder)} mainContentRef={mainContentRef} canEdit={canEdit} focusOnMount={pageFocusRequest?.page === 'cases'} onPageFocused={() => setPageFocusRequest(null)} focusSelected={detailFocusRequest?.type === 'cases' && detailFocusRequest.id === selected?.id} onSelectedFocused={() => setDetailFocusRequest(null)} />}
+            {activePage === 'resources' && <ResourcesPage data={data} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} canEdit={canEdit} focusOnMount={pageFocusRequest?.page === 'resources'} onPageFocused={() => setPageFocusRequest(null)} />}
           </AnimatedPresence>
         </main>
       </div>
 
       <AnimatedPresence
-        viewKey={CAN_EDIT && editor ? `${editor.type}:${editor.item.id}` : EMPTY_VIEW}
+        viewKey={CAN_EDIT && canEdit && editor ? `${editor.type}:${editor.item.id}` : EMPTY_VIEW}
         emptyKey={EMPTY_VIEW}
         kind="overlay"
         exitMs={150}
         enterMs={320}
         resolveDirection={resolveOverlayDirection}
       >
-        {CAN_EDIT && editor && <EditorModal editor={editor} disorders={data.disorders} onClose={() => setEditor(null)} onSave={saveEditor} />}
+        {CAN_EDIT && canEdit && editor && <EditorModal editor={editor} disorders={data.disorders} onClose={() => setEditor(null)} onSave={saveEditor} onExited={() => setEditorLayerActive(false)} />}
       </AnimatedPresence>
       <AnimatedPresence
         viewKey={(storageError || toast) || EMPTY_VIEW}
@@ -328,7 +373,13 @@ function NavIcon({ id }) {
   return <Library {...props} />;
 }
 
-function HomePage({ onNavigate, onOpen, query, setQuery, searchResults, searchInputRef, onLetterOpenChange }) {
+function HomePage({ onNavigate, onOpen, query, setQuery, searchResults, searchInputRef, searchFocusRequest, onLetterOpenChange }) {
+  useEffect(() => {
+    if (!searchFocusRequest) return undefined;
+    const frame = window.requestAnimationFrame(() => searchInputRef.current?.focus());
+    return () => window.cancelAnimationFrame(frame);
+  }, [searchFocusRequest, searchInputRef]);
+
   return <div className="page home-page page-enter">
     <section className="home-hero">
       <header className="home-topbar">
@@ -367,7 +418,7 @@ function DescriptionSearch({ query, setQuery, results, onOpen, searchInputRef })
     <div className="search-dock">
       <div className="search-wrap"><Search size={19} /><input ref={searchInputRef} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="例如：三个月都很累，早醒，不想见人" aria-label="描述你正在经历的情况" />{query && <button className="clear-search" onClick={() => setQuery('')} aria-label="清除描述"><X size={16} /></button>}<kbd>Ctrl/⌘ K</kbd></div>
       {query && <div className="search-results search-results-rich">
-        {results.risk && <div className={'risk-banner ' + results.risk.level}><ShieldCheck size={18} /><div><strong>{results.risk.labels.join(' · ')}</strong><p>{results.risk.message}</p></div></div>}
+        {results.risk && <div className={'risk-banner ' + results.risk.level} role={results.risk.level === 'critical' ? 'alert' : 'status'}><ShieldCheck size={18} /><div><strong>{results.risk.labels.join(' · ')}</strong><p>{results.risk.message}</p></div></div>}
         {results.disorders.length > 0 && <SearchGroup label="可能相关的疾病线索" note="按症状、时间线和功能影响排序"><div className="search-result-list">{results.disorders.map(({ item, hits }) => <SearchResult key={'disorder-' + item.id} type="disorders" item={item} hits={hits} onOpen={onOpen} />)}</div></SearchGroup>}
         {results.cases.length > 0 && <SearchGroup label="相似案例" note="用于理解评估重点，不代表与你相同"><div className="search-result-list">{results.cases.map(({ item, hits }) => <SearchResult key={'case-' + item.id} type="cases" item={item} hits={hits} onOpen={onOpen} />)}</div></SearchGroup>}
         {results.drugs.length > 0 && <SearchGroup label="关联治疗与药物资料" note="来自已匹配的疾病线索，仅供阅读"><div className="search-result-list">{results.drugs.map((item) => <SearchResult key={'drug-' + item.id} type="drugs" item={item} hits={[item.categoryLabel]} onOpen={onOpen} />)}</div></SearchGroup>}
@@ -388,28 +439,38 @@ function SearchResult({ type, item, hits, onOpen }) {
   return <button className="search-result" onClick={() => onOpen(type, item)}><span className={'result-type ' + type}>{typeLabels[type]}</span><span className="result-copy"><strong>{title}</strong><small>{subtitle}</small>{hits?.length > 0 && <em>命中：{hits.join('、')}</em>}</span><ArrowUpRight size={17} /></button>;
 }
 
-function ListPage({ type, data, selected, onSelect, onEdit, onDelete, onAdd, mainContentRef }) {
+function ListPage({ type, data, selected, onSelect, onEdit, onDelete, onAdd, mainContentRef, canEdit, focusOnMount, onPageFocused, focusSelected, onSelectedFocused }) {
   const detailRef = useRef(null);
   const indexPanelRef = useRef(null);
   const mobileListScrollRef = useRef(0);
+  const mobileListTriggerRef = useRef(null);
   const scrollFrameRef = useRef(null);
   const items = data[type];
   const label = type === 'drugs' ? '精神药物' : '疾病科普';
 
   const isMobileLayout = () => window.matchMedia('(max-width: 780px)').matches;
 
-  function selectItem(item) {
-    if (!selected && isMobileLayout()) mobileListScrollRef.current = mainContentRef.current?.scrollTop || 0;
+  function selectItem(item, event) {
+    if (!selected && isMobileLayout()) {
+      mobileListScrollRef.current = mainContentRef.current?.scrollTop || 0;
+      mobileListTriggerRef.current = event?.currentTarget || null;
+    }
     onSelect(item);
   }
 
   function closeDetail() {
-    const shouldRestore = isMobileLayout();
+    const shouldRestoreScroll = isMobileLayout();
+    const returnFocusTo = shouldRestoreScroll
+      ? (mobileListTriggerRef.current
+        || indexPanelRef.current?.querySelector('.index-list button.selected'))
+      : indexPanelRef.current?.querySelector('.index-list button.selected');
     onSelect(null);
-    if (!shouldRestore) return;
     if (scrollFrameRef.current !== null) window.cancelAnimationFrame(scrollFrameRef.current);
     scrollFrameRef.current = window.requestAnimationFrame(() => {
-      mainContentRef.current?.scrollTo({ top: mobileListScrollRef.current, behavior: 'auto' });
+      if (shouldRestoreScroll) {
+        mainContentRef.current?.scrollTo({ top: mobileListScrollRef.current, behavior: 'auto' });
+      }
+      returnFocusTo?.focus({ preventScroll: true });
       scrollFrameRef.current = null;
     });
   }
@@ -418,7 +479,13 @@ function ListPage({ type, data, selected, onSelect, onEdit, onDelete, onAdd, mai
     if (!selected) return undefined;
     const frame = window.requestAnimationFrame(() => {
       indexPanelRef.current?.querySelector('.index-list button.selected')?.scrollIntoView({ block: 'nearest' });
-      if (isMobileLayout()) detailRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' });
+      if (isMobileLayout() || focusSelected) {
+        detailRef.current?.querySelector('.detail-back')?.focus({ preventScroll: true });
+        if (focusSelected) onSelectedFocused?.();
+      }
+      if (isMobileLayout()) {
+        detailRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' });
+      }
     });
     return () => window.cancelAnimationFrame(frame);
   }, [selected?.id]);
@@ -428,7 +495,7 @@ function ListPage({ type, data, selected, onSelect, onEdit, onDelete, onAdd, mai
   }, []);
 
   return <div className="page library-page page-enter">
-    <PageHeader page={type} eyebrow={type === 'drugs' ? 'MEDICATIONS' : 'DISORDERS'} title={label} description={type === 'drugs' ? '按《精神药物手册》的章节与药理学分类整理常见精神科药物。' : '从症状、病程与功能影响出发，建立可读的疾病词条。'} count={items.length + ' 个词条'} onAdd={() => onAdd(type)} addLabel="新增词条" />
+    <PageHeader page={type} eyebrow={type === 'drugs' ? 'MEDICATIONS' : 'DISORDERS'} title={label} description={type === 'drugs' ? '按《精神药物手册》的章节与药理学分类整理常见精神科药物。' : '从症状、病程与功能影响出发，建立可读的疾病词条。'} count={items.length + ' 个词条'} onAdd={() => onAdd(type)} addLabel="新增词条" canEdit={canEdit} focusOnMount={focusOnMount} onFocused={onPageFocused} />
     <div className="workspace-grid">
       <section className={'index-panel ' + (type === 'drugs' ? 'drug-index-panel' : 'disorder-index-panel')} ref={indexPanelRef}>
         <div className="panel-label">
@@ -448,7 +515,7 @@ function ListPage({ type, data, selected, onSelect, onEdit, onDelete, onAdd, mai
           resolveDirection={resolveDetailDirection}
         >
           {selected
-            ? <Detail type={type} item={selected} onBack={closeDetail} onEdit={() => onEdit(type, selected)} onDelete={() => onDelete(type, selected)} />
+            ? <Detail type={type} item={selected} onBack={closeDetail} onEdit={() => onEdit(type, selected)} onDelete={() => onDelete(type, selected)} canEdit={canEdit} />
             : <EmptyDetail type={type} onChoose={() => items[0] && selectItem(items[0])} />}
         </AnimatedPresence>
       </section>
@@ -469,7 +536,7 @@ function DisorderIndex({ items, selected, onSelect }) {
     const bi = DISORDER_CATEGORY_ORDER.indexOf(b.name);
     return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi) || a.name.localeCompare(b.name, 'zh-CN');
   });
-  return <div className="disorder-index">{groups.map((group, groupIndex) => <section className="disorder-category" style={{ '--group-index': Math.min(groupIndex, 7) }} key={group.name}><div className="disorder-category-head"><span className="group-number">{String(groupIndex + 1).padStart(2, '0')}</span><strong>{group.name}</strong><small>{group.items.length}</small></div><div className="index-list">{group.items.map((item) => <button key={item.id} className={selected?.id === item.id ? 'selected' : ''} onClick={() => onSelect(item)}><span>{item.name}</span><small>{item.aliases?.join(' · ')}</small><ChevronRight size={15} /></button>)}</div></section>)}</div>;
+  return <div className="disorder-index">{groups.map((group, groupIndex) => <section className="disorder-category" style={{ '--group-index': Math.min(groupIndex, 7) }} key={group.name}><div className="disorder-category-head"><span className="group-number">{String(groupIndex + 1).padStart(2, '0')}</span><strong>{group.name}</strong><small>{group.items.length}</small></div><div className="index-list">{group.items.map((item) => <button key={item.id} className={selected?.id === item.id ? 'selected' : ''} onClick={(event) => onSelect(item, event)}><span>{item.name}</span><small>{item.aliases?.join(' · ')}</small><ChevronRight size={15} /></button>)}</div></section>)}</div>;
 }
 
 function DrugIndex({ items, selected, onSelect }) {
@@ -491,10 +558,10 @@ function DrugIndex({ items, selected, onSelect }) {
   });
   sections.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name, 'zh-CN'));
   sections.forEach((section) => section.categories.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name, 'zh-CN')));
-  return <div className="drug-index">{sections.map((section, sectionIndex) => <section className="drug-section" style={{ '--group-index': Math.min(sectionIndex, 7) }} key={section.name}><div className="drug-section-head"><span className="group-number">{String(sectionIndex + 1).padStart(2, '0')}</span><strong>{section.name}</strong><span>{section.categories.reduce((total, category) => total + category.items.length, 0)} 个词条</span></div>{section.categories.map((category) => <div className="drug-category" key={category.name}><div className="drug-category-head"><div><strong>{category.name}</strong>{category.description && category.description !== category.name && <span>{category.description}</span>}</div><small>{category.items.length}</small></div><div className="index-list">{category.items.map((item) => <button key={item.id} className={selected?.id === item.id ? 'selected' : ''} onClick={() => onSelect(item)}><span>{item.name}</span><small>{item.aliases}</small><ChevronRight size={15} /></button>)}</div></div>)}</section>)}</div>;
+  return <div className="drug-index">{sections.map((section, sectionIndex) => <section className="drug-section" style={{ '--group-index': Math.min(sectionIndex, 7) }} key={section.name}><div className="drug-section-head"><span className="group-number">{String(sectionIndex + 1).padStart(2, '0')}</span><strong>{section.name}</strong><span>{section.categories.reduce((total, category) => total + category.items.length, 0)} 个词条</span></div>{section.categories.map((category) => <div className="drug-category" key={category.name}><div className="drug-category-head"><div><strong>{category.name}</strong>{category.description && category.description !== category.name && <span>{category.description}</span>}</div><small>{category.items.length}</small></div><div className="index-list">{category.items.map((item) => <button key={item.id} className={selected?.id === item.id ? 'selected' : ''} onClick={(event) => onSelect(item, event)}><span>{item.name}</span><small>{item.aliases}</small><ChevronRight size={15} /></button>)}</div></div>)}</section>)}</div>;
 }
 
-function Detail({ type, item, onBack, onEdit, onDelete }) {
+function Detail({ type, item, onBack, onEdit, onDelete, canEdit }) {
   const isDrug = type === 'drugs';
   const drugFacts = isDrug ? [
     { label: '适用情境', text: item.indication, tone: 'sky' },
@@ -506,7 +573,7 @@ function Detail({ type, item, onBack, onEdit, onDelete }) {
   return <article className="detail-article">
     <div className="detail-toolbar">
       <button className="detail-back" onClick={onBack}><ArrowLeft size={15} /> 返回列表</button>
-      {CAN_EDIT && <div className="detail-actions"><button className="icon-button" onClick={onEdit} aria-label="编辑词条"><Edit3 size={17} /></button><button className="icon-button danger" onClick={onDelete} aria-label="删除词条"><Trash2 size={17} /></button></div>}
+      {CAN_EDIT && canEdit && <div className="detail-actions"><button className="icon-button" onClick={onEdit} aria-label="编辑词条"><Edit3 size={17} /></button><button className="icon-button danger" onClick={onDelete} aria-label="删除词条"><Trash2 size={17} /></button></div>}
     </div>
     <div className="detail-top">
       <div><span className="eyebrow">{isDrug ? (item.categoryLabel || item.className) : item.category}</span><h2>{item.name}</h2><p className="aliases">{isDrug ? item.aliases : item.aliases?.join(' · ') || '疾病词条 · 公共阅读版'}</p>{isDrug && item.className && item.className !== item.categoryLabel && <p className="detail-class">{item.className}</p>}</div>
@@ -525,31 +592,47 @@ function ListFact({ label, items, warning, priority }) { return <div className={
 function SourceLine({ text }) { return <div className="source-line"><BookOpen size={14} /><span>{text}</span></div>; }
 function EmptyDetail({ type, onChoose }) { return <div className="empty-detail"><span className="empty-mark"><Brain size={25} /></span><h3>选择一个{type === 'drugs' ? '药物' : '疾病'}词条</h3><p>从左侧索引开始，查看结构化内容与来源说明。</p><button className="text-button" onClick={onChoose}>打开第一个词条 <ArrowUpRight size={15} /></button></div>; }
 
-function CasesPage({ data, selected, onSelect, onEdit, onDelete, onAdd, onOpenDisorder, mainContentRef }) {
+function CasesPage({ data, selected, onSelect, onEdit, onDelete, onAdd, onOpenDisorder, mainContentRef, canEdit, focusOnMount, onPageFocused, focusSelected, onSelectedFocused }) {
   const detailRef = useRef(null);
   const mobileListScrollRef = useRef(0);
+  const mobileListTriggerRef = useRef(null);
   const scrollFrameRef = useRef(null);
   const selectedDisorder = selected ? data.disorders.find((item) => item.id === selected.disorderId) : null;
 
-  function selectCase(item) {
-    if (!selected && window.matchMedia('(max-width: 780px)').matches) mobileListScrollRef.current = mainContentRef.current?.scrollTop || 0;
+  function selectCase(item, event) {
+    if (!selected && window.matchMedia('(max-width: 780px)').matches) {
+      mobileListScrollRef.current = mainContentRef.current?.scrollTop || 0;
+      mobileListTriggerRef.current = event?.currentTarget || null;
+    }
     onSelect(item);
   }
 
   function closeCase() {
-    const shouldRestore = window.matchMedia('(max-width: 780px)').matches;
+    const shouldRestoreScroll = window.matchMedia('(max-width: 780px)').matches;
+    const returnFocusTo = shouldRestoreScroll
+      ? (mobileListTriggerRef.current
+        || document.querySelector('.case-row.selected .case-main'))
+      : document.querySelector('.case-row.selected .case-main');
     onSelect(null);
-    if (!shouldRestore) return;
     if (scrollFrameRef.current !== null) window.cancelAnimationFrame(scrollFrameRef.current);
     scrollFrameRef.current = window.requestAnimationFrame(() => {
-      mainContentRef.current?.scrollTo({ top: mobileListScrollRef.current, behavior: 'auto' });
+      if (shouldRestoreScroll) {
+        mainContentRef.current?.scrollTo({ top: mobileListScrollRef.current, behavior: 'auto' });
+      }
+      returnFocusTo?.focus({ preventScroll: true });
       scrollFrameRef.current = null;
     });
   }
 
   useEffect(() => {
-    if (!selected || !window.matchMedia('(max-width: 780px)').matches) return undefined;
-    const frame = window.requestAnimationFrame(() => detailRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' }));
+    if (!selected || (!window.matchMedia('(max-width: 780px)').matches && !focusSelected)) return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      detailRef.current?.querySelector('.detail-back')?.focus({ preventScroll: true });
+      if (focusSelected) onSelectedFocused?.();
+      if (window.matchMedia('(max-width: 780px)').matches) {
+        detailRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' });
+      }
+    });
     return () => window.cancelAnimationFrame(frame);
   }, [selected?.id]);
   useEffect(() => () => {
@@ -570,62 +653,114 @@ function CasesPage({ data, selected, onSelect, onEdit, onDelete, onAdd, onOpenDi
     return { disorders: sortedDisorders, casesByDisorder: groupedCases };
   }, [data.cases, data.disorders]);
   return <div className="page cases-page page-enter">
-    <PageHeader page="cases" eyebrow="CASE NOTES" title="案例分析" description="按疾病词条分组的教学性案例，用于练习观察、评估与沟通。" count={data.cases.length + ' 个案例'} onAdd={() => onAdd('cases')} addLabel="新增案例" />
+    <PageHeader page="cases" eyebrow="CASE NOTES" title="案例分析" description="按疾病词条分组的教学性案例，用于练习观察、评估与沟通。" count={data.cases.length + ' 个案例'} onAdd={() => onAdd('cases')} addLabel="新增案例" canEdit={canEdit} focusOnMount={focusOnMount} onFocused={onPageFocused} />
     <AnimatedPresence viewKey={selected?.id || EMPTY_VIEW} emptyKey={EMPTY_VIEW} kind="detail" className="case-detail-presence" exitMs={145} enterMs={360} settleMs={620} resolveDirection={resolveDetailDirection}>
-      {selected && <CaseDetail detailRef={detailRef} item={selected} disorder={selectedDisorder} onBack={closeCase} onEdit={() => onEdit('cases', selected)} onDelete={() => onDelete('cases', selected)} />}
+      {selected && <CaseDetail detailRef={detailRef} item={selected} disorder={selectedDisorder} onBack={closeCase} onEdit={() => onEdit('cases', selected)} onDelete={() => onDelete('cases', selected)} canEdit={canEdit} />}
     </AnimatedPresence>
     <div className="case-groups">
       {disorders.map((disorder) => {
         const cases = casesByDisorder.get(disorder.id) || [];
         return <section className="case-group" key={disorder.id}>
           <div className="case-group-heading"><div><span>{disorder.category}</span><h2>{disorder.name}</h2></div><button className="link-button" onClick={() => onOpenDisorder(disorder)}>查看疾病词条 <ChevronRight size={15} /></button></div>
-          {cases.length ? <div className="case-list">{cases.map((item) => <CaseRow key={item.id} item={item} selected={selected?.id === item.id} onSelect={selectCase} onEdit={() => onEdit('cases', item)} onDelete={() => onDelete('cases', item)} />)}</div> : <p className="muted">还没有案例，点击右上角新增。</p>}
+          {cases.length ? <div className="case-list">{cases.map((item) => <CaseRow key={item.id} item={item} selected={selected?.id === item.id} onSelect={selectCase} onEdit={() => onEdit('cases', item)} onDelete={() => onDelete('cases', item)} canEdit={canEdit} />)}</div> : <p className="muted">还没有案例，点击右上角新增。</p>}
         </section>;
       })}
     </div>
   </div>;
 }
 
-function CaseRow({ item, selected, onSelect, onEdit, onDelete }) {
+function CaseRow({ item, selected, onSelect, onEdit, onDelete, canEdit }) {
   return <div className={'case-row ' + (selected ? 'selected' : '')}>
-    <button onClick={() => onSelect(item)} className="case-main">
+    <button onClick={(event) => onSelect(item, event)} className="case-main">
       <span className="case-stage">{item.stage}</span>
       <strong>{item.title}</strong>
       <p>{item.summary}</p>
       <span className="tag-line">{(item.tags || []).map((tag) => <em key={tag}>{tag}</em>)}</span>
     </button>
-    {CAN_EDIT && <div className="row-actions"><button className="icon-button" onClick={onEdit} aria-label="编辑案例"><Edit3 size={16} /></button><button className="icon-button danger" onClick={onDelete} aria-label="删除案例"><Trash2 size={16} /></button></div>}
+    {CAN_EDIT && canEdit && <div className="row-actions"><button className="icon-button" onClick={onEdit} aria-label="编辑案例"><Edit3 size={16} /></button><button className="icon-button danger" onClick={onDelete} aria-label="删除案例"><Trash2 size={16} /></button></div>}
   </div>;
 }
 
-function CaseDetail({ item, disorder, onBack, onEdit, onDelete, detailRef }) {
-  return <article className="case-detail" ref={detailRef}><button className="detail-back" onClick={onBack}><ArrowLeft size={15} /> 返回案例列表</button><div className="detail-top"><span className="detail-entry-number" aria-hidden="true">CASE</span><div><span className="eyebrow">{disorder?.category || 'CASE NOTE'} · {item.stage}</span><h2>{item.title}</h2><p className="aliases">{disorder?.name || '教学性案例'} · 合成案例</p></div>{CAN_EDIT && <div className="detail-actions"><button className="icon-button" onClick={onEdit} aria-label="编辑案例"><Edit3 size={17} /></button><button className="icon-button danger" onClick={onDelete} aria-label="删除案例"><Trash2 size={17} /></button></div>}</div><div className="fact-grid"><Fact label="案例摘要" text={item.summary} priority /><Fact label="表现" text={(item.presentation || []).join('；')} priority /><Fact label="时间线" text={item.timeline} /><Fact label="功能影响" text={item.functionImpact} /><Fact label="评估重点" text={(item.assessmentFocus || []).join('；')} /><Fact label="鉴别提示" text={(item.differentialClues || []).join('；')} /><Fact label="风险线索" text={item.riskSignals} warning /><Fact label="安全提醒" text={item.safetyNote} warning /></div><SourceLine text={item.source} /></article>;
+function CaseDetail({ item, disorder, onBack, onEdit, onDelete, detailRef, canEdit }) {
+  return <article className="case-detail" ref={detailRef}><button className="detail-back" onClick={onBack}><ArrowLeft size={15} /> 返回案例列表</button><div className="detail-top"><span className="detail-entry-number" aria-hidden="true">CASE</span><div><span className="eyebrow">{disorder?.category || 'CASE NOTE'} · {item.stage}</span><h2>{item.title}</h2><p className="aliases">{disorder?.name || '教学性案例'} · 合成案例</p></div>{CAN_EDIT && canEdit && <div className="detail-actions"><button className="icon-button" onClick={onEdit} aria-label="编辑案例"><Edit3 size={17} /></button><button className="icon-button danger" onClick={onDelete} aria-label="删除案例"><Trash2 size={17} /></button></div>}</div><div className="fact-grid"><Fact label="案例摘要" text={item.summary} priority /><Fact label="表现" text={(item.presentation || []).join('；')} priority /><Fact label="时间线" text={item.timeline} /><Fact label="功能影响" text={item.functionImpact} /><Fact label="评估重点" text={(item.assessmentFocus || []).join('；')} /><Fact label="鉴别提示" text={(item.differentialClues || []).join('；')} /><Fact label="风险线索" text={item.riskSignals} warning /><Fact label="安全提醒" text={item.safetyNote} warning /></div><SourceLine text={item.source} /></article>;
 }
 
-function ResourcesPage({ data, onEdit, onDelete, onAdd }) {
+function ResourcesPage({ data, onEdit, onDelete, onAdd, canEdit, focusOnMount, onPageFocused }) {
   return <div className="page resources-page page-enter">
-    <PageHeader page="resources" eyebrow="LIBRARY" title="网络资源" description="外部网站与开放资料的统一入口，原始书籍仅作为项目内部依据。" count={data.resources.length + ' 项资源'} onAdd={() => onAdd('resources')} addLabel="新增资源" />
+    <PageHeader page="resources" eyebrow="LIBRARY" title="网络资源" description="外部网站与开放资料的统一入口，原始书籍仅作为项目内部依据。" count={data.resources.length + ' 项资源'} onAdd={() => onAdd('resources')} addLabel="新增资源" canEdit={canEdit} focusOnMount={focusOnMount} onFocused={onPageFocused} />
     <div className="resource-list">
       {data.resources.map((item) => <article className="resource-row" key={item.id}>
         <div className="resource-copy"><span className="eyebrow">{item.source}</span><h2>{item.title}</h2><p>{item.description}</p></div>
-        <div className="resource-card-foot"><a className="resource-open" href={item.url} target="_blank" rel="noreferrer">打开资源 <ArrowUpRight size={16} /></a>{CAN_EDIT && <div className="row-actions"><button className="icon-button" onClick={() => onEdit('resources', item)} aria-label="编辑资源"><Edit3 size={16} /></button><button className="icon-button danger" onClick={() => onDelete('resources', item)} aria-label="删除资源"><Trash2 size={16} /></button></div>}</div>
+        <div className="resource-card-foot"><a className="resource-open" href={item.url} target="_blank" rel="noreferrer">打开资源 <ArrowUpRight size={16} /></a>{CAN_EDIT && canEdit && <div className="row-actions"><button className="icon-button" onClick={() => onEdit('resources', item)} aria-label="编辑资源"><Edit3 size={16} /></button><button className="icon-button danger" onClick={() => onDelete('resources', item)} aria-label="删除资源"><Trash2 size={16} /></button></div>}</div>
       </article>)}
     </div>
     <div className="resource-note"><ExternalLink size={17} /><p>这里仅展示公开网络链接。项目内部原始资料不会作为网络资源开放。</p></div>
   </div>;
 }
 
-function PageHeader({ page, eyebrow, title, description, count, onAdd, addLabel }) {
+function PageHeader({ page, eyebrow, title, description, count, onAdd, addLabel, canEdit, focusOnMount, onFocused }) {
   const meta = PAGE_META[page] || PAGE_META.home;
-  return <header className={`page-header page-header-${meta.accent}`}>
+  const headerRef = useRef(null);
+  const onFocusedRef = useRef(onFocused);
+  onFocusedRef.current = onFocused;
+  useEffect(() => {
+    if (!focusOnMount) return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      headerRef.current?.focus({ preventScroll: true });
+      onFocusedRef.current?.();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [focusOnMount]);
+  return <header ref={headerRef} className={`page-header page-header-${meta.accent}`} tabIndex={-1}>
     <div className="page-title-group"><span className="page-kicker">{meta.number} · {eyebrow}</span><KineticTitle as="h1" text={title} mode="converge" replayKey={title} /><p>{description}</p></div>
-    <div className="page-actions"><span className="count-label">{count}</span>{CAN_EDIT && <button className="primary-button local-add-button" onClick={onAdd}><Plus size={16} /> {addLabel}</button>}</div>
+    <div className="page-actions"><span className="count-label">{count}</span>{CAN_EDIT && canEdit && <button className="primary-button local-add-button" onClick={onAdd}><Plus size={16} /> {addLabel}</button>}</div>
   </header>;
 }
 
-function EditorModal({ editor, disorders, onClose, onSave }) {
+function EditorModal({ editor, disorders, onClose, onSave, onExited }) {
   const [form, setForm] = useState(editor.item);
+  const dialogRef = useRef(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   const type = editor.type;
+  const modalTitle = editor.item.name || editor.item.title ? '编辑词条' : '新增词条';
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    const returnFocusTo = document.activeElement;
+    if (!dialog) return undefined;
+    const focusableSelector = 'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
+    const focusable = () => [...dialog.querySelectorAll(focusableSelector)]
+      .filter((element) => !element.closest('[inert]'));
+    dialog.querySelector('[data-dialog-initial-focus]')?.focus({ preventScroll: true });
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeRef.current();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const items = focusable();
+      if (!items.length) return;
+      const first = items[0];
+      const last = items.at(-1);
+      if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    dialog.addEventListener('keydown', onKeyDown);
+    return () => {
+      dialog.removeEventListener('keydown', onKeyDown);
+      onExited?.();
+      if (returnFocusTo instanceof HTMLElement && returnFocusTo.isConnected) {
+        window.requestAnimationFrame(() => returnFocusTo.focus({ preventScroll: true }));
+      }
+    };
+  }, []);
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
   const parseList = (value) => Array.isArray(value) ? value : String(value || '').split(/[\n,，]/).map((item) => item.trim()).filter(Boolean);
   const submit = (event) => {
@@ -640,7 +775,7 @@ function EditorModal({ editor, disorders, onClose, onSave }) {
     return <label className={options.wide ? 'wide' : ''}><span>{label}</span>{options.select ? <select value={value} onChange={(event) => update(key, event.target.value)}>{options.select.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select> : options.textarea ? <textarea rows={options.rows || 4} value={value} onChange={(event) => update(key, event.target.value)} /> : <input value={value} onChange={(event) => update(key, event.target.value)} />}</label>;
   };
   const listField = (label, key) => field(label, key, { textarea: true, wide: true, list: true, rows: 3 });
-  return <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><div className="editor-modal" role="dialog" aria-modal="true" aria-label="编辑词条"><div className="modal-head"><div><span className="eyebrow">LOCAL EDITOR</span><h2>{editor.item.name || editor.item.title ? '编辑词条' : '新增词条'}</h2></div><button className="icon-button" onClick={onClose} aria-label="关闭"><X size={18} /></button></div><form onSubmit={submit}><div className="form-grid">
+  return <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><div ref={dialogRef} className="editor-modal" role="dialog" aria-modal="true" aria-labelledby="editor-modal-title"><div className="modal-head"><div><span className="eyebrow">LOCAL EDITOR</span><h2 id="editor-modal-title">{modalTitle}</h2></div><button className="icon-button" onClick={onClose} aria-label="关闭" data-dialog-initial-focus><X size={18} /></button></div><form onSubmit={submit}><div className="form-grid">
     {type === 'drugs' && <>{field('名称', 'name')}{field('别名', 'aliases')}{field('章节', 'section')}{field('子分类', 'categoryLabel')}{field('分类全称', 'className', { wide: true })}{field('适用情境', 'indication', { textarea: true, wide: true })}{field('药物作用', 'action', { textarea: true, wide: true })}{field('药物动力学', 'kinetics', { textarea: true, wide: true })}{field('药物联用效果', 'interactions', { textarea: true, wide: true })}{field('副作用', 'sideEffects', { textarea: true, wide: true })}{field('禁忌与警示', 'contraindications', { textarea: true, wide: true })}{field('来源说明', 'source', { textarea: true, wide: true })}</>}
     {type === 'disorders' && <>{field('名称', 'name')}{field('分类', 'category')}{listField('别名（每行一项）', 'aliases')}{field('一句话介绍', 'summary', { textarea: true, wide: true })}{field('如何理解', 'details', { textarea: true, wide: true })}{listField('常见体验', 'symptoms')}{listField('来访者可能这样描述', 'patientPhrases')}{listField('病程线索', 'courseClues')}{listField('可能影响', 'functionalImpact')}{listField('评估时会关注', 'assessment')}{listField('需要鉴别', 'differentials')}{listField('治疗与支持概览', 'treatmentOverview')}{listField('需要尽快求助的信号', 'emergencySignals')}{listField('关联药物 ID', 'relatedDrugIds')}{field('来源说明', 'source', { textarea: true, wide: true })}</>}
     {type === 'cases' && <>{field('案例标题', 'title', { wide: true })}{field('所属疾病', 'disorderId', { select: disorders.map((item) => ({ value: item.id, label: item.name })) })}{field('阶段标签', 'stage')}{field('案例摘要', 'summary', { textarea: true, wide: true })}{listField('主题标签', 'tags')}{listField('表现', 'presentation')}{field('时间线', 'timeline', { textarea: true, wide: true })}{field('功能影响', 'functionImpact', { textarea: true, wide: true })}{field('风险线索', 'riskSignals', { textarea: true, wide: true })}{listField('评估重点', 'assessmentFocus')}{listField('鉴别提示', 'differentialClues')}{field('安全提醒', 'safetyNote', { textarea: true, wide: true })}{field('来源说明', 'source', { textarea: true, wide: true })}</>}
@@ -648,4 +783,5 @@ function EditorModal({ editor, disorders, onClose, onSave }) {
   </div><div className="modal-foot"><span><ShieldCheck size={14} /> 保存只写入本浏览器</span><div><button type="button" className="secondary-button" onClick={onClose}>取消</button><button type="submit" className="primary-button"><Sparkles size={16} /> 保存词条</button></div></div></form></div></div>;
 }
 
-createRoot(document.getElementById('root')).render(<App />);
+const rootElement = document.getElementById('root');
+if (rootElement) createRoot(rootElement).render(<App />);

@@ -15,6 +15,14 @@ const FORBIDDEN_PATTERNS = [
   ['Windows 本地路径', /[A-Za-z]:[\\/]Users[\\/][^\\/\s]+[\\/]/i],
   ['UNC 网络路径', /["']\\\\\\\\[A-Za-z0-9._-]+\\\\[A-Za-z0-9.$_-]+/]
 ];
+const PRODUCTION_WRITE_UI_PATTERNS = [
+  ['本地编辑器', /LOCAL EDITOR/],
+  ['编辑器 DOM', /editor-modal/],
+  ['新增入口', /local-add-button/],
+  ['保存入口', /保存词条/],
+  ['删除入口', /删除词条/],
+  ['本地编辑模式', /本地编辑模式/]
+];
 
 function collectFiles(directory) {
   if (!fs.existsSync(directory)) return [];
@@ -52,6 +60,14 @@ export function checkBuild() {
     FORBIDDEN_PATTERNS.forEach(([label, pattern]) => {
       if (pattern.test(contents)) {
         errors.push(`${path.relative(PROJECT_ROOT, file)} 包含${label}`);
+      }
+    });
+  });
+  javascriptFiles.forEach((file) => {
+    const contents = fs.readFileSync(file, 'utf8');
+    PRODUCTION_WRITE_UI_PATTERNS.forEach(([label, pattern]) => {
+      if (pattern.test(contents)) {
+        errors.push(`${path.relative(PROJECT_ROOT, file)} 包含生产环境不应打包的${label}`);
       }
     });
   });

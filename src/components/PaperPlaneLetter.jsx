@@ -168,12 +168,12 @@ export default function PaperPlaneLetter({ onOpenChange }) {
   const idleStartRef = useRef(null);
   const triggerRef = useRef(null);
   const closeRef = useRef(null);
+  const dialogRef = useRef(null);
   const idleStageRef = useRef(null);
   const idleMotionRef = useRef(null);
   const idleNeutralTimerRef = useRef(null);
   const mountedRef = useRef(true);
   const expanded = phase !== 'idle';
-  const contentVisible = phase === 'revealing' || phase === 'opened';
   const contentInteractive = phase === 'opened';
 
   const updatePhase = useCallback((nextPhase) => {
@@ -462,13 +462,43 @@ export default function PaperPlaneLetter({ onOpenChange }) {
     updatePhase,
   ]);
 
+  const dismissLetter = useCallback(() => {
+    const currentPhase = phaseRef.current;
+    if (currentPhase === 'idle' || currentPhase === 'closing') return;
+    if (currentPhase === 'opened') {
+      closeLetter();
+      return;
+    }
+
+    clearScheduledWork();
+    playerRef.current?.pause();
+    playerRef.current?.seekTo(0);
+    updatePhase('idle');
+    setAnimationMode('idle');
+    focusTrigger();
+    if (!reducedMotion) {
+      playFrameRef.current = window.requestAnimationFrame(() => {
+        playFrameRef.current = null;
+        startIdleMotion();
+      });
+    }
+  }, [
+    clearScheduledWork,
+    closeLetter,
+    focusTrigger,
+    reducedMotion,
+    startIdleMotion,
+    updatePhase,
+  ]);
+
   useEffect(() => {
-    if (phase !== 'opened') return undefined;
+    if (!expanded) return undefined;
     const frame = window.requestAnimationFrame(() => {
-      closeRef.current?.focus({ preventScroll: true });
+      const target = contentInteractive ? closeRef.current : dialogRef.current;
+      target?.focus({ preventScroll: true });
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [phase]);
+  }, [contentInteractive, expanded]);
 
   useEffect(() => {
     if (!expanded) return undefined;
@@ -476,13 +506,17 @@ export default function PaperPlaneLetter({ onOpenChange }) {
     const onKeyDown = (event) => {
       if (event.key === 'Escape') {
         event.preventDefault();
-        closeLetter();
+        dismissLetter();
+      } else if (event.key === 'Tab') {
+        event.preventDefault();
+        const target = contentInteractive ? closeRef.current : dialogRef.current;
+        target?.focus({ preventScroll: true });
       }
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [closeLetter, expanded]);
+  }, [contentInteractive, dismissLetter, expanded]);
 
   useEffect(() => {
     const player = playerRef.current;
@@ -567,16 +601,18 @@ export default function PaperPlaneLetter({ onOpenChange }) {
           type="button"
           aria-label="点击背景关闭信件"
           tabIndex="-1"
-          onClick={closeLetter}
+          onClick={dismissLetter}
         />
       )}
       <div
+        ref={dialogRef}
         id="sym-gen-letter"
         className="paper-plane-letter-object"
-        role={contentVisible ? 'dialog' : undefined}
-        aria-modal={contentVisible ? 'true' : undefined}
-        aria-labelledby={contentVisible ? 'sym-gen-letter-title' : undefined}
-        aria-hidden={contentVisible ? undefined : 'true'}
+        role={expanded ? 'dialog' : undefined}
+        aria-modal={expanded ? 'true' : undefined}
+        aria-labelledby={expanded ? 'sym-gen-letter-title' : undefined}
+        aria-hidden={expanded ? undefined : 'true'}
+        tabIndex={expanded ? -1 : undefined}
         onClick={(event) => event.stopPropagation()}
       >
         <svg
