@@ -3,12 +3,14 @@ import { createRoot } from 'react-dom/client';
 import {
   ArrowLeft, ArrowUpRight, BookOpen, Brain, ChevronDown, ChevronRight, CircleHelp, Edit3, ExternalLink,
   FileText, FlaskConical, HeartPulse, Home, Library, Menu, Plus, Search, ShieldCheck,
-  Sparkles, Trash2, X
+  Sparkles, Telescope, Trash2, X
 } from 'lucide-react';
 import { navItems, typeLabels } from './data';
+import reviewData from './frontierReviews.json';
 import { matchKnowledge } from './search';
 import AnimatedPresence from './components/AnimatedPresence';
 import FactSlider from './components/FactSlider';
+import FrontierReviewsPage from './components/FrontierReviewsPage';
 import HeroLightField from './components/HeroLightField';
 import KineticTitle from './components/KineticTitle';
 import KnowledgeIndexGraphic from './components/KnowledgeIndexGraphic';
@@ -31,7 +33,8 @@ const PAGE_META = {
   drugs: { number: '01', accent: 'cyan' },
   disorders: { number: '02', accent: 'yellow' },
   cases: { number: '03', accent: 'ink' },
-  resources: { number: '04', accent: 'teal' }
+  resources: { number: '04', accent: 'teal' },
+  reviews: { number: '05', accent: 'teal' }
 };
 
 function resolvePageDirection(from, to) {
@@ -133,7 +136,8 @@ export function App({ canEdit = CAN_EDIT } = {}) {
     drugs: data.drugs.length,
     disorders: data.disorders.length,
     cases: data.cases.length,
-    resources: data.resources.length
+    resources: data.resources.length,
+    reviews: reviewData.menus.length
   }), [data]);
 
   const searchResults = useMemo(() => matchKnowledge(query, data), [data, query]);
@@ -334,6 +338,7 @@ export function App({ canEdit = CAN_EDIT } = {}) {
             {activePage === 'disorders' && <ListPage type="disorders" data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} mainContentRef={mainContentRef} canEdit={canEdit} focusOnMount={pageFocusRequest?.page === 'disorders'} onPageFocused={() => setPageFocusRequest(null)} focusSelected={detailFocusRequest?.type === 'disorders' && detailFocusRequest.id === selected?.id} onSelectedFocused={() => setDetailFocusRequest(null)} />}
             {activePage === 'cases' && <CasesPage data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} onOpenDisorder={(disorder) => openItem('disorders', disorder)} mainContentRef={mainContentRef} canEdit={canEdit} focusOnMount={pageFocusRequest?.page === 'cases'} onPageFocused={() => setPageFocusRequest(null)} focusSelected={detailFocusRequest?.type === 'cases' && detailFocusRequest.id === selected?.id} onSelectedFocused={() => setDetailFocusRequest(null)} />}
             {activePage === 'resources' && <ResourcesPage data={data} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} canEdit={canEdit} focusOnMount={pageFocusRequest?.page === 'resources'} onPageFocused={() => setPageFocusRequest(null)} />}
+            {activePage === 'reviews' && <FrontierReviewsPage focusOnMount={pageFocusRequest?.page === 'reviews'} onPageFocused={() => setPageFocusRequest(null)} />}
           </AnimatedPresence>
         </main>
       </div>
@@ -370,6 +375,7 @@ function NavIcon({ id }) {
   if (id === 'drugs') return <FlaskConical {...props} />;
   if (id === 'disorders') return <HeartPulse {...props} />;
   if (id === 'cases') return <FileText {...props} />;
+  if (id === 'reviews') return <Telescope {...props} />;
   return <Library {...props} />;
 }
 

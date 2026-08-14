@@ -380,7 +380,8 @@ export const navItems = [
   { id: 'drugs', label: '药物', kicker: 'MEDICATIONS' },
   { id: 'disorders', label: '疾病科普', kicker: 'DISORDERS' },
   { id: 'cases', label: '案例分析', kicker: 'CASE NOTES' },
-  { id: 'resources', label: '网络资源', kicker: 'LIBRARY' }
+  { id: 'resources', label: '网络资源', kicker: 'LIBRARY' },
+  { id: 'reviews', label: '前沿综述', kicker: 'FRONTIER REVIEWS' }
 ];
 
 export const typeLabels = { drugs: '药物资料', disorders: '疾病线索', cases: '相似案例', resources: '资源' };

@@ -1,0 +1,1522 @@
+{
+  "schemaVersion": "1.0.0",
+  "moduleId": "frontier-reviews",
+  "moduleTitle": "前沿综述",
+  "literatureCutoff": "2026-07-30",
+  "reviewedAt": "2026-08-10",
+  "pageCopy": {
+    "moduleTitle": "前沿综述",
+    "moduleSubtitle": "追踪精神医学的前沿进展，探究，解码我们的大脑环路，让精神疾病的诊断与治疗迈向精准化时代",
+    "landingIntro": "这里汇集精神障碍分类、生物机制、评估预测、前沿治疗、数字技术与公共精神卫生的前沿高质量研究。",
+    "safetyNotice": "本版块用于研究与健康教育，不提供诊断、个体风险计算或治疗建议。若你或他人正面临即时危险、自伤或伤人风险，请立即联系当地急救服务或可信任的专业人员。",
+    "evidenceHelp": "证据标签描述研究在本综述中的作用，不代表期刊或研究者的等级。单项研究即使结果显著，也不能自动成为临床建议。",
+    "updatedLabel": "文献检索截至 2026-07-30；编辑核验于 2026-08-10",
+    "feedbackPrompt": "发现书目信息错误、过时结论或需要补充的重要证据？请提交标题、DOI（Digital Object Identifier，数字对象标识符）与具体问题。",
+    "noResults": "暂未找到匹配内容。可尝试更宽泛的主题词，或从六个主题入口浏览。"
+  },
+  "safety": {
+    "medicalAdviceBoundary": "research-and-education-only",
+    "allowIndividualDiagnosis": false,
+    "allowIndividualRiskPrediction": false,
+    "allowTreatmentRecommendation": false,
+    "highRiskSearchIntegration": "excluded",
+    "crisisNotice": "本版块用于研究与健康教育，不提供诊断、个体风险计算或治疗建议。若你或他人正面临即时危险、自伤或伤人风险，请立即联系当地急救服务或可信任的专业人员。"
+  },
+  "menus": [
+    {
+      "menuId": "understanding-classification",
+      "slug": "understanding-and-classification",
+      "order": 1,
+      "titleZh": "精神障碍的理解与分类",
+      "titleEn": "Understanding and Classification of Mental Disorders",
+      "kicker": "从诊断类别走向维度、阶段与机制互补",
+      "cardCopy": "解释 DSM（Diagnostic and Statistical Manual of Mental Disorders，《精神障碍诊断与统计手册》）、ICD（International Classification of Diseases，《国际疾病分类》）、HiTOP（Hierarchical Taxonomy of Psychopathology，精神病理学层级分类体系）、RDoC（Research Domain Criteria，研究领域标准）与临床分期如何从不同角度描述精神障碍，以及它们目前能做什么、还不能做什么。",
+      "synopsis": "精神障碍并不总能被一个诊断名称完整概括。新的分类研究尝试把诊断类别、症状轻重、病程阶段和可能的生物机制放在一起理解。",
+      "bodySections": [
+        {
+          "heading": "核心共识",
+          "paragraphs": [
+            "精神障碍很难只用一种分类方法完整描述。DSM（Diagnostic and Statistical Manual of Mental Disorders，《精神障碍诊断与统计手册》）和 ICD（International Classification of Diseases，《国际疾病分类》）仍适合医生沟通、统计疾病、安排服务和制定治疗计划；维度模型更适合说明症状轻重与重叠；临床分期关注问题处于早期、反复期还是持续期；机制和症状网络模型则帮助研究认知、情绪、行为和环境如何相互影响。较稳妥的方向不是选出唯一正确的体系，而是根据不同任务组合使用这些工具。",
+            "近期 HiTOP（Hierarchical Taxonomy of Psychopathology，精神病理学层级分类体系）研究进一步强调，精神痛苦程度、生活功能损害和具体症状结构应分别记录。同一个人即使没有跨过某个诊断门槛，也可能已经有明显的生活困难；反过来，得到同一诊断的两个人，主要症状、病程和需要的帮助也可能很不一样。"
+          ],
+          "referenceIds": ["S1-01", "S1-07", "S1-08", "S1-10"]
+        },
+        {
+          "heading": "正在推进的前沿",
+          "paragraphs": [
+            "一个前沿方向是研究症状怎样在日常生活中彼此带动。例如，失眠可能加重疲劳，疲劳让活动减少，活动减少又可能使低落更难缓解。动态网络和随时间变化的网络分析尝试利用多次测量，找出这些联系何时增强、何时减弱，以及哪些环节可能更值得优先干预。",
+            "另一个方向是把 HiTOP、RDoC（Research Domain Criteria，研究领域标准）、临床分期和神经科学放在同一张图上比较。研究者正在观察维度化症状与脑网络、遗传特征、生活环境和治疗反应之间的关系。这些工作有助于提出更具体的研究问题，但目前还不能替代面对面的综合评估，也不能单独给个人下诊断。"
+          ],
+          "referenceIds": ["S1-03", "S1-04", "S1-08", "S1-09"]
+        },
+        {
+          "heading": "关键争议",
+          "paragraphs": [
+            "症状网络中的连线通常表示统计上的联系，不一定说明一个症状直接造成另一个症状。药物、身体疾病、生活事件和测量误差都可能影响结果；如果数据只在一个时间点收集，更难判断先后顺序和因果关系。因此，网络图适合帮助提出假设，不应被直接当成个人治疗路线图。",
+            "维度和多框架评估能保留更多信息，也会增加记录、培训和解释负担。保险支付、服务准入和公共统计往往仍依赖诊断类别。新框架还要继续检验它们在不同文化、年龄、语言和神经多样性人群中是否同样适用，并避免更精细的分类反而增加污名或扩大服务不平等。"
+          ],
+          "referenceIds": ["S1-04", "S1-09", "S1-10"]
+        }
+      ],
+      "keyClaims": [
+        {
+          "claimId": "understanding-classification-c1",
+          "text": "类别、维度、分期与机制框架目前更适合互补使用，而非互相取代。",
+          "confidence": "较高",
+          "evidenceSummary": "框架与综述共识",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S1-01",
+            "S1-03",
+            "S1-04"
+          ]
+        },
+        {
+          "claimId": "understanding-classification-c2",
+          "text": "跨诊断的内化、外化等结构可在症状与遗传数据中重复观察。",
+          "confidence": "中等",
+          "evidenceSummary": "层级模型与人群遗传研究",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S1-02",
+            "S1-03"
+          ]
+        },
+        {
+          "claimId": "understanding-classification-c3",
+          "text": "症状与稳定特质需要在测量和解释上区分。",
+          "confidence": "中等",
+          "evidenceSummary": "概念与测量研究",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S1-05"
+          ]
+        },
+        {
+          "claimId": "understanding-classification-c4",
+          "text": "儿童青少年分类必须纳入发育阶段和情境信息。",
+          "confidence": "较高",
+          "evidenceSummary": "领域综述",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S1-06"
+          ]
+        }
+      ],
+      "references": [
+        {
+          "id": "S1-01",
+          "authorsDisplay": "McGorry PD et al.",
+          "year": 2025,
+          "title": "New diagnosis in psychiatry: beyond heuristics",
+          "journal": "Psychological Medicine",
+          "doi": "10.1017/S003329172400223X",
+          "canonicalUrl": "https://doi.org/10.1017/S003329172400223X",
+          "evidenceType": "观点与框架综述",
+        "editorialRole": "比较 RDoC（Research Domain Criteria，研究领域标准）、HiTOP（Hierarchical Taxonomy of Psychopathology，精神病理学层级分类体系）与临床分期的互补关系",
+        "abstractZh": "文章回顾精神科诊断长期依赖经验性分类的局限，并比较 RDoC（Research Domain Criteria，研究领域标准）、HiTOP（Hierarchical Taxonomy of Psychopathology，精神病理学层级分类体系）和临床分期等新框架。作者认为，这些方法分别从机制、症状维度和病程阶段提供信息，更适合与现有诊断互补，而不是简单取代 DSM（Diagnostic and Statistical Manual of Mental Disorders，《精神障碍诊断与统计手册》）或 ICD（International Classification of Diseases，《国际疾病分类》）。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S1-02",
+          "authorsDisplay": "Kendler KS et al.",
+          "year": 2026,
+          "title": "The typology of common psychiatric disorders as depicted by genetic maps: a study based on Swedish population-based registers",
+          "journal": "World Psychiatry",
+          "doi": "10.1002/wps.70074",
+          "canonicalUrl": "https://doi.org/10.1002/wps.70074",
+          "evidenceType": "全国人群登记研究",
+        "editorialRole": "展示常见障碍的遗传结构与跨诊断聚类",
+        "abstractZh": "研究利用瑞典全国登记资料绘制 18 种常见精神障碍的遗传关系图。结果显示，部分障碍会沿内化、外化等方向聚在一起，提示传统诊断之间存在共享遗传基础，但这些群体规律不能直接用于个人诊断。",
+          "sampleSizeNote": "18 种障碍；各障碍病例约 4,900–588,927",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S1-03",
+          "authorsDisplay": "Watson D et al.",
+          "year": 2022,
+          "title": "Validity and utility of Hierarchical Taxonomy of Psychopathology (HiTOP): III. Emotional dysfunction superspectrum",
+          "journal": "World Psychiatry",
+          "doi": "10.1002/wps.20943",
+          "canonicalUrl": "https://doi.org/10.1002/wps.20943",
+          "evidenceType": "系统性证据综述",
+        "editorialRole": "梳理 HiTOP（Hierarchical Taxonomy of Psychopathology，精神病理学层级分类体系）情绪功能障碍超谱系的效度与用途",
+        "abstractZh": "这篇综述整理 HiTOP（Hierarchical Taxonomy of Psychopathology，精神病理学层级分类体系）中情绪功能障碍超谱系的研究证据，讨论抑郁、焦虑及相关症状如何按层级维度组织。文章认为维度结构有助于描述共病和症状连续性，但临床记录方式与实际效用仍需进一步检验。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S1-04",
+          "authorsDisplay": "Scott J et al.",
+          "year": 2024,
+          "title": "Staging 2.0: refining transdiagnostic clinical staging frameworks to enhance reliability and utility for youth mental health",
+          "journal": "The Lancet Psychiatry",
+          "doi": "10.1016/S2215-0366(24)00060-9",
+          "canonicalUrl": "https://doi.org/10.1016/S2215-0366(24)00060-9",
+          "evidenceType": "框架与方法综述",
+        "editorialRole": "更新青年跨诊断临床分期",
+        "abstractZh": "文章提出面向青年精神健康的跨诊断临床分期更新方案，重点描述从风险状态、轻度症状到持续性疾病的发展过程。作者希望通过更清楚的阶段标准提高不同服务之间的一致性，并支持更及时的干预。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S1-05",
+          "authorsDisplay": "DeYoung CG et al.",
+          "year": 2022,
+          "title": "The distinction between symptoms and traits in the Hierarchical Taxonomy of Psychopathology (HiTOP)",
+          "journal": "Journal of Personality",
+          "doi": "10.1111/jopy.12593",
+          "canonicalUrl": "https://doi.org/10.1111/jopy.12593",
+          "evidenceType": "概念与测量论文",
+        "editorialRole": "澄清症状与特质在维度分类中的区别",
+        "abstractZh": "文章讨论 HiTOP（Hierarchical Taxonomy of Psychopathology，精神病理学层级分类体系）中症状与人格特质的区别：症状通常随时间和状态变化，特质相对稳定，但两者也可能相互影响。作者强调，在测量和解释精神病理维度时，应明确当前困扰与长期倾向分别代表什么。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S1-06",
+          "authorsDisplay": "Cortese S et al.",
+          "year": 2026,
+          "title": "Child and adolescent psychiatry: challenges, solutions, opportunities, and future directions",
+          "journal": "World Psychiatry",
+          "doi": "10.1002/wps.70044",
+          "canonicalUrl": "https://doi.org/10.1002/wps.70044",
+          "evidenceType": "领域综述",
+        "editorialRole": "补充发育与服务情境下的分类挑战",
+        "abstractZh": "综述概括儿童青少年精神医学面临的主要问题，包括发育变化、共病、服务不足和研究证据不均衡。文章主张把家庭、学校、文化和神经多样性纳入评估，并发展更早、更连贯且更容易获得的服务。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S1-07",
+          "authorsDisplay": "Reed GM et al.",
+          "year": 2023,
+          "title": "New research on validity and clinical utility of ICD-11 vs. ICD-10 and DSM-5 diagnostic categories",
+          "journal": "World Psychiatry",
+          "doi": "10.1002/wps.21053",
+          "canonicalUrl": "https://doi.org/10.1002/wps.21053",
+          "evidenceType": "研究综述/述评",
+        "editorialRole": "检视第 11 版国际疾病分类的临床效用与效度",
+        "abstractZh": "文章评述 ICD-11（International Classification of Diseases 11th Revision，《国际疾病分类》第十一次修订版）相比 ICD-10（International Classification of Diseases 10th Revision，《国际疾病分类》第十次修订版），以及 DSM-5（Diagnostic and Statistical Manual of Mental Disorders, Fifth Edition，《精神障碍诊断与统计手册》第五版）在诊断效度与临床实用性方面的新研究。重点是分类标准能否被临床人员稳定理解和使用，以及改变后的诊断是否真正改善沟通、决策和服务安排。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S1-08",
+          "authorsDisplay": "Cicero DC et al.",
+          "year": 2024,
+          "title": "State of the Science: The Hierarchical Taxonomy of Psychopathology (HiTOP)",
+          "journal": "Behavior Therapy",
+          "doi": "10.1016/j.beth.2024.05.001",
+          "canonicalUrl": "https://doi.org/10.1016/j.beth.2024.05.001",
+          "evidenceType": "领域综述",
+          "editorialRole": "总结 HiTOP 的临床评估、治疗用途与待验证问题",
+          "abstractZh": "综述介绍 HiTOP（Hierarchical Taxonomy of Psychopathology，精神病理学层级分类体系）怎样从较宽的谱系逐层描述到具体症状和特质，并说明可分别记录症状结构、痛苦程度与功能损害。文章给出测量式照护和跨诊断治疗示例，同时指出临床效用、推广和不同人群适用性仍需检验。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "PubMed 摘要与书目信息",
+          "lastVerifiedAt": "2026-08-14"
+        },
+        {
+          "id": "S1-09",
+          "authorsDisplay": "Briganti G et al.",
+          "year": 2024,
+          "title": "Network analysis: An overview for mental health research",
+          "journal": "International Journal of Methods in Psychiatric Research",
+          "doi": "10.1002/mpr.2034",
+          "canonicalUrl": "https://doi.org/10.1002/mpr.2034",
+          "evidenceType": "方法综述",
+          "editorialRole": "梳理动态、时变和因果网络方法及解释边界",
+          "abstractZh": "文章系统介绍精神健康研究中的网络分析，包括动态网络、时变网络、面板数据网络、干预网络和贝叶斯网络。它说明不同方法能回答哪些问题，也提醒研究者：横断面变量之间的连线通常不能直接证明因果关系。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "PubMed 摘要与书目信息",
+          "lastVerifiedAt": "2026-08-14"
+        },
+        {
+          "id": "S1-10",
+          "authorsDisplay": "Aftab A et al.",
+          "year": 2024,
+          "title": "Psychiatric Diagnosis: A Clinical Guide to Navigating Diagnostic Pluralism",
+          "journal": "The Journal of Nervous and Mental Disease",
+          "doi": "10.1097/NMD.0000000000001791",
+          "canonicalUrl": "https://doi.org/10.1097/NMD.0000000000001791",
+          "evidenceType": "临床方法综述",
+          "editorialRole": "说明临床工作如何在多种诊断框架之间作选择",
+          "abstractZh": "文章比较类别诊断、维度模型、RDoC（Research Domain Criteria，研究领域标准）、HiTOP（Hierarchical Taxonomy of Psychopathology，精神病理学层级分类体系）等框架。作者主张把各框架放回完整临床评估中，根据实际任务理解其优点和局限，而不是期待单一体系解决所有问题。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "PubMed 摘要与书目信息",
+          "lastVerifiedAt": "2026-08-14"
+        }
+      ],
+      "editorial": {
+        "reviewVersion": "1.0.0-draft",
+        "status": "review",
+        "literatureCutoff": "2026-07-30",
+        "lastReviewedAt": "2026-08-10",
+        "nextReviewDue": "2026-11-10",
+        "updateCadence": "quarterly"
+      }
+    },
+    {
+      "menuId": "biological-principles",
+      "slug": "biological-principles",
+      "order": 2,
+      "titleZh": "精神障碍的生物原理",
+      "titleEn": "Biological Principles of Mental Disorders",
+      "kicker": "多基因、多层级、跨诊断，而非单一生物标志物",
+      "cardCopy": "从遗传、脑网络、免疫与多组学证据理解精神障碍的生物基础，同时说明群体关联为何尚不能直接变成个人结论。",
+      "synopsis": "精神障碍通常不是由一个基因、一个脑区或一次化验决定的，而是遗传、脑发育、身体状态和生活环境长期共同作用的结果。",
+      "bodySections": [
+        {
+          "heading": "核心共识",
+          "paragraphs": [
+            "大多数常见精神障碍不是由一个基因、一个脑区或一种化学物质决定的，而是很多影响较小的遗传差异，与脑发育、免疫、内分泌、睡眠、生活经历和社会环境长期共同作用的结果。不同障碍之间也会共享一部分遗传和生物过程。因此，目前没有一种单独的验血、脑扫描或基因检测能够确认多数常见精神障碍。",
+            "群体风险不等于个人命运。2025 年一项跨祖源抑郁研究纳入 688,808 名患者和 4,364,225 名对照，发现许多相关位点和可能涉及的神经细胞类型，也显示多基因评分在群体研究中有用；但它解释的个人差异仍有限，不能告诉某个人一定会不会患病。"
+          ],
+          "referenceIds": ["S2-01", "S2-02", "S2-08", "S2-09"]
+        },
+        {
+          "heading": "正在推进的前沿",
+          "paragraphs": [
+            "研究重点正在从‘发现相关基因’转向‘这些基因在什么细胞、发育阶段和脑环路中起作用’。单细胞测序、脑组织蛋白质组和功能基因组学正在把遗传信号定位到更具体的细胞类型和分子过程；跨祖源研究则帮助判断结果能否覆盖更多人群。",
+            "由诱导多能干细胞建立的二维细胞模型和三维脑类器官，让研究者可以在实验室观察部分神经发育过程并测试候选药物。免疫—神经—内分泌研究也在寻找急性、快速变化或伴神经系统异常的精神症状中可治疗的身体原因，例如抗 NMDAR（N-methyl-D-aspartate receptor，N-甲基-D-天冬氨酸受体）脑炎。"
+          ],
+          "referenceIds": ["S2-03", "S2-06", "S2-08", "S2-09", "S2-10"]
+        },
+        {
+          "heading": "关键争议",
+          "paragraphs": [
+            "最大的难题是怎样把群体平均差异变成对个人真正有用的信息。许多遗传数据库仍以欧洲祖源人群为主，外周血和死亡后脑组织也不能完整代表活体大脑的变化。候选生物标志物如果缺少独立重复、统一测量和真实世界检验，很容易在后续研究中失效。",
+            "脑类器官比普通细胞培养更接近脑组织结构，但仍缺少成熟的血管、完整免疫系统和长期发育环境，不同实验室的培养结果也可能不同。多组学整合信息丰富，却容易受到批次效应、缺失数据和过拟合影响。判断一项发现是否成熟，仍要看重复性、跨人群有效性和实际临床增益。"
+          ],
+          "referenceIds": ["S2-04", "S2-07", "S2-08", "S2-10"]
+        }
+      ],
+      "keyClaims": [
+        {
+          "claimId": "biological-principles-c1",
+          "text": "常见精神障碍通常具有多基因性和跨诊断遗传共享。",
+          "confidence": "较高",
+          "evidenceSummary": "大型遗传联盟与综述",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S2-01",
+            "S2-02"
+          ]
+        },
+        {
+          "claimId": "biological-principles-c2",
+          "text": "影像学研究正在从局部差异转向网络与可重复的多中心分析。",
+          "confidence": "中等",
+          "evidenceSummary": "领域综述",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S2-03"
+          ]
+        },
+        {
+          "claimId": "biological-principles-c3",
+          "text": "多数候选生物标志物尚未达到常规临床应用所需的可靠性与效用。",
+          "confidence": "较高",
+          "evidenceSummary": "领域综合评估",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S2-04"
+          ]
+        },
+        {
+          "claimId": "biological-principles-c4",
+          "text": "多组学有助于解析异质性，但整合方法与跨人群验证仍是瓶颈。",
+          "confidence": "中等",
+          "evidenceSummary": "探索性研究与系统综述",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S2-05",
+            "S2-07"
+          ]
+        }
+      ],
+      "references": [
+        {
+          "id": "S2-01",
+          "authorsDisplay": "Andreassen OA et al.",
+          "year": 2023,
+          "title": "New insights from the last decade of research in psychiatric genetics: discoveries, challenges and clinical implications",
+          "journal": "World Psychiatry",
+          "doi": "10.1002/wps.21034",
+          "canonicalUrl": "https://doi.org/10.1002/wps.21034",
+          "evidenceType": "领域综述",
+        "editorialRole": "总结多基因性、多效性与临床转化边界",
+        "abstractZh": "综述总结过去十年精神遗传学的主要发现，包括多基因性、一个基因影响多种表型的多效性，以及不同障碍间的遗传重叠。文章也指出，遗传发现正在帮助理解机制，但距离常规个人诊断和治疗选择仍有明显距离。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S2-02",
+          "authorsDisplay": "Agrawal A et al.; Psychiatric Genomics Consortium",
+          "year": 2025,
+          "title": "The Psychiatric Genomics Consortium: discoveries and directions",
+          "journal": "The Lancet Psychiatry",
+          "doi": "10.1016/S2215-0366(25)00124-5",
+          "canonicalUrl": "https://doi.org/10.1016/S2215-0366(25)00124-5",
+          "evidenceType": "联盟综述",
+        "editorialRole": "总结跨障碍遗传发现与下一阶段方向",
+        "abstractZh": "文章回顾精神病基因组学联盟在多种精神障碍中的大样本发现，并说明国际协作如何提高统计能力。下一阶段重点包括扩大祖源多样性、连接遗传信号与生物功能，以及避免把群体关联过早解释成个人结论。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S2-03",
+          "authorsDisplay": "Voineskos AN et al.",
+          "year": 2024,
+          "title": "Functional magnetic resonance imaging in schizophrenia: current evidence, methodological advances, limitations and future directions",
+          "journal": "World Psychiatry",
+          "doi": "10.1002/wps.21159",
+          "canonicalUrl": "https://doi.org/10.1002/wps.21159",
+          "evidenceType": "领域综述",
+        "editorialRole": "评估精神分裂症功能影像证据与方法局限",
+        "abstractZh": "综述整理精神分裂症功能性磁共振研究，涵盖脑区活动、脑网络连接和任务反应等发现。作者同时讨论样本量、用药、扫描流程和分析选择带来的差异，强调重复验证和标准化的重要性。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S2-04",
+          "authorsDisplay": "Abi-Dargham A et al.",
+          "year": 2023,
+          "title": "Candidate biomarkers in psychiatric disorders: state of the field",
+          "journal": "World Psychiatry",
+          "doi": "10.1002/wps.21078",
+          "canonicalUrl": "https://doi.org/10.1002/wps.21078",
+          "evidenceType": "领域综合评估",
+        "editorialRole": "判断候选生物标志物的可靠性、效度与临床效用",
+        "abstractZh": "文章评估精神障碍候选生物标志物的研究现状，区分统计差异、可重复性和临床可用性。总体结论是，许多指标能在群体中显示关联，但缺少独立验证，尚不足以单独诊断个人或决定治疗。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S2-05",
+          "authorsDisplay": "van Haeringen M et al.",
+          "year": 2023,
+          "title": "Dissection of depression heterogeneity using proteomic clusters",
+          "journal": "Psychological Medicine",
+          "doi": "10.1017/S0033291721004888",
+          "canonicalUrl": "https://doi.org/10.1017/S0033291721004888",
+          "evidenceType": "探索性蛋白质组聚类研究",
+        "editorialRole": "展示用蛋白质组拆分抑郁异质性的可能性",
+        "abstractZh": "研究尝试根据蛋白质组数据把抑郁患者分成不同生物学亚群，并比较各组的临床特征。结果提示蛋白模式可能帮助理解抑郁的异质性，但这种探索性分组仍需在独立样本中重复。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S2-06",
+          "authorsDisplay": "Al-Diwani A et al.",
+          "year": 2026,
+          "title": "The distinctive psychopathology of NMDAR-antibody encephalitis compared with primary psychoses: an international, multicentre, retrospective phenotypic analysis",
+          "journal": "The Lancet Psychiatry",
+          "doi": "10.1016/S2215-0366(25)00305-0",
+          "canonicalUrl": "https://doi.org/10.1016/S2215-0366(25)00305-0",
+          "evidenceType": "国际多中心回顾性分析",
+        "editorialRole": "提示特定急性精神病性表现中的神经免疫鉴别价值",
+        "abstractZh": "这项国际多中心研究比较 NMDAR（N-methyl-D-aspartate receptor，N-甲基-D-天冬氨酸受体）抗体脑炎与原发性精神病的精神症状表现。研究寻找更常见于脑炎的临床线索，提醒医生在急性、快速变化或伴神经系统异常的情况下考虑神经免疫检查。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S2-07",
+          "authorsDisplay": "Behrens LMP et al.",
+          "year": 2026,
+          "title": "Limitations and opportunities in multi-omics integration for neurodevelopmental, neurodegenerative and psychiatric disorders: a systematic review",
+          "journal": "Neuroscience",
+          "doi": "10.1016/j.neuroscience.2026.01.019",
+          "canonicalUrl": "https://doi.org/10.1016/j.neuroscience.2026.01.019",
+          "evidenceType": "系统综述",
+        "editorialRole": "总结多组学整合的机会、偏倚与方法缺口",
+        "abstractZh": "系统综述考察遗传、转录、蛋白和代谢等多组学数据如何用于神经发育、神经退行性和精神障碍研究。文章认为整合分析有望连接不同生物层级，但批次效应、数据缺失、样本不足和验证缺乏仍是主要障碍。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S2-08",
+          "authorsDisplay": "Liu C et al.",
+          "year": 2025,
+          "title": "Psychiatric Genomics 2025: State of the Art and the Path Forward",
+          "journal": "Psychiatric Clinics of North America",
+          "doi": "10.1016/j.psc.2025.01.002",
+          "canonicalUrl": "https://doi.org/10.1016/j.psc.2025.01.002",
+          "evidenceType": "领域综述",
+          "editorialRole": "总结功能基因组学、单细胞技术与跨祖源研究方向",
+          "abstractZh": "综述回顾精神遗传学从候选基因走向全基因组研究的进展，认为下一步重点是解释大量相关位点的生物功能。文章介绍脑组织表达数量性状位点、单细胞测序和功能基因组技术，并强调扩大祖源多样性与国际协作。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "PubMed 摘要与书目信息",
+          "lastVerifiedAt": "2026-08-14"
+        },
+        {
+          "id": "S2-09",
+          "authorsDisplay": "Major Depressive Disorder Working Group of the Psychiatric Genomics Consortium",
+          "year": 2025,
+          "title": "Trans-ancestry genome-wide study of depression identifies 697 associations implicating cell types and pharmacotherapies",
+          "journal": "Cell",
+          "doi": "10.1016/j.cell.2024.12.002",
+          "canonicalUrl": "https://doi.org/10.1016/j.cell.2024.12.002",
+          "evidenceType": "跨祖源全基因组关联研究",
+          "editorialRole": "连接抑郁遗传位点、神经细胞类型与候选药物靶点",
+          "abstractZh": "这项跨祖源全基因组关联研究汇总 29 个国家的数据，发现 697 个关联信号，其中 293 个为新发现。进一步分析涉及兴奋性、抑制性和中型棘状神经元，并提示若干药物靶点；但多基因评分对个人风险差异的解释仍有限。",
+          "sampleSizeNote": "688,808 名重性抑郁患者；4,364,225 名对照；29 个国家",
+          "analysisBasis": "PubMed 摘要与书目信息",
+          "lastVerifiedAt": "2026-08-14"
+        },
+        {
+          "id": "S2-10",
+          "authorsDisplay": "Cheng K et al.",
+          "year": 2025,
+          "title": "Model systems for emulating human tissue and physiology in psychiatric research",
+          "journal": "Frontiers in Neuroscience",
+          "doi": "10.3389/fnins.2025.1527826",
+          "canonicalUrl": "https://doi.org/10.3389/fnins.2025.1527826",
+          "evidenceType": "领域综述",
+          "editorialRole": "比较二维细胞模型与三维脑类器官的用途和局限",
+          "abstractZh": "综述比较由诱导多能干细胞建立的二维培养与三维脑类器官。二维模型适合研究细胞通路和较大规模药物筛选，三维模型更能呈现组织结构和细胞多样性；不过类器官的成熟度、可重复性和扩大培养仍是主要限制。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "PubMed 摘要与书目信息",
+          "lastVerifiedAt": "2026-08-14"
+        }
+      ],
+      "editorial": {
+        "reviewVersion": "1.0.0-draft",
+        "status": "review",
+        "literatureCutoff": "2026-07-30",
+        "lastReviewedAt": "2026-08-10",
+        "nextReviewDue": "2026-11-10",
+        "updateCadence": "quarterly"
+      }
+    },
+    {
+      "menuId": "assessment-prediction",
+      "slug": "assessment-and-prediction",
+      "order": 3,
+      "titleZh": "精神障碍的评估与预测",
+      "titleEn": "Assessment and Prediction in Mental Health",
+      "kicker": "从一次性量表走向纵向测量，但预测必须先过外部验证关",
+      "cardCopy": "介绍测量式照护、临床预测模型、数字表型与复发预警，并解释区分、校准和真实世界效用之间的差别。",
+      "synopsis": "精神健康评估正从一次问卷或一个诊断，转向持续观察症状、生活功能和环境变化。预测模型是否可靠，还要看它换到其他人群和医院后能不能保持准确。",
+      "bodySections": [
+        {
+          "heading": "核心共识",
+          "paragraphs": [
+            "评估回答‘一个人现在怎样’，预测回答‘在明确时间内更可能发生什么’，两者不能混为一谈。一个可解释的预测工具必须先说明要预测的结果、预测多远、适用于谁，以及误报和漏报分别会带来什么后果。标准化量表、结构化访谈、生活功能和个人经历仍是评估基础。",
+            "模型不能只报告 AUC（Area Under the Curve，曲线下面积）或 C-statistic（Concordance Statistic，一致性统计量）。还要检查预测概率是否校准、换到独立人群后是否仍有效、在实际决策中是否带来净获益。现有精神健康预测模型中，真正完成充分外部验证和临床影响评估的仍然不多。"
+          ],
+          "referenceIds": ["S3-01", "S3-03", "S3-10"]
+        },
+        {
+          "heading": "正在推进的前沿",
+          "paragraphs": [
+            "研究正在从偶尔填写一次问卷，走向在获得同意的前提下，用手机、可穿戴设备、体验采样和电子病历连续记录睡眠、活动、社交节律和情绪变化。这样更接近日常生活，但数据缺失、设备更换、使用习惯和隐私选择都可能改变结果，不能把传感器数据当成完全客观的事实。",
+            "另一项前沿是让模型在上线后持续接受检查和更新，包括重新校准、监测人群与数据变化，以及在不同机构重复验证。近期多队列研究提示，使用少量、容易获得的临床变量也可能形成较能泛化的模型；这比一味加入成千上万个特征更容易进入临床流程，但仍需前瞻性影响研究。"
+          ],
+          "referenceIds": ["S3-04", "S3-05", "S3-08", "S3-09"]
+        },
+        {
+          "heading": "关键争议",
+          "paragraphs": [
+            "自伤和自杀预测尤其需要谨慎。2025 年系统综述找到 167 个开发模型，只有约 8% 接受过外部验证，而且大多数研究存在较高偏倚风险。模型可以帮助整理风险信息，却不能准确预言某个人会在何时发生什么，也不能替代持续沟通、安全计划和及时支持。",
+            "误报可能带来焦虑、污名或不必要的限制，漏报可能错过帮助机会；模型在不同性别、年龄、文化和社会经济群体中的误差也可能不同。因此，预测工具应作为专业判断的辅助，公开其适用范围和不确定性，不应单独用于强制处置、拒绝服务或减少照护。"
+          ],
+          "referenceIds": ["S3-03", "S3-08", "S3-10"]
+        }
+      ],
+      "keyClaims": [
+        {
+          "claimId": "assessment-prediction-c1",
+          "text": "预测模型的外部验证和校准与区分度同等重要。",
+          "confidence": "较高",
+          "evidenceSummary": "方法学指导与系统综述",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S3-01",
+            "S3-03"
+          ]
+        },
+        {
+          "claimId": "assessment-prediction-c2",
+          "text": "长期真实世界数据可支持风险分层，但跨机构泛化仍待验证。",
+          "confidence": "中等",
+          "evidenceSummary": "大型前瞻性队列",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S3-02"
+          ]
+        },
+        {
+          "claimId": "assessment-prediction-c3",
+          "text": "高频数字表型可捕捉动态变化，但设备、依从性和隐私会影响结果。",
+          "confidence": "中等",
+          "evidenceSummary": "范围综述与前瞻队列",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S3-04",
+            "S3-05"
+          ]
+        },
+        {
+          "claimId": "assessment-prediction-c4",
+          "text": "临床高风险模型数量增加，但成熟、可复用的模型仍有限。",
+          "confidence": "中等",
+          "evidenceSummary": "系统综述",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S3-07"
+          ]
+        }
+      ],
+      "references": [
+        {
+          "id": "S3-01",
+          "authorsDisplay": "Costa R et al.",
+          "year": 2026,
+          "title": "Methodological guidance on clinical prediction models in mental health research",
+          "journal": "Psychological Medicine",
+          "doi": "10.1017/S003329172610378X",
+          "canonicalUrl": "https://doi.org/10.1017/S003329172610378X",
+          "evidenceType": "方法学指导",
+        "editorialRole": "规定开发、验证、校准与报告要求",
+        "abstractZh": "文章为精神健康临床预测模型提供方法学指导，说明怎样选择预测因子和结局、处理缺失数据、评估区分度与校准度。作者强调透明报告和独立外部验证，避免只展示开发数据中的理想结果。",
+          "sampleSizeNote": "示例研究为 5,372 名孕妇",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S3-02",
+          "authorsDisplay": "Logeswaran Y et al.",
+          "year": 2026,
+          "title": "Predicting long-term poor outcomes in individuals at clinical high risk for psychosis using real-world clinical data: the OASIS1000 prospective study",
+          "journal": "World Psychiatry",
+          "doi": "10.1002/wps.70063",
+          "canonicalUrl": "https://doi.org/10.1002/wps.70063",
+          "evidenceType": "长期前瞻性队列与预测模型",
+        "editorialRole": "展示真实世界长期风险分层及其边界",
+        "abstractZh": "OASIS1000（Outreach and Support in South London 1000，伦敦南部外展与支持服务千人队列）前瞻性研究利用 1,000 名精神病临床高风险者的真实世界资料，预测最长约 21 年后的不良结局。模型显示长期风险分层具有可能，但研究者明确指出，投入临床前还需外部验证和实际效用评估。",
+          "sampleSizeNote": "1,000 人；最长随访约 21 年",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S3-03",
+          "authorsDisplay": "Burghoorn DG et al.",
+          "year": 2024,
+          "title": "Externally validated clinical prediction models for estimating treatment outcomes for patients with a mood, anxiety or psychotic disorder: systematic review and meta-analysis",
+          "journal": "BJPsych Open",
+          "doi": "10.1192/bjo.2024.789",
+          "canonicalUrl": "https://doi.org/10.1192/bjo.2024.789",
+          "evidenceType": "系统综述与荟萃分析",
+        "editorialRole": "评估已外部验证的治疗结局模型",
+        "abstractZh": "系统综述和荟萃分析汇总情绪、焦虑与精神病性障碍中已经接受外部验证的治疗结局模型。研究发现可用模型数量有限，性能和报告质量差异较大，说明从模型开发到可靠临床应用仍有明显缺口。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S3-04",
+          "authorsDisplay": "Schick A et al.",
+          "year": 2023,
+          "title": "Novel digital methods for gathering intensive time series data in mental health research: scoping review of a rapidly evolving field",
+          "journal": "Psychological Medicine",
+          "doi": "10.1017/S0033291722003336",
+          "canonicalUrl": "https://doi.org/10.1017/S0033291722003336",
+          "evidenceType": "范围综述",
+        "editorialRole": "梳理体验采样、传感器与密集时间序列方法",
+        "abstractZh": "范围综述整理体验采样、智能手机传感器、可穿戴设备等密集时间序列方法。文章说明这些技术能更贴近日常生活地记录情绪和行为变化，同时也带来依从性、隐私、数据质量与分析复杂度问题。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S3-05",
+          "authorsDisplay": "Cho CH et al.",
+          "year": 2023,
+          "title": "Prediction of impending mood episode recurrence using real-time digital phenotypes in major depression and bipolar disorders in South Korea: a prospective nationwide cohort study",
+          "journal": "Psychological Medicine",
+          "doi": "10.1017/S0033291722002847",
+          "canonicalUrl": "https://doi.org/10.1017/S0033291722002847",
+          "evidenceType": "全国前瞻性队列",
+        "editorialRole": "检验情绪发作的实时数字预警",
+        "abstractZh": "韩国全国前瞻性队列持续收集重性抑郁和双相障碍患者的实时数字表型，观察情绪发作前是否出现可识别变化。结果支持数字信号用于预警的可能性，但仍需要在不同设备、地区和人群中验证。",
+          "sampleSizeNote": "495 人；75,506 人日；270 次情绪发作",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S3-06",
+          "authorsDisplay": "McGuire P",
+          "year": 2026,
+          "title": "Implementing precision psychiatry in psychosis",
+          "journal": "World Psychiatry",
+          "doi": "10.1002/wps.70052",
+          "canonicalUrl": "https://doi.org/10.1002/wps.70052",
+          "evidenceType": "临床转化述评",
+        "editorialRole": "讨论精神病精准精神医学的部署条件",
+        "abstractZh": "文章讨论精准精神医学怎样进入精神病性障碍的真实照护，包括更细致的分层、连续评估和个体化选择。作者强调，模型准确度只是起点，还要解决临床流程、可解释性、公平性和责任归属。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S3-07",
+          "authorsDisplay": "Fusar-Poli P et al.",
+          "year": 2024,
+          "title": "Systematic review of clinical prediction models for psychosis in individuals meeting At Risk Mental State criteria",
+          "journal": "Frontiers in Psychiatry",
+          "doi": "10.3389/fpsyt.2024.1408738",
+          "canonicalUrl": "https://doi.org/10.3389/fpsyt.2024.1408738",
+          "evidenceType": "系统综述",
+        "editorialRole": "评估临床高风险精神病预测模型的成熟度",
+        "abstractZh": "系统综述汇总达到精神病风险精神状态标准人群中的临床预测模型，考察它们预测转为精神病的能力。研究重点指出偏倚风险、样本重复、报告不完整和外部验证不足等问题。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S3-08",
+          "authorsDisplay": "Richter M et al.",
+          "year": 2025,
+          "title": "Generalizability of clinical prediction models in mental health",
+          "journal": "Molecular Psychiatry",
+          "doi": "10.1038/s41380-025-02950-0",
+          "canonicalUrl": "https://doi.org/10.1038/s41380-025-02950-0",
+          "evidenceType": "多队列外部验证研究",
+          "editorialRole": "检验少量常规临床变量能否跨场景预测抑郁严重度",
+          "abstractZh": "研究使用 10 个欧洲研究和临床场景中的 3,021 名情感障碍参与者，以容易获得的临床和社会人口学变量建立稀疏模型，并在 9 个外部样本中检验。结果支持跨场景预测抑郁严重度的可能，但研究针对的是群体中的症状严重度，不能直接用于个人临床决定。",
+          "sampleSizeNote": "3,021 人；10 个欧洲研究与临床场景；9 个外部样本",
+          "analysisBasis": "PubMed 摘要与书目信息",
+          "lastVerifiedAt": "2026-08-14"
+        },
+        {
+          "id": "S3-09",
+          "authorsDisplay": "Saelmans A et al.",
+          "year": 2025,
+          "title": "Implementation and Updating of Clinical Prediction Models: A Systematic Review",
+          "journal": "Mayo Clinic Proceedings: Digital Health",
+          "doi": "10.1016/j.mcpdig.2025.100228",
+          "canonicalUrl": "https://doi.org/10.1016/j.mcpdig.2025.100228",
+          "evidenceType": "系统综述",
+          "editorialRole": "总结临床预测模型上线、影响评估与持续更新的现状",
+          "abstractZh": "系统综述纳入 37 篇文章中的 56 个已实施预测模型。多数模型进入医院信息系统或网页工具，但只有 27% 做过外部验证，13% 在实施后得到更新，且多数研究偏倚风险较高，说明部署后的校准、影响评估和持续维护仍明显不足。",
+          "sampleSizeNote": "37 篇文章；56 个已实施模型",
+          "analysisBasis": "PubMed 摘要与书目信息",
+          "lastVerifiedAt": "2026-08-14"
+        },
+        {
+          "id": "S3-10",
+          "authorsDisplay": "Seyedsalehi A et al.",
+          "year": 2025,
+          "title": "Prediction models for self-harm and suicide: a systematic review and critical appraisal",
+          "journal": "BMC Medicine",
+          "doi": "10.1186/s12916-025-04367-6",
+          "canonicalUrl": "https://doi.org/10.1186/s12916-025-04367-6",
+          "evidenceType": "系统综述与批判性评估",
+          "editorialRole": "评估自伤与自杀预测模型的外部验证、校准和偏倚",
+          "abstractZh": "系统综述纳入 91 篇文章、167 个开发模型和 29 次外部验证。只有约 8% 的开发模型接受过外部验证，校准报告较少，而且几乎所有开发研究都被评为高偏倚风险；作者建议优先验证和更新已有模型，而不是继续开发相似的新模型。",
+          "sampleSizeNote": "91 篇文章；167 个开发模型；29 次外部验证",
+          "analysisBasis": "PubMed 摘要与书目信息",
+          "lastVerifiedAt": "2026-08-14"
+        }
+      ],
+      "editorial": {
+        "reviewVersion": "1.0.0-draft",
+        "status": "review",
+        "literatureCutoff": "2026-07-30",
+        "lastReviewedAt": "2026-08-10",
+        "nextReviewDue": "2026-11-10",
+        "updateCadence": "quarterly"
+      }
+    },
+    {
+      "menuId": "frontier-treatments",
+      "slug": "frontier-treatments",
+      "order": 4,
+      "titleZh": "精神障碍的前沿治疗方式",
+      "titleEn": "Frontier Treatments for Mental Disorders",
+      "kicker": "快速起效、神经调控与跨诊断心理治疗并行发展",
+      "cardCopy": "审视氯胺酮/艾氯胺酮、迷幻药辅助治疗、个体化脑刺激和新型心理治疗的证据、风险与真实世界落地条件。",
+      "synopsis": "新药物、脑刺激和新的心理治疗方式，为一些常规治疗效果有限的人增加了选择。但治疗更新并不等于一定更好，还要一起考虑效果、风险、长期随访、专业支持和费用。",
+      "bodySections": [
+        {
+          "heading": "核心共识",
+          "paragraphs": [
+            "前沿治疗应放在完整的照护路径里理解，而不是只看某一种新药或设备。开始新治疗前，要重新确认诊断和共病，检查过去的药物剂量、疗程与依从性，并把药物、心理治疗、物理治疗、康复、睡眠和社会支持放在一起考虑。新方法通常只对经过筛选的部分人群有证据。",
+            "评价治疗不能只看几周内的症状评分，还要看缓解、复发、生活功能、不良反应、停药或中断、个人体验和长期结果。迷幻药辅助治疗尤其需要把药物、筛查、准备、治疗环境、心理支持和随访看作一个完整方案，不能把试验结果简单理解成某种药物单独有效。"
+          ],
+          "referenceIds": ["S4-01", "S4-02", "S4-03", "S4-06", "S4-08"]
+        },
+        {
+          "heading": "正在推进的前沿",
+          "paragraphs": [
+            "脑刺激正在从固定位置和固定参数，走向根据个人脑网络连接选择靶点。连接组引导的间歇性 θ 爆发刺激和经颅磁刺激试图更准确地定位、缩短疗程，并寻找哪些网络变化与改善有关。现有随机试验给出积极信号，但不同方案、设备和人群之间还需要直接比较。",
+            "更早期的方向包括闭环神经调控：植入设备先记录与严重症状相关的脑信号，再在需要时刺激相关环路；低强度聚焦超声则尝试以非侵入方式影响更深的脑区。心理治疗也在发展跨诊断模块、个体化匹配和线上线下混合方案。以上方向仍处于不同研究阶段，不代表已经适合常规使用。"
+          ],
+          "referenceIds": ["S4-02", "S4-04", "S4-05", "S4-09", "S4-10"]
+        },
+        {
+          "heading": "关键争议",
+          "paragraphs": [
+            "不同新疗法之间缺少足够的直接比较。试验对‘难治’的定义、入组标准、对照方式、同时提供的心理支持和随访时间常常不同，所以不能只比较论文中的效果数字就判断哪一种最好。疗效能否维持、停止治疗后会怎样，以及在普通医院能否复制，都需要更长随访。",
+            "迷幻药试验很难完全盲法，参与者的期待可能影响结果，不良反应的收集也不一致。植入式闭环设备还涉及手术风险、长期维护、脑信号隐私和出错责任；昂贵设备与高度专业化服务则可能让资源不足地区更难获得治疗。创新的价值需要同时接受疗效、安全、公平和可持续性的检验。"
+          ],
+          "referenceIds": ["S4-06", "S4-07", "S4-09", "S4-10"]
+        }
+      ],
+      "keyClaims": [
+        {
+          "claimId": "frontier-treatments-c1",
+          "text": "难治性抑郁的界定与既往治疗质量会显著影响研究和临床决策。",
+          "confidence": "较高",
+          "evidenceSummary": "领域综述",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S4-01"
+          ]
+        },
+        {
+          "claimId": "frontier-treatments-c2",
+          "text": "跨诊断与混合交付心理治疗可扩大覆盖，但相对优势和持续参与仍需研究。",
+          "confidence": "较高",
+          "evidenceSummary": "最新领域综述与个体数据荟萃",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S4-02",
+            "S4-03"
+          ]
+        },
+        {
+          "claimId": "frontier-treatments-c3",
+          "text": "连接引导和 theta-burst 脑刺激具有疗效信号，尚需更多独立、长期与真实世界比较。",
+          "confidence": "中等",
+          "evidenceSummary": "随机试验与网络荟萃",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S4-04",
+            "S4-05"
+          ]
+        },
+        {
+          "claimId": "frontier-treatments-c4",
+          "text": "迷幻药辅助治疗和快速起效药物的收益不能脱离筛查、支持、监管与长期安全讨论。",
+          "confidence": "中等",
+          "evidenceSummary": "活系统综述、安全综述与预测综述",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S4-06",
+            "S4-07",
+            "S4-08"
+          ]
+        }
+      ],
+      "references": [
+        {
+          "id": "S4-01",
+          "authorsDisplay": "McIntyre RS et al.",
+          "year": 2023,
+          "title": "Treatment-resistant depression: definition, prevalence, detection, management, and investigational interventions",
+          "journal": "World Psychiatry",
+          "doi": "10.1002/wps.21120",
+          "canonicalUrl": "https://doi.org/10.1002/wps.21120",
+          "evidenceType": "领域综述",
+        "editorialRole": "建立难治性抑郁的定义、管理与研究边界",
+        "abstractZh": "综述讨论难治性抑郁的定义、患病比例、识别方法和管理路径，并说明既往治疗剂量、疗程、依从性、共病和误诊都会影响判断。文章还概括正在研究的新干预及其证据边界。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S4-02",
+          "authorsDisplay": "Cuijpers P et al.",
+          "year": 2026,
+          "title": "Innovations to improve outcomes and uptake of psychotherapies for mental disorders: a state-of-the-art review",
+          "journal": "World Psychiatry",
+          "doi": "10.1002/wps.70002",
+          "canonicalUrl": "https://doi.org/10.1002/wps.70002",
+          "evidenceType": "最新领域综述",
+        "editorialRole": "评估跨诊断、个体化与数字心理治疗创新",
+        "abstractZh": "综述介绍改善心理治疗效果和可及性的主要方向，包括跨诊断方案、个体化匹配、数字或混合治疗和实施策略。作者关注的不只是疗效，还包括患者是否愿意使用、能否坚持以及服务能否长期提供。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S4-03",
+          "authorsDisplay": "Gülpen J et al.",
+          "year": 2025,
+          "title": "Psychological interventions for preventing relapse in individuals with partial remission of depression: a systematic review and individual participant data meta-analysis",
+          "journal": "Psychological Medicine",
+          "doi": "10.1017/S0033291725000157",
+          "canonicalUrl": "https://doi.org/10.1017/S0033291725000157",
+          "evidenceType": "系统综述与个体参与者数据荟萃",
+        "editorialRole": "评估部分缓解抑郁的心理复发预防",
+        "abstractZh": "这项系统综述和个体参与者数据荟萃分析，评估心理干预能否帮助仍有残余症状的抑郁患者预防复发。研究通过合并个人层级数据，进一步分析总体效果以及哪些人可能获益更多。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S4-04",
+          "authorsDisplay": "Morriss R et al.",
+          "year": 2024,
+          "title": "Connectivity-guided intermittent theta burst versus repetitive transcranial magnetic stimulation for treatment-resistant depression: a randomized controlled trial",
+          "journal": "Nature Medicine",
+          "doi": "10.1038/s41591-023-02764-z",
+          "canonicalUrl": "https://doi.org/10.1038/s41591-023-02764-z",
+          "evidenceType": "随机对照试验",
+        "editorialRole": "检验连接引导 iTBS（intermittent theta-burst stimulation，间歇性 θ 爆发刺激）与 rTMS（repetitive transcranial magnetic stimulation，重复经颅磁刺激）的比较效果",
+        "abstractZh": "随机对照试验比较连接组引导的 iTBS（intermittent theta-burst stimulation，间歇性 θ 爆发刺激）与 rTMS（repetitive transcranial magnetic stimulation，重复经颅磁刺激）治疗难治性抑郁的效果。研究检验更精准的靶点和更短方案能否保持疗效，同时评估耐受性。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S4-05",
+          "authorsDisplay": "Kishi T et al.",
+          "year": 2024,
+          "title": "Theta burst stimulation for depression: a systematic review and network and pairwise meta-analysis",
+          "journal": "Molecular Psychiatry",
+          "doi": "10.1038/s41380-024-02630-5",
+          "canonicalUrl": "https://doi.org/10.1038/s41380-024-02630-5",
+          "evidenceType": "系统综述与网络荟萃",
+        "editorialRole": "比较不同 theta-burst 方案",
+        "abstractZh": "系统综述与网络荟萃分析汇总 23 项随机试验、共 960 名参与者，比较不同 θ 爆发刺激方案对抑郁症状的影响。结果提供各方案相对效果的线索，但研究规模和方案差异限制了结论确定性。",
+          "sampleSizeNote": "23 项随机试验；960 人",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S4-06",
+          "authorsDisplay": "Højlund M et al.",
+          "year": 2025,
+          "title": "Efficacy, all-cause discontinuation, and safety of serotonergic psychedelics and MDMA to treat mental disorders: a living systematic review with meta-analysis",
+          "journal": "European Neuropsychopharmacology",
+          "doi": "10.1016/j.euroneuro.2025.09.011",
+          "canonicalUrl": "https://doi.org/10.1016/j.euroneuro.2025.09.011",
+          "evidenceType": "活系统综述与荟萃分析",
+        "editorialRole": "综合迷幻药与 MDMA（3,4-methylenedioxymethamphetamine，3,4-亚甲二氧基甲基苯丙胺）的疗效、脱落和安全证据",
+        "abstractZh": "活系统综述持续更新血清素能迷幻药和 MDMA（3,4-methylenedioxymethamphetamine，3,4-亚甲二氧基甲基苯丙胺）治疗精神障碍的随机证据，并同时比较疗效、各种原因停药和安全结果。文章既总结积极信号，也提醒关注盲法、期待效应和长期资料不足。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S4-07",
+          "authorsDisplay": "Yildirim B et al.",
+          "year": 2024,
+          "title": "Adverse psychiatric effects of psychedelic drugs: a systematic review of case reports",
+          "journal": "Psychological Medicine",
+          "doi": "10.1017/S0033291724002496",
+          "canonicalUrl": "https://doi.org/10.1017/S0033291724002496",
+          "evidenceType": "病例报告系统综述",
+        "editorialRole": "补充罕见但重要的精神不良反应信号",
+        "abstractZh": "系统综述汇总迷幻药使用后出现精神科不良反应的病例报告，包括持续性精神病性症状、躁狂或其他严重变化。病例报告不能估算发生率，却能帮助识别随机试验不容易发现的罕见风险信号。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S4-08",
+          "authorsDisplay": "Syed OA et al.",
+          "year": 2026,
+          "title": "Clinical predictors of antidepressant effects of ketamine and esketamine in treatment-resistant unipolar and bipolar depression: a systematic review",
+          "journal": "CNS Drugs",
+          "doi": "10.1007/s40263-026-01296-7",
+          "canonicalUrl": "https://doi.org/10.1007/s40263-026-01296-7",
+          "evidenceType": "系统综述",
+        "editorialRole": "评估氯胺酮/艾氯胺酮反应预测因素",
+        "abstractZh": "系统综述整理难治性单相和双相抑郁中，可能预测氯胺酮或艾氯胺酮疗效的临床因素。现有研究给出一些候选线索，但样本和方法差异较大，还不足以形成稳定的个人用药预测规则。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S4-09",
+          "authorsDisplay": "Langbein J et al.",
+          "year": 2025,
+          "title": "Intracranial closed-loop neuromodulation as an intervention for neuropsychiatric disorders: an overview",
+          "journal": "Frontiers in Psychiatry",
+          "doi": "10.3389/fpsyt.2025.1479240",
+          "canonicalUrl": "https://doi.org/10.3389/fpsyt.2025.1479240",
+          "evidenceType": "领域综述",
+          "editorialRole": "梳理颅内生物信号识别与闭环神经调控的早期证据",
+          "abstractZh": "综述从 583 篇记录中找到 5 篇符合条件的早期研究，涉及抑郁、强迫障碍、创伤后应激障碍和暴食障碍。研究尝试识别严重症状状态对应的脑信号并据此刺激相关环路，但样本很少，长期效果和不同场景下的稳定性仍需验证。",
+          "sampleSizeNote": "583 篇记录中 5 篇纳入",
+          "analysisBasis": "PubMed 摘要与书目信息",
+          "lastVerifiedAt": "2026-08-14"
+        },
+        {
+          "id": "S4-10",
+          "authorsDisplay": "Cox SS et al.",
+          "year": 2025,
+          "title": "A Comprehensive Review of Low-Intensity Focused Ultrasound Parameters and Applications in Neurologic and Psychiatric Disorders",
+          "journal": "Neuromodulation",
+          "doi": "10.1016/j.neurom.2024.07.008",
+          "canonicalUrl": "https://doi.org/10.1016/j.neurom.2024.07.008",
+          "evidenceType": "领域综述",
+          "editorialRole": "总结低强度聚焦超声的参数、机制与早期临床应用",
+          "abstractZh": "综述介绍低强度聚焦超声怎样以非侵入方式较精确地影响浅层或深部神经结构，并整理其参数、可能机制和神经精神疾病中的早期研究。作者认为该技术有潜力，但目前仍处于起步阶段，参数标准化和临床疗效需要更多研究。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "PubMed 摘要与书目信息",
+          "lastVerifiedAt": "2026-08-14"
+        }
+      ],
+      "editorial": {
+        "reviewVersion": "1.0.0-draft",
+        "status": "review",
+        "literatureCutoff": "2026-07-30",
+        "lastReviewedAt": "2026-08-10",
+        "nextReviewDue": "2026-11-10",
+        "updateCadence": "quarterly"
+      }
+    },
+    {
+      "menuId": "digital-ai-impact",
+      "slug": "digital-ai-impact",
+      "order": 5,
+      "titleZh": "数字技术与 AI 对于精神健康服务的影响",
+      "titleEn": "Impact of Digital Technology and Artificial Intelligence on Mental Health Services",
+      "kicker": "价值来自增强照护链，而不是把语言流畅误认为临床能力",
+      "cardCopy": "分析数字疗法、传感器、聊天机器人和生成式 AI（Artificial Intelligence，人工智能）如何影响可及性、参与度与临床流程，并审视安全、公平和监管。",
+      "synopsis": "数字工具和 AI 目前更适合帮助筛查、持续监测、健康教育和减少重复工作。让它们独立诊断、处理危机或决定治疗，现有证据还不够。",
+      "bodySections": [
+        {
+          "heading": "核心共识",
+          "paragraphs": [
+            "判断数字工具是否有价值，不能只看回答是否流畅或技术准确率是否很高，还要看它进入真实服务后由谁负责、危机怎样转交、数据怎样保护、出错后怎样补救，以及能否真正改善症状、功能或服务可及性。算法表现好不等于临床使用安全。",
+            "目前证据较稳妥的用途包括健康教育、资源导航、结构化监测、辅助记录和部分行政工作。生成式 AI（Artificial Intelligence，人工智能）可以提供低门槛信息和对话支持，但现有研究还不足以让它独立诊断、决定治疗或承担危机处置。专业人员和服务机构仍需对照护结果负责。"
+          ],
+          "referenceIds": ["S5-01", "S5-02", "S5-04", "S5-10"]
+        },
+        {
+          "heading": "正在推进的前沿",
+          "paragraphs": [
+            "研究者正在建立分层验证路径：先在封闭测试中检查有害回答、隐私泄露和危机反应，再做小规模可用性研究，最后用随机试验和真实世界数据检验临床结果。当前许多生成式 AI 工具还停留在前两个阶段，模型版本变化后也需要重新测试。",
+            "更现实的服务模式是混合照护：AI 负责低风险、重复性的提醒、教育和信息整理，专业人员负责评估、共同决策、危机处理和复杂治疗。能否成功不只取决于模型，还取决于转诊通道、支付方式、人员培训、持续维护和用户是否愿意使用。"
+          ],
+          "referenceIds": ["S5-03", "S5-04", "S5-05", "S5-07", "S5-10"]
+        },
+        {
+          "heading": "关键争议",
+          "paragraphs": [
+            "LLM（Large Language Model，大型语言模型）会使用同理语气，但这种语言表现不等于真正理解。用户可能因为回答自然、即时而过度信任系统；系统也可能编造信息、漏掉风险信号，或对同一问题给出不一致回答。模型更新造成的性能漂移，又让一次通过测试不等于以后一直安全。",
+            "精神健康对话包含高度敏感资料，网络攻击、第三方共享和不透明的数据保留都会放大伤害。没有稳定网络、智能设备或数字技能的人，也可能被排除在新服务之外。另一个尚未解决的问题是，当开发者、医院、专业人员和用户共同参与时，错误建议或危机处置失败究竟由谁承担责任。"
+          ],
+          "referenceIds": ["S5-04", "S5-08", "S5-09", "S5-10"]
+        }
+      ],
+      "keyClaims": [
+        {
+          "claimId": "digital-ai-impact-c1",
+          "text": "AI 的技术准确率不能替代临床效用、外部验证和公平性证据。",
+          "confidence": "较高",
+          "evidenceSummary": "系统综述",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S5-01",
+            "S5-02"
+          ]
+        },
+        {
+          "claimId": "digital-ai-impact-c2",
+          "text": "现有 LLM 精神健康研究尚不足以支持独立治疗或危机处置。",
+          "confidence": "较高",
+          "evidenceSummary": "系统/范围综述",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S5-03",
+            "S5-04"
+          ]
+        },
+        {
+          "claimId": "digital-ai-impact-c3",
+          "text": "数字干预可产生短期获益，但对照设计、参与度和真实世界整合决定可迁移性。",
+          "confidence": "中等",
+          "evidenceSummary": "随机试验",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S5-05",
+            "S5-06",
+            "S5-07"
+          ]
+        },
+        {
+          "claimId": "digital-ai-impact-c4",
+          "text": "安全部署需要持续监管、清晰责任链、隐私保护与版本化评价。",
+          "confidence": "较高",
+          "evidenceSummary": "伦理与治理框架",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S5-08"
+          ]
+        }
+      ],
+      "references": [
+        {
+          "id": "S5-01",
+          "authorsDisplay": "Torous J et al.",
+          "year": 2024,
+          "title": "The evolving field of digital mental health: current evidence and implementation issues for smartphone apps, generative artificial intelligence, and virtual reality",
+          "journal": "World Psychiatry",
+          "doi": "10.1002/wps.21299",
+          "canonicalUrl": "https://doi.org/10.1002/wps.21299",
+          "evidenceType": "领域综述",
+        "editorialRole": "评估数字工具证据、参与和实施问题",
+        "abstractZh": "综述概括手机应用、生成式 AI 和虚拟现实等数字精神健康工具的近期证据。文章认为这些工具有扩大服务覆盖的潜力，但真实使用中的参与度、数据治理、临床整合和长期效果仍是关键问题。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S5-02",
+          "authorsDisplay": "Cruz-Gonzalez P et al.",
+          "year": 2025,
+          "title": "Artificial intelligence in mental health care: a systematic review of diagnosis, monitoring, and intervention applications",
+          "journal": "Psychological Medicine",
+          "doi": "10.1017/S0033291724003295",
+          "canonicalUrl": "https://doi.org/10.1017/S0033291724003295",
+          "evidenceType": "系统综述",
+        "editorialRole": "综合 AI 在诊断、监测与干预中的 85 项研究",
+        "abstractZh": "系统综述汇总 85 项 AI 精神健康研究，涵盖诊断分类、症状监测和干预支持。总体显示技术可行，但数据代表性、评价指标、外部验证和真实世界临床影响仍不充分。",
+          "sampleSizeNote": "85 项研究",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S5-03",
+          "authorsDisplay": "Hua Y et al.",
+          "year": 2025,
+          "title": "Charting the evolution of artificial intelligence mental health chatbots from rule-based systems to large language models: a systematic review",
+          "journal": "World Psychiatry",
+          "doi": "10.1002/wps.21352",
+          "canonicalUrl": "https://doi.org/10.1002/wps.21352",
+          "evidenceType": "系统综述",
+        "editorialRole": "区分规则式、机器学习与 LLM（Large Language Model，大型语言模型）聊天机器人及其验证层级",
+        "abstractZh": "系统综述梳理精神健康聊天机器人从固定规则、机器学习到大型语言模型的发展。文章比较不同系统的功能和验证方式，指出语言能力快速提升，但临床证据、安全评价和透明度没有同步成熟。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S5-04",
+          "authorsDisplay": "Hua Y et al.",
+          "year": 2025,
+          "title": "A scoping review of large language models for generative tasks in mental health care",
+          "journal": "npj Digital Medicine",
+          "doi": "10.1038/s41746-025-01611-4",
+          "canonicalUrl": "https://doi.org/10.1038/s41746-025-01611-4",
+          "evidenceType": "范围综述",
+        "editorialRole": "评估 LLM（Large Language Model，大型语言模型）生成任务的证据与评价缺口",
+        "abstractZh": "范围综述从 726 条记录中纳入 16 项研究，考察 LLM（Large Language Model，大型语言模型）在精神健康生成任务中的使用。研究发现样本较少、指标临时、专有模型较多，现有证据不足以支持其独立承担临床干预。",
+          "sampleSizeNote": "726 条记录中 16 项纳入",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S5-05",
+          "authorsDisplay": "Fatouros P et al.",
+          "year": 2025,
+          "title": "Randomized controlled study of a digital data driven intervention for depressive and generalized anxiety symptoms",
+          "journal": "npj Digital Medicine",
+          "doi": "10.1038/s41746-025-01511-7",
+          "canonicalUrl": "https://doi.org/10.1038/s41746-025-01511-7",
+          "evidenceType": "去中心化随机对照试验",
+        "editorialRole": "检验可穿戴与个体化 CBT（Cognitive Behavioral Therapy，认知行为治疗）数字干预",
+        "abstractZh": "去中心化随机对照试验将可穿戴数据与个体化认知行为治疗内容结合，用于改善抑郁和广泛性焦虑症状。研究随机纳入 200 人、164 人完成，主要评估数字干预的症状效果和使用可行性。",
+          "sampleSizeNote": "200 人随机；164 人完成",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S5-06",
+          "authorsDisplay": "Tong ACY et al.",
+          "year": 2025,
+          "title": "Effectiveness of topic-based chatbots on mental health self-care and mental well-being: randomized controlled trial",
+          "journal": "Journal of Medical Internet Research",
+          "doi": "10.2196/70436",
+          "canonicalUrl": "https://doi.org/10.2196/70436",
+          "evidenceType": "随机对照试验",
+        "editorialRole": "检验主题式聊天机器人对自我照护与心理健康素养的影响",
+        "abstractZh": "随机对照试验在 285 名参与者中评估主题式聊天机器人，观察它对精神健康自我照护、知识和幸福感的影响。结果用于判断结构化对话工具能否提供低门槛支持，而不是验证其替代专业治疗。",
+          "sampleSizeNote": "285 人",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S5-07",
+          "authorsDisplay": "Campellone TR et al.",
+          "year": 2025,
+          "title": "Safety and user experience of a generative artificial intelligence digital mental health intervention: exploratory randomized controlled trial",
+          "journal": "Journal of Medical Internet Research",
+          "doi": "10.2196/67365",
+          "canonicalUrl": "https://doi.org/10.2196/67365",
+          "evidenceType": "探索性随机对照试验",
+        "editorialRole": "评估生成式 AI 数字干预的安全与用户体验",
+        "abstractZh": "探索性随机对照试验重点评估生成式 AI 精神健康干预的安全性、可接受度和用户体验。研究提供早期可行性信息，但样本和随访有限，不能据此认定系统能够独立诊断或治疗。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S5-08",
+          "authorsDisplay": "Capasso A et al.",
+          "year": 2025,
+          "title": "Ethical decision-making for AI in mental health: the integrated ethical approach for computational psychiatry (IEACP) framework",
+          "journal": "Psychological Medicine",
+          "doi": "10.1017/S0033291725101311",
+          "canonicalUrl": "https://doi.org/10.1017/S0033291725101311",
+          "evidenceType": "伦理与治理框架",
+        "editorialRole": "提供识别、分析、决策、实施和复审流程",
+        "abstractZh": "文章提出计算精神医学的综合伦理决策框架，帮助团队识别问题、分析利益与风险、作出决定、实施并定期复审。框架特别关注隐私、公平、透明、责任和患者参与。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S5-09",
+          "authorsDisplay": "Sawesi S et al.",
+          "year": 2026,
+          "title": "Cybersecurity and Privacy Risks of Generative AI Mental-Health Chatbots: A Systematic Review and Regulatory Framework",
+          "journal": "Journal of Multidisciplinary Healthcare",
+          "doi": "10.2147/JMDH.S581251",
+          "canonicalUrl": "https://doi.org/10.2147/JMDH.S581251",
+          "evidenceType": "系统综述与监管框架",
+          "editorialRole": "评估生成式 AI 精神健康聊天机器人的隐私、网络安全和危机风险",
+          "abstractZh": "系统综述纳入 33 项研究，发现生成式 AI 聊天机器人常用于情绪支持、心理教育和危机相关互动。主要风险包括有害回答、危机反应失败、敏感资料暴露和透明度不足；多数研究对网络安全的评估不够严格，正式攻击测试和威胁建模仍较少。",
+          "sampleSizeNote": "33 项研究",
+          "analysisBasis": "PubMed 摘要与书目信息",
+          "lastVerifiedAt": "2026-08-14"
+        },
+        {
+          "id": "S5-10",
+          "authorsDisplay": "Titov N et al.",
+          "year": 2025,
+          "title": "Key questions to ask before implementing a Digital Mental Health Service (DMHS): A primer for policy makers",
+          "journal": "Internet Interventions",
+          "doi": "10.1016/j.invent.2025.100857",
+          "canonicalUrl": "https://doi.org/10.1016/j.invent.2025.100857",
+          "evidenceType": "实施与政策指南",
+          "editorialRole": "说明数字精神健康服务上线前的服务定位、资金与治理问题",
+          "abstractZh": "文章提出数字精神健康服务实施前应回答的 11 个问题，包括服务哪些问题、放在整个照护系统的什么位置、怎样与其他服务衔接、采用什么资金模式，以及需要何种技术和治理。作者强调长期运行需要清楚的项目逻辑、稳定资金和持续评估。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "PubMed 摘要与书目信息",
+          "lastVerifiedAt": "2026-08-14"
+        }
+      ],
+      "editorial": {
+        "reviewVersion": "1.0.0-draft",
+        "status": "review",
+        "literatureCutoff": "2026-07-30",
+        "lastReviewedAt": "2026-08-10",
+        "nextReviewDue": "2026-11-10",
+        "updateCadence": "quarterly"
+      }
+    },
+    {
+      "menuId": "population-prevention-services",
+      "slug": "population-prevention-and-services",
+      "order": 6,
+      "titleZh": "人群、预防与精神卫生服务",
+      "titleEn": "Population, Prevention and Mental Health Services",
+      "kicker": "把个人治疗放回社会决定因素、早期干预与服务实施中",
+      "cardCopy": "讨论社会决定因素、青年早期干预、实施科学、服务连续性与权利导向改革，连接个体照护和公共精神卫生。",
+      "synopsis": "减少精神障碍带来的影响，不能只依靠个人接受治疗。住房、教育、就业、社会支持、预防措施和连续服务，同样会影响一个人能否恢复和长期保持稳定。",
+      "bodySections": [
+        {
+          "heading": "核心共识",
+          "paragraphs": [
+            "精神健康既与个人经历有关，也受到童年和家庭环境、教育、就业、收入、住房、歧视、社会连接和社区安全影响。这些因素经常一起出现，并影响一个人何时求助、能否持续接受照护以及是否有条件恢复。只增加个人治疗，不能完全消除由社会条件造成的差异。",
+            "预防是一条连续路径：面向所有人的普遍预防，面向较高风险群体的选择性预防，面向已有轻微症状者的指示性预防，以及对已患病人群的早期干预、复发预防和康复支持。临床治疗与教育、住房、劳动和社会保障政策应互相补充。"
+          ],
+          "referenceIds": ["S6-01", "S6-02", "S6-07"]
+        },
+        {
+          "heading": "正在推进的前沿",
+          "paragraphs": [
+            "学校和青年服务正在从单次讲座或筛查，转向全校环境、创伤知情、家庭参与和低门槛综合服务。气候相关灾害、迁移和生态焦虑也进入公共精神卫生议程。近期综述发现相关干预正在出现，但大多数还没有经过严格效果评估，实施方案需要结合当地灾害风险和社区资源。",
+            "任务分担是另一个重要方向：经过培训和督导的社区人员、一线卫生工作者或同伴，可以提供结构化的基础心理支持，再把复杂或高风险情况转给专业人员。印度农村的实施研究显示，数字课程和督导可以支持大规模培训与服务交付；但效果仍依赖持续督导、明确转诊、合理报酬和稳定资金。"
+          ],
+          "referenceIds": ["S6-03", "S6-04", "S6-09", "S6-10"]
+        },
+        {
+          "heading": "关键争议",
+          "paragraphs": [
+            "社会因素与精神健康之间的因果关系很复杂。贫困、疾病、失业和社会隔离可能互相影响，不同地区的历史和政策环境也会改变结果。因此，政策研究需要说明证据来自哪里、哪些人真正受益，以及变化是否由干预本身造成，不能把相关性简单说成确定因果。",
+            "把任务交给非专科人员可能扩大覆盖，也可能增加工作量、降低报酬公平或把责任下放给资源最少的人。学校项目会占用教师和学生时间，数字服务可能排除缺少设备的人。扩大规模时必须同时检查质量、文化适配、工作人员压力、长期维护和不同群体是否公平受益。"
+          ],
+          "referenceIds": ["S6-02", "S6-04", "S6-09", "S6-10"]
+        }
+      ],
+      "keyClaims": [
+        {
+          "claimId": "population-prevention-services-c1",
+          "text": "社会决定因素是精神健康差异的重要来源，预防需覆盖全生命历程与多个政策层级。",
+          "confidence": "较高",
+          "evidenceSummary": "大型领域综述与综述的综述",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S6-01",
+            "S6-02"
+          ]
+        },
+        {
+          "claimId": "population-prevention-services-c2",
+          "text": "青年服务需要发展适配、低门槛、分阶段并跨越传统诊断边界。",
+          "confidence": "较高",
+          "evidenceSummary": "国际委员会报告",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S6-03"
+          ]
+        },
+        {
+          "claimId": "population-prevention-services-c3",
+          "text": "实施效果由情境、组织、资金、人员与持续性共同决定。",
+          "confidence": "较高",
+          "evidenceSummary": "国际委员会报告与政策路线图",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S6-04",
+            "S6-06"
+          ]
+        },
+        {
+          "claimId": "population-prevention-services-c4",
+          "text": "早期干预和社会连接的价值需要通过连续服务与人群策略维持。",
+          "confidence": "中高",
+          "evidenceSummary": "系统综述与领域综述",
+          "uncertainty": "结论受研究设计、样本代表性、测量差异与随访长度限制；不用于个体诊断或治疗选择。",
+          "populationScope": "以所引文献研究人群为限",
+          "causalStatus": "按来源设计解释；未明确为随机或因果研究时仅作关联性陈述",
+          "referenceIds": [
+            "S6-05",
+            "S6-07",
+            "S6-08"
+          ]
+        }
+      ],
+      "references": [
+        {
+          "id": "S6-01",
+          "authorsDisplay": "Kirkbride JB et al.",
+          "year": 2024,
+          "title": "The social determinants of mental health and disorder: evidence, prevention and recommendations",
+          "journal": "World Psychiatry",
+          "doi": "10.1002/wps.21160",
+          "canonicalUrl": "https://doi.org/10.1002/wps.21160",
+          "evidenceType": "领域综述与行动框架",
+        "editorialRole": "建立社会决定因素与分层预防路线图",
+        "abstractZh": "综述总结贫困、歧视、童年逆境、住房和社会隔离等社会决定因素与精神健康的关系，并提出分层预防建议。文章强调，改善精神健康既需要个人服务，也需要社区和政策层面的行动。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S6-02",
+          "authorsDisplay": "Oswald TK et al.",
+          "year": 2024,
+          "title": "Interventions targeting social determinants of mental disorders and the Sustainable Development Goals: a systematic review of reviews",
+          "journal": "Psychological Medicine",
+          "doi": "10.1017/S0033291724000333",
+          "canonicalUrl": "https://doi.org/10.1017/S0033291724000333",
+          "evidenceType": "系统综述的综述",
+        "editorialRole": "评估对接可持续发展目标的预防干预",
+        "abstractZh": "这篇系统综述的综述，评估针对精神障碍社会决定因素的干预，并把结果与联合国可持续发展目标联系起来。研究关注教育、收入、住房和社会保护等措施能否改善精神健康及其证据强度。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S6-03",
+          "authorsDisplay": "McGorry PD et al.",
+          "year": 2024,
+          "title": "The Lancet Psychiatry Commission on youth mental health",
+          "journal": "The Lancet Psychiatry",
+          "doi": "10.1016/S2215-0366(24)00163-9",
+          "canonicalUrl": "https://doi.org/10.1016/S2215-0366(24)00163-9",
+          "evidenceType": "国际委员会报告",
+        "editorialRole": "提出青年精神健康服务重构方案",
+        "abstractZh": "国际委员会报告梳理全球青年精神健康危机及现有服务缺口，并提出更早介入、低门槛、发展适配和分阶段照护的改革方向。报告同时强调青年参与、跨部门合作和长期资源投入。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S6-04",
+          "authorsDisplay": "McGinty EE et al.",
+          "year": 2024,
+          "title": "The Lancet Psychiatry Commission: transforming mental health implementation research",
+          "journal": "The Lancet Psychiatry",
+          "doi": "10.1016/S2215-0366(24)00040-3",
+          "canonicalUrl": "https://doi.org/10.1016/S2215-0366(24)00040-3",
+          "evidenceType": "国际委员会报告",
+        "editorialRole": "把实施研究连接到政策与服务改善",
+        "abstractZh": "委员会报告讨论如何让已有证据真正进入日常精神卫生服务。重点包括与服务使用者共同设计、适应当地环境、评估覆盖率与成本，并让研究结果能够支持政策和持续改进。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S6-05",
+          "authorsDisplay": "Salazar de Pablo G et al.",
+          "year": 2026,
+          "title": "Do early intervention services for psychosis maintain their effects after transition to usual/modular care? A systematic review and meta-analysis",
+          "journal": "World Psychiatry",
+          "doi": "10.1002/wps.70012",
+          "canonicalUrl": "https://doi.org/10.1002/wps.70012",
+          "evidenceType": "系统综述与荟萃分析",
+        "editorialRole": "评估早期精神病服务转入常规照护后的持续效果",
+        "abstractZh": "系统综述与荟萃分析考察早期精神病干预服务结束、患者转入常规或模块化照护后，原有效果能否维持。结果用于判断服务过渡和后续支持是否会影响复发、功能和持续照护。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S6-06",
+          "authorsDisplay": "Funk M et al.",
+          "year": 2025,
+          "title": "A new WHO roadmap for mental health policy reform",
+          "journal": "World Psychiatry",
+          "doi": "10.1002/wps.21360",
+          "canonicalUrl": "https://doi.org/10.1002/wps.21360",
+          "evidenceType": "政策路线图述评",
+        "editorialRole": "总结权利导向、社区化与跨部门改革重点",
+        "abstractZh": "文章介绍世界卫生组织新的精神卫生政策改革路线图，强调以人权为基础、发展社区服务并减少不必要的强制措施。改革还需要医疗、住房、教育、就业和社会保障等部门共同参与。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S6-07",
+          "authorsDisplay": "Holt-Lunstad J",
+          "year": 2024,
+          "title": "Social connection as a critical factor for mental and physical health: evidence, trends, challenges, and future implications",
+          "journal": "World Psychiatry",
+          "doi": "10.1002/wps.21224",
+          "canonicalUrl": "https://doi.org/10.1002/wps.21224",
+          "evidenceType": "领域综述",
+        "editorialRole": "把社会连接纳入人群健康与服务设计",
+        "abstractZh": "综述总结社会连接与精神及身体健康之间的证据，讨论孤独、隔离和支持网络的变化趋势。文章指出，社会连接不仅是个人问题，也可以通过社区设计、公共服务和政策改善。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S6-08",
+          "authorsDisplay": "Funk M et al.",
+          "year": 2026,
+          "title": "New WHO guidance on mental health and well-being across government sectors",
+          "journal": "World Psychiatry",
+          "doi": "10.1002/wps.70016",
+          "canonicalUrl": "https://doi.org/10.1002/wps.70016",
+          "evidenceType": "政策指导述评",
+        "editorialRole": "强调政府各部门共同承担心理健康责任",
+        "abstractZh": "文章评述世界卫生组织关于政府各部门促进心理健康与福祉的新指导。核心观点是，心理健康政策不能只由卫生部门承担，教育、劳动、住房、司法和社会保护政策同样会影响结果。",
+          "sampleSizeNote": "未在本综述中作为核心判断依据",
+          "analysisBasis": "期刊官方全文或摘要与书目信息",
+          "lastVerifiedAt": "2026-08-10"
+        },
+        {
+          "id": "S6-09",
+          "authorsDisplay": "Xue S et al.",
+          "year": 2024,
+          "title": "Mental health and psychosocial interventions in the context of climate change: a scoping review",
+          "journal": "npj Mental Health Research",
+          "doi": "10.1038/s44184-024-00054-1",
+          "canonicalUrl": "https://doi.org/10.1038/s44184-024-00054-1",
+          "evidenceType": "范围综述",
+          "editorialRole": "梳理气候变化背景下的心理健康干预与证据缺口",
+          "abstractZh": "范围综述通过学术文献和灰色文献找到 37 种独特干预或干预组合，覆盖个人、社区、组织和政策层面。低中收入国家出现了一些有希望的初步结果，但多数干预尚未经过正式效果评估，研究和扩大实施仍有明显缺口。",
+          "sampleSizeNote": "37 种独特干预或干预组合",
+          "analysisBasis": "PubMed 摘要与书目信息",
+          "lastVerifiedAt": "2026-08-14"
+        },
+        {
+          "id": "S6-10",
+          "authorsDisplay": "Agrawal RN et al.",
+          "year": 2025,
+          "title": "Scaling up the task-sharing of an evidence-based psychological treatment for depression in rural India: an implementation study",
+          "journal": "BMC Primary Care",
+          "doi": "10.1186/s12875-025-02943-6",
+          "canonicalUrl": "https://doi.org/10.1186/s12875-025-02943-6",
+          "evidenceType": "实施研究",
+          "editorialRole": "检验数字培训和督导支持非专科人员大规模提供抑郁心理治疗",
+          "abstractZh": "印度农村实施研究使用数字课程和督导培训 1,001 名一线社区卫生工作者，其中 458 人向 2,208 名抑郁患者提供健康活动方案，共完成 13,008 次会谈。完成率和满意度较高，但这是一项真实世界实施研究，仍需结合转诊、督导、人员负担和长期维持来解释。",
+          "sampleSizeNote": "1,001 人完成培训；458 人提供治疗；2,208 名患者；13,008 次会谈",
+          "analysisBasis": "PubMed 摘要与书目信息",
+          "lastVerifiedAt": "2026-08-14"
+        }
+      ],
+      "editorial": {
+        "reviewVersion": "1.0.0-draft",
+        "status": "review",
+        "literatureCutoff": "2026-07-30",
+        "lastReviewedAt": "2026-08-10",
+        "nextReviewDue": "2026-11-10",
+        "updateCadence": "quarterly"
+      }
+    }
+  ]
+}
