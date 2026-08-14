@@ -176,6 +176,30 @@ describe('safety UI gate', () => {
 });
 
 describe('search and page focus', () => {
+  test('前沿综述可从首页进入、切换主题并打开 DOI 来源', async () => {
+    const { user, container } = await renderApp();
+    await openFromHome(user, '前沿综述');
+
+    const pageHeading = await screen.findByRole('heading', { name: '前沿综述', level: 1 });
+    await waitFor(() => expect(pageHeading.closest('.page-header')).toHaveFocus());
+    expect(screen.getByRole('navigation', { name: '前沿综述主题' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /数字技术与 AI/ }));
+    const articleHeading = screen.getByRole('heading', {
+      name: /数字技术与 AI/,
+      level: 2
+    });
+    await waitFor(() => expect(articleHeading).toHaveFocus());
+    const consensusSources = screen.getByLabelText('核心共识相关文献');
+    expect(within(consensusSources).getAllByRole('link').length).toBeGreaterThanOrEqual(3);
+    expect(within(consensusSources).getByRole('link', { name: 'S5-10' })).toHaveAttribute(
+      'href',
+      'https://doi.org/10.1016/j.invent.2025.100857'
+    );
+    expect(screen.getAllByRole('link', { name: /DOI 页面/ }).length).toBeGreaterThanOrEqual(5);
+    await expectNoSeriousAxeViolations(container);
+  });
+
   test('从首页栏目进入知识页后，焦点跟随到新页面标题区', async () => {
     const { user } = await renderApp();
     await user.click(screen.getByRole('button', { name: '栏目' }));

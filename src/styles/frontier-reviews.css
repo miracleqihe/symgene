@@ -1,0 +1,523 @@
+.frontier-reviews-page {
+  padding-top: clamp(27px, 3vh, 40px);
+  padding-bottom: 70px;
+}
+
+.frontier-page-header {
+  --page-accent: var(--accent-teal-deep);
+}
+
+.frontier-intro {
+  margin-top: 22px;
+  padding: clamp(25px, 3vw, 42px);
+  border: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, .8fr);
+  gap: clamp(24px, 3vw, 48px);
+  align-items: end;
+  background:
+    linear-gradient(135deg, rgba(225, 240, 233, .72), rgba(250, 248, 242, .9) 54%, rgba(223, 242, 246, .58));
+}
+
+.frontier-intro h2 {
+  margin: 9px 0 12px;
+  color: var(--ink-strong);
+  font-size: clamp(25px, 2.2vw, 36px);
+  letter-spacing: -.035em;
+}
+
+.frontier-intro > div > p {
+  max-width: 72ch;
+  margin: 0;
+  color: #4f6865;
+  font-size: 16px;
+  line-height: 1.85;
+}
+
+.frontier-safety-note {
+  padding: 18px 20px;
+  border-left: 3px solid var(--accent-gold);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  color: #725e31;
+  background: rgba(247, 234, 214, .72);
+}
+
+.frontier-safety-note svg {
+  margin-top: 4px;
+}
+
+.frontier-safety-note p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.frontier-topic-nav {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  border: 1px solid #d8d3c9;
+  background: #d8d3c9;
+}
+
+.frontier-topic-nav button {
+  position: relative;
+  min-height: 142px;
+  padding: 22px 24px;
+  border: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  align-content: start;
+  gap: 8px 13px;
+  color: #546d69;
+  background: rgba(250, 248, 242, .96);
+  text-align: left;
+  transition: color var(--duration-state), background-color var(--duration-state), box-shadow var(--duration-state);
+}
+
+.frontier-topic-nav button::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 3px;
+  background: transparent;
+}
+
+.frontier-topic-nav button > span {
+  color: #85938f;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.frontier-topic-nav button strong {
+  color: var(--ink-strong);
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+.frontier-topic-nav button small {
+  grid-column: 2;
+  color: #71817d;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.frontier-topic-nav button.active {
+  color: var(--ink-strong);
+  background: #edf5f0;
+  box-shadow: inset 0 0 0 1px rgba(79, 148, 139, .24);
+}
+
+.frontier-topic-nav button.active::after {
+  background: linear-gradient(90deg, var(--accent-teal), var(--brand-sky));
+}
+
+.frontier-article {
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 253, 248, .9);
+}
+
+.frontier-article-head {
+  padding: clamp(29px, 4vw, 58px);
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, .65fr);
+  align-items: end;
+  gap: clamp(28px, 4vw, 64px);
+}
+
+.frontier-article-head h2 {
+  margin: 10px 0 14px;
+  color: var(--ink-strong);
+  font-size: clamp(31px, 3vw, 48px);
+  letter-spacing: -.045em;
+  line-height: 1.15;
+}
+
+.frontier-article-head h2:focus {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 6px;
+}
+
+.frontier-article-head > div > p {
+  max-width: 72ch;
+  margin: 0;
+  color: #4d6864;
+  font-size: 17px;
+  line-height: 1.85;
+}
+
+.frontier-meta {
+  margin: 0;
+  display: grid;
+  gap: 1px;
+  background: var(--line);
+}
+
+.frontier-meta > div {
+  padding: 13px 15px;
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  background: #f3f1e9;
+}
+
+.frontier-meta dt,
+.frontier-meta dd {
+  margin: 0;
+  font-size: 12px;
+}
+
+.frontier-meta dt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #6a7b76;
+}
+
+.frontier-meta dd {
+  color: var(--ink-strong);
+  font-family: var(--font-mono);
+}
+
+.frontier-body-grid {
+  padding: clamp(29px, 4vw, 58px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+  gap: clamp(32px, 5vw, 76px);
+  align-items: start;
+}
+
+.frontier-narrative {
+  display: grid;
+  gap: 32px;
+}
+
+.frontier-narrative section {
+  padding-bottom: 30px;
+  border-bottom: 1px solid var(--line);
+}
+
+.frontier-narrative section:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.frontier-narrative h3 {
+  margin: 0 0 12px;
+  color: var(--ink-strong);
+  font-size: 21px;
+  letter-spacing: -.02em;
+}
+
+.frontier-narrative p {
+  margin: 0;
+  color: #425d59;
+  font-size: 16px;
+  line-height: 2;
+}
+
+.frontier-narrative section > p + p {
+  margin-top: 14px;
+}
+
+.frontier-body-citations {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  color: #6a7b76;
+  font-size: 12px;
+}
+
+.frontier-body-citations a {
+  padding: 4px 8px;
+  border: 1px solid #b9d4ce;
+  color: #176b61;
+  background: #f4faf7;
+  font-family: var(--font-mono);
+  text-decoration: none;
+}
+
+.frontier-body-citations a:hover,
+.frontier-body-citations a:focus-visible {
+  border-color: #176b61;
+  background: #e3f2ec;
+  outline: none;
+}
+
+.frontier-reading-guide {
+  position: sticky;
+  top: 28px;
+  padding: 23px;
+  border-top: 3px solid var(--brand-sky);
+  color: #526b67;
+  background: #eef4f0;
+}
+
+.frontier-reading-guide h3 {
+  margin: 12px 0 8px;
+  color: var(--ink-strong);
+  font-size: 17px;
+}
+
+.frontier-reading-guide p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.frontier-reading-guide .frontier-updated {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+  color: #71817d;
+  font-family: var(--font-ui);
+  font-size: 11px;
+}
+
+.frontier-claims,
+.frontier-references {
+  padding: clamp(29px, 4vw, 58px);
+  border-top: 1px solid var(--line);
+}
+
+.frontier-section-heading {
+  margin-bottom: 22px;
+}
+
+.frontier-section-heading > span {
+  color: var(--accent-teal-deep);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .12em;
+}
+
+.frontier-section-heading h3 {
+  margin: 6px 0 0;
+  color: var(--ink-strong);
+  font-size: clamp(25px, 2vw, 33px);
+  letter-spacing: -.035em;
+}
+
+.frontier-claim-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.frontier-claim-card {
+  min-height: 250px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  background: rgba(248, 246, 239, .8);
+}
+
+.frontier-claim-status {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.frontier-claim-status span {
+  padding: 4px 8px;
+  color: #315f58;
+  background: #dcece5;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.frontier-claim-status small {
+  color: #72827e;
+  font-size: 11px;
+}
+
+.frontier-claim-card h4 {
+  margin: 17px 0 10px;
+  color: var(--ink-strong);
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.frontier-claim-card > p {
+  margin: 0;
+  color: #617570;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.frontier-claim-boundary {
+  margin-top: auto;
+  padding-top: 17px;
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  color: #765f3d;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.frontier-claim-boundary svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.frontier-claim-card > small {
+  margin-top: 12px;
+  color: #7b8884;
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.frontier-references ol {
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+
+.frontier-reference-note {
+  margin: -10px 0 18px;
+  color: #667a75;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.frontier-references li {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: start;
+}
+
+.frontier-reference-id {
+  color: var(--accent-teal-deep);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.frontier-references p {
+  margin: 0;
+  color: var(--ink-strong);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.frontier-references li div > span,
+.frontier-references li div > small {
+  display: block;
+  margin-top: 5px;
+  color: #667a75;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.frontier-references li div > small {
+  color: #81908c;
+}
+
+.frontier-references .frontier-reference-abstract {
+  margin-top: 12px;
+  color: #526964;
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.85;
+}
+
+.frontier-reference-abstract strong {
+  color: var(--ink-strong);
+  font-family: var(--font-ui);
+}
+
+.frontier-references a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--accent-teal-deep);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .frontier-topic-nav button:hover:not(.active) {
+    color: var(--ink-strong);
+    background: #f5f5ee;
+  }
+
+  .frontier-references a:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+}
+
+@media (max-width: 1180px) and (min-width: 781px) {
+  .frontier-topic-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .frontier-intro,
+  .frontier-article-head,
+  .frontier-body-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .frontier-reading-guide {
+    position: static;
+  }
+}
+
+@media (max-width: 780px) {
+  .frontier-reviews-page {
+    padding: 25px var(--page-padding) 46px;
+  }
+
+  .frontier-intro,
+  .frontier-article-head,
+  .frontier-body-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .frontier-topic-nav,
+  .frontier-claim-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .frontier-topic-nav button {
+    min-height: 112px;
+    padding: 19px 18px;
+  }
+
+  .frontier-reading-guide {
+    position: static;
+  }
+
+  .frontier-references li {
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .frontier-references a {
+    grid-column: 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frontier-topic-nav button {
+    transition: none;
+  }
+}
