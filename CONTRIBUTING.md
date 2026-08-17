@@ -228,7 +228,6 @@ CI 通过只代表自动检查通过，不等于自动获得合并权限。评�
 
 ## 设计参考
 
-- [TheBoredTeam/boring.notch 贡献指南](https://github.com/TheBoredTeam/boring.notch/blob/main/CONTRIBUTING.md)：代码从 `dev` 创建分支，并以 `dev` 作为 PR base；
 - [GitHub Rulesets 可用规则](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets)：PR、审批、状态检查、同步要求和禁止强推；
 - [GitHub CODEOWNERS](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners)：自动请求所有者审核并与分支保护结合；
 - [GitHub Pull request merge 策略](https://docs.github.com/en/pull-requests/reference/pull-request-merges)：squash、rebase 和 merge commit 的历史差异。
