@@ -65,6 +65,6 @@ schema v4 对药物、疾病、案例和资源使用同一套来源合并器：�
 
 ## 构建与部署
 
-`npm run verify` 依次执行数据校验、静态链接校验、全部测试、生产构建和构建产物检查。普通 Pull Request 以 `dev` 为目标并只运行验证；`main` 只接受同仓库的 `dev → main` 晋级 Pull Request。只有 `main` 推送或明确的手动工作流在验证通过后上传并部署 GitHub Pages。
+`npm run verify` 依次执行数据校验、静态链接校验、全部测试、生产构建和构建产物检查。普通 Pull Request 以 `dev` 为目标，CI 只运行 `Verify`；`Branch policy` 仅在目标为 `main` 的晋级 Pull Request 上运行，并要求来源是同仓库的 `dev`。只有 `main` 推送或明确的手动工作流在验证通过后上传并部署 GitHub Pages。
 
 外部资源的网络可达性由每周工作流检查，不进入普通 Pull Request 门禁，避免第三方站点波动阻断工程变更。国家卫生健康委员会首页会对 CI 请求稳定返回带 `WZWS-RAY` WAF 签名的 HTTP 412 challenge；已观察到历史 `-w-waf` 和当前 `-waf01…` 两种节点标识。检查器仅在“精确首页 URL + 412 + 两种已确认 WAF 节点签名之一 + 未重定向”同时成立时报告 `ACCESS-BLOCKED` 警告，不把它伪装成可达。其它 URL、宽泛 `waf` 字样、缺少签名的 412、404、5xx 和网络错误仍会使检查失败。

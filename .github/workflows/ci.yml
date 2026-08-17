@@ -17,7 +17,7 @@ concurrency:
 jobs:
   branch-policy:
     name: Branch policy
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
     runs-on: ubuntu-latest
     steps:
       - name: Require same-repository dev promotion for main

@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: pages-${{ github.workflow }}-${{ github.ref }}
+  group: pages-production
   cancel-in-progress: true
 
 jobs:
