@@ -1,0 +1,6 @@
+# Default owner for code, data, documentation, and repository policy.
+* @miracleqihe
+
+# Keep repository governance and deployment changes under explicit owner review.
+/.github/ @miracleqihe
+/CONTRIBUTING.md @miracleqihe

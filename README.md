@@ -63,8 +63,9 @@ npm run test:ui
 
 ## 部署行为
 
-- Pull Request：只执行数据检查、测试和生产构建验证，不部署。
-- 推送到 `main`：全部验证通过后，由 [GitHub Pages 工作流](.github/workflows/deploy-pages.yml)部署。
+- 普通 Pull Request 以 `dev` 为目标分支，自动执行完整 CI，不部署。
+- 只有同仓库的 `dev → main` 晋级 Pull Request 可以进入 `main`，并由 `@miracleqihe` 审核。
+- 推送到 `main`：完整验证通过后，由 [GitHub Pages 工作流](.github/workflows/deploy-pages.yml)部署。
 - 手动运行工作流：全部验证通过后允许部署。
 
 ## 隐私与本地数据
@@ -81,7 +82,7 @@ npm run test:ui
 
 ## 贡献
 
-开始修改前请阅读 [贡献指南](CONTRIBUTING.md) 和 [前端架构说明](docs/architecture.md)。Pull Request 只执行验证，不会部署公开站点。
+开始修改前请阅读 [贡献指南](CONTRIBUTING.md) 和 [前端架构说明](docs/architecture.md)。所有普通贡献先合并到 `dev`；只有审核通过的 `dev → main` 晋级 PR 会进入生产分支。
 
 ## 免责声明
 
