@@ -2,7 +2,19 @@
 
 > 文档用途：帮助合作者快速理解项目为什么会变成现在的样子、哪些方案已经验证、哪些方案被明确否定、哪些工作仍未完成，以及后续使用 AI 修改项目时应遵守的设计与工程约束。
 >
-> 本文记录的是 `local-ui-redesign` 分支截至 2026-07-31 的开发状态。它既是历史记录，也是后续设计决策的保护栏。代码仍应作为当前实现细节的最终依据。
+> 本文的设计历程主要记录 `local-ui-redesign` 分支截至 2026-07-31 的状态；该分支已经完成整合，不再是新工作的起点。历史记录继续作为设计决策保护栏，当前分支与发布操作以本文“当前执行入口”和 `CONTRIBUTING.md` 为准，代码仍是实现细节的最终依据。
+
+## 0. 当前执行入口（2026-08-18）
+
+仓库现在采用“主题分支 → `dev` → `main`”的两级门禁：
+
+- `dev` 是普通开发的集成基线；每项工作都从最新 `origin/dev` 创建短生命周期主题分支；
+- 普通功能、修复、测试和文档 Pull Request 以 `dev` 为 base；
+- `main` 是随时可发布的生产分支，也是 GitHub Pages 的唯一来源；
+- 只有同仓库的 `dev → main` 晋级 Pull Request 可以执行普通发布；
+- 发布完成后，按仓库审核流程把 `main` 的发布提交同步回 `dev`，不得 reset、覆盖或强制推送长期分支。
+
+不要直接在 `dev` 或 `main` 开发。`local-ui-redesign`、`refactor/frontend-storage-foundation` 等历史分支只能用于追溯，不得作为新任务基线。根目录 `AGENTS.md` 提供代理自动发现的简明边界；`CONTRIBUTING.md` 是分支、审核和发布流程的规范来源。
 
 ## 1. 项目现在是什么
 
@@ -375,7 +387,7 @@
 | 将文字做进动画文件 | 明确否定 | 信件文字必须是可访问的 HTML |
 | 上传原始 PDF、OCR 或内部资料 | 永久禁止 | 隐私与版权边界 |
 
-## 5. 当前发布状态与仍需后续确认
+## 5. 发布状态与仍需后续确认
 
 以下状态必须按实际完成度理解，不能把仍需人工验证的事项写成已经完成：
 
@@ -568,6 +580,8 @@ AI 必须：
 6. 确认是否会触碰已明确否定的方向；
 7. 在修改前说明本轮范围。
 
+此外，当前分支必须是从最新 `origin/dev` 创建的主题分支。若位于 `dev`、`main`、已合并历史分支，或工作区存在来源不明的修改，应先停止写操作并按 `CONTRIBUTING.md` 重新建立安全起点。
+
 ### 8.2 遇到历史冲突时
 
 如果新要求可能恢复此前否定、删除或替换的方案，AI 不得静默执行。它必须明确说明：
@@ -630,13 +644,14 @@ npm run verify
 
 ## 9. Git 与协作建议
 
-- 日常开发继续使用功能分支，不直接在 `main` 修改；
-- Pull Request 先运行自动验证，不自动部署；
-- 合并 `main` 前由合作者检查视觉和内容；
-- 不把分支预览当作正式上线；
-- 不修改 `origin` 安全设置来图省事，可以在单次 push 中显式指定 GitHub URL；
+- 日常开发从最新 `dev` 创建主题分支，不直接在 `dev` 或 `main` 修改；
+- 普通 Pull Request 以 `dev` 为 base，先运行自动验证且不部署；
+- 只有同仓库的 `dev → main` 晋级 Pull Request 可以进入生产发布审核；
+- 晋级前由合作者检查视觉、内容、医学和隐私边界，晋级后将发布提交同步回 `dev`；
+- 不把主题分支或 `dev` 预览当作正式上线；
+- 不修改 `origin` 安全设置来图省事；
 - 提交作者邮箱应保持与 GitHub 账号关联，确保贡献记录正确；
-- 不使用 hard reset、clean 或强制 checkout 清理他人的工作。
+- 不使用 hard reset、clean、强制 checkout 或强制推送清理他人的工作。
 
 推荐提交拆分：
 
@@ -651,10 +666,14 @@ npm run verify
 
 ```bash
 git fetch origin
-git switch local-ui-redesign
+git switch dev
+git pull --ff-only origin dev
+git switch -c <type>/<short-description>
 npm ci
 npm run dev
 ```
+
+将 `<type>/<short-description>` 替换为本次单一任务的主题分支，例如 `fix/local-data-panel` 或 `docs/refresh-ai-handoff`。完成后创建以 `dev` 为 base 的 Pull Request，不要直接 push `dev` 或 `main`。
 
 完整验证：
 
