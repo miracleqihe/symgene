@@ -1,0 +1,744 @@
+/* 信息可视化（Data Atlas）栏目样式。色板与令牌全部来自 tokens.css。 */
+
+.data-atlas-page .page-header-mint .page-kicker {
+  color: #3e8271;
+}
+
+/* ---------- 引言区 ---------- */
+
+.atlas-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, .9fr);
+  gap: 26px;
+  align-items: start;
+  margin-top: 34px;
+}
+
+.atlas-intro h2 {
+  margin: 6px 0 10px;
+  font-size: clamp(20px, 2.2vw, 26px);
+  color: var(--ink-strong);
+}
+
+.atlas-intro p {
+  margin: 0;
+  color: var(--text-secondary, var(--ink));
+  line-height: 1.85;
+}
+
+.atlas-safety-note {
+  display: flex;
+  gap: 12px;
+  padding: 18px 20px;
+  background: var(--brand-mint-soft);
+  border: 1px solid rgba(63, 130, 113, .22);
+  border-radius: var(--radius-md);
+}
+
+.atlas-safety-note svg {
+  flex: none;
+  margin-top: 3px;
+  color: #3e8271;
+}
+
+.atlas-safety-note strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--ink-strong);
+}
+
+.atlas-safety-note ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--text-secondary, var(--ink));
+}
+
+/* ---------- 主面板布局 ---------- */
+
+.atlas-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 480px);
+  gap: 24px;
+  align-items: start;
+  margin-top: 34px;
+}
+
+.atlas-panel {
+  background: var(--paper);
+  border: 1px solid rgba(48, 91, 96, .14);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-control);
+  padding: 22px 22px 18px;
+  min-width: 0;
+}
+
+.atlas-panel-head .eyebrow {
+  color: #3e8271;
+}
+
+.atlas-panel-head h2 {
+  margin: 6px 0 8px;
+  font-size: 19px;
+  color: var(--ink-strong);
+}
+
+.atlas-panel-note {
+  margin: 0 0 16px;
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: var(--text-secondary, var(--ink));
+}
+
+.atlas-footnote {
+  margin: 14px 0 0;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-secondary, var(--ink));
+  opacity: .85;
+}
+
+/* ---------- 控制区：时间滑块 / 年龄口径 / 疾病图层 ---------- */
+
+.atlas-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 22px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--surface-quiet, var(--brand-mint-soft));
+  border-radius: var(--radius-md);
+}
+
+.atlas-time-control {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: min(320px, 100%);
+  flex: 1 1 300px;
+}
+
+.atlas-play-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid rgba(48, 91, 96, .25);
+  border-radius: var(--radius-round);
+  background: var(--paper);
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink-strong);
+  cursor: pointer;
+  transition: background-color var(--duration-state) var(--ease-state, ease), box-shadow var(--duration-state) var(--ease-state, ease);
+}
+
+.atlas-play-button:hover { box-shadow: var(--shadow-control); }
+
+.atlas-play-button[aria-pressed="true"] {
+  background: var(--accent-teal);
+  border-color: var(--accent-teal);
+  color: #fff;
+}
+
+.atlas-slider-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 160px;
+}
+
+.atlas-slider-year {
+  font-family: 'DM Mono', monospace;
+  font-size: 17px;
+  color: var(--ink-strong);
+  min-width: 58px;
+}
+
+.atlas-slider-year small {
+  font-size: 11px;
+  margin-left: 2px;
+  opacity: .75;
+}
+
+.atlas-slider-label input[type="range"] {
+  flex: 1;
+  accent-color: var(--accent-teal);
+}
+
+.atlas-age-toggle {
+  display: inline-flex;
+  border: 1px solid rgba(48, 91, 96, .25);
+  border-radius: var(--radius-round);
+  overflow: hidden;
+  background: var(--paper);
+}
+
+.atlas-age-toggle button {
+  padding: 7px 14px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.atlas-age-toggle button + button { border-left: 1px solid rgba(48, 91, 96, .18); }
+
+.atlas-age-toggle button[aria-pressed="true"] {
+  background: var(--accent-teal);
+  color: #fff;
+}
+
+.atlas-disease-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.atlas-picker-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary, var(--ink));
+}
+
+.atlas-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border: 1px solid rgba(48, 91, 96, .22);
+  border-radius: var(--radius-round);
+  background: var(--paper);
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color var(--duration-state) var(--ease-state, ease), border-color var(--duration-state) var(--ease-state, ease);
+}
+
+.atlas-chip i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.atlas-chip.active {
+  background: var(--brand-mint-soft);
+  border-color: var(--accent-teal);
+  color: var(--ink-strong);
+}
+
+.atlas-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 12px 0 14px;
+}
+
+.atlas-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary, var(--ink));
+}
+
+.atlas-legend-item i {
+  width: 72px;
+  height: 10px;
+  border-radius: var(--radius-xs);
+  border: 1px solid rgba(48, 91, 96, .18);
+}
+
+/* ---------- 矩阵 ---------- */
+
+.atlas-matrix-scroll {
+  overflow: auto;
+  max-height: 560px;
+  max-width: 100%;
+  border: 1px solid rgba(48, 91, 96, .14);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+}
+
+.atlas-matrix-scroll:focus-visible {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+}
+
+.atlas-matrix {
+  display: grid;
+  grid-template-columns: minmax(128px, 1.4fr) repeat(8, minmax(58px, 1fr));
+  min-width: 640px;
+}
+
+.atlas-row {
+  display: contents;
+}
+
+.atlas-head-row .atlas-loc-cell,
+.atlas-head-row .atlas-year-cell {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--brand-sky-soft);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--ink-strong);
+}
+
+.atlas-loc-cell,
+.atlas-year-cell {
+  padding: 7px 9px;
+  border-bottom: 1px solid rgba(48, 91, 96, .1);
+  font-size: 12.5px;
+  color: var(--ink);
+  background: inherit;
+}
+
+.atlas-head-row .atlas-year-cell.current {
+  background: var(--accent-teal);
+  color: #fff;
+}
+
+.atlas-loc-cell {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--paper);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+span.atlas-loc-cell[tabindex="0"] {
+  cursor: default;
+}
+
+span.atlas-loc-cell[tabindex="0"]:focus-visible {
+  outline: 2px solid var(--focus-color);
+  outline-offset: -2px;
+}
+
+.atlas-row.highlighted .atlas-loc-cell {
+  background: var(--brand-sand-soft);
+  font-weight: 600;
+}
+
+.atlas-region-toggle {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  grid-column: 1 / -1;
+  width: 100%;
+  padding: 9px 9px;
+  border: 0;
+  border-bottom: 1px solid rgba(48, 91, 96, .12);
+  background: var(--brand-sand-soft);
+  font: inherit;
+  text-align: left;
+  color: var(--ink-strong);
+  cursor: pointer;
+}
+
+.atlas-region-toggle small {
+  font-size: 11px;
+  color: var(--text-secondary, var(--ink));
+  opacity: .8;
+}
+
+.atlas-region-toggle[aria-expanded="true"] .atlas-region-name::before { content: '▾ '; }
+.atlas-region-toggle[aria-expanded="false"] .atlas-region-name::before { content: '▸ '; }
+
+.atlas-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 26px;
+  margin: 1px 0;
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+}
+
+.atlas-year-cell.current + .atlas-cell,
+.atlas-cell.current {
+  outline: 1px solid rgba(48, 91, 96, .28);
+  outline-offset: -1px;
+}
+
+.atlas-bands {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.atlas-band {
+  flex: 1;
+  min-height: 0;
+}
+
+.atlas-bands.empty {
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(48, 91, 96, .05),
+    rgba(48, 91, 96, .05) 4px,
+    rgba(48, 91, 96, .12) 4px,
+    rgba(48, 91, 96, .12) 8px
+  );
+}
+
+.atlas-access-bar {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 7px;
+  transform: translateX(-50%);
+  background: var(--ink-strong);
+  border-radius: 2px 2px 0 0;
+  opacity: .82;
+}
+
+/* ---------- 散点副窗口 ---------- */
+
+.atlas-axis-picker {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.atlas-axis-picker label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12.5px;
+  color: var(--text-secondary, var(--ink));
+  flex: 1;
+}
+
+.atlas-axis-picker select {
+  padding: 7px 9px;
+  border: 1px solid rgba(48, 91, 96, .25);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink-strong);
+}
+
+.atlas-scatter-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.atlas-gridline {
+  stroke: rgba(48, 91, 96, .12);
+  stroke-width: 1;
+}
+
+.atlas-tick {
+  font-size: 10px;
+  fill: var(--text-secondary, var(--ink));
+}
+
+.atlas-axis-title {
+  font-size: 11px;
+  fill: var(--ink-strong);
+}
+
+.atlas-fitline {
+  stroke: var(--accent-teal-deep);
+  stroke-width: 1.6;
+  stroke-dasharray: 6 4;
+  opacity: .85;
+}
+
+.atlas-point {
+  stroke: var(--paper);
+  stroke-width: 1.2;
+  opacity: .88;
+  cursor: pointer;
+}
+
+.atlas-point.highlighted {
+  stroke: var(--ink-strong);
+  stroke-width: 2;
+  opacity: 1;
+}
+
+.atlas-scatter-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--brand-mint-soft);
+  border-radius: var(--radius-sm);
+  font-family: 'DM Mono', monospace;
+  font-size: 12.5px;
+  color: var(--ink-strong);
+}
+
+.atlas-region-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 12px;
+  font-size: 11.5px;
+  color: var(--text-secondary, var(--ink));
+}
+
+.atlas-region-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.atlas-region-legend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+/* ---------- 族裔视图 ---------- */
+
+.atlas-ethnicity-panel { margin-top: 24px; }
+
+.atlas-ethnicity-table {
+  border: 1px solid rgba(48, 91, 96, .14);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.atlas-ethnicity-head,
+.atlas-ethnicity-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(150px, 1.2fr) minmax(150px, 1.2fr) minmax(140px, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 9px 14px;
+}
+
+.atlas-ethnicity-head {
+  background: var(--brand-sky-soft);
+  font-size: 12px;
+  color: var(--ink-strong);
+}
+
+.atlas-ethnicity-row {
+  border-top: 1px solid rgba(48, 91, 96, .1);
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.atlas-ethnicity-name { font-weight: 600; color: var(--ink-strong); }
+
+.atlas-ethnicity-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 16px;
+  background: rgba(48, 91, 96, .07);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+}
+
+.atlas-ethnicity-bar i {
+  height: 100%;
+  border-radius: inherit;
+}
+
+.atlas-ethnicity-bar.prevalence i { background: var(--accent-teal); }
+.atlas-ethnicity-bar.treatment i { background: var(--accent-gold); }
+
+.atlas-ethnicity-bar b {
+  position: absolute;
+  right: 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--ink-strong);
+}
+
+.atlas-ethnicity-context {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--ink);
+}
+
+.atlas-missing {
+  font-size: 12px;
+  font-style: normal;
+  opacity: .6;
+}
+
+/* ---------- 谱系图例 ---------- */
+
+.atlas-spectrum-panel { margin-top: 24px; }
+
+.atlas-spectrum-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 14px;
+}
+
+.atlas-spectrum-card {
+  padding: 14px 16px;
+  border: 1px solid rgba(48, 91, 96, .14);
+  border-radius: var(--radius-md);
+  background: var(--brand-mint-soft, var(--surface-quiet));
+}
+
+.atlas-spectrum-card header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.atlas-spectrum-card i {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex: none;
+}
+
+.atlas-spectrum-card h3 {
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--ink-strong);
+}
+
+.atlas-spectrum-en {
+  font-family: 'DM Mono', monospace;
+  font-size: 10.5px;
+  color: var(--text-secondary, var(--ink));
+  opacity: .75;
+}
+
+.atlas-spectrum-card p {
+  margin: 8px 0;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-secondary, var(--ink));
+}
+
+.atlas-spectrum-card ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.atlas-spectrum-card li {
+  padding: 3px 9px;
+  background: var(--paper);
+  border: 1px solid rgba(48, 91, 96, .16);
+  border-radius: var(--radius-round);
+  font-size: 12px;
+  color: var(--ink-strong);
+}
+
+/* ---------- 数据来源 ---------- */
+
+.atlas-sources { margin-top: 34px; }
+
+.atlas-sources h2 {
+  margin: 6px 0 10px;
+  font-size: clamp(19px, 2vw, 23px);
+  color: var(--ink-strong);
+}
+
+.atlas-sources > div > p {
+  margin: 0 0 18px;
+  line-height: 1.8;
+  color: var(--text-secondary, var(--ink));
+}
+
+.atlas-source-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+
+.atlas-source-list li {
+  padding: 14px 16px;
+  border: 1px solid rgba(48, 91, 96, .14);
+  border-left: 3px solid var(--accent-teal);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+}
+
+.atlas-source-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+  margin-bottom: 6px;
+}
+
+.atlas-source-head a {
+  font-weight: 600;
+  color: #347f91;
+}
+
+.atlas-source-list p {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-secondary, var(--ink));
+}
+
+.atlas-source-meta {
+  opacity: .8;
+}
+
+.atlas-version {
+  margin-top: 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11.5px;
+  color: var(--text-secondary, var(--ink));
+  opacity: .75;
+}
+
+/* ---------- 响应式 ---------- */
+
+@media (max-width: 1120px) {
+  .atlas-main {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 820px) {
+  .atlas-intro {
+    grid-template-columns: 1fr;
+  }
+
+  .atlas-ethnicity-head,
+  .atlas-ethnicity-row {
+    grid-template-columns: minmax(96px, 1fr) minmax(110px, 1fr) minmax(110px, 1fr);
+  }
+
+  .atlas-ethnicity-head span:nth-child(4),
+  .atlas-ethnicity-row .atlas-ethnicity-context {
+    display: none;
+  }
+}
