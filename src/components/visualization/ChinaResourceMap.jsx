@@ -21,7 +21,7 @@ const METRICS = [
   { id: 'blank', label: `空白区县率（${PROVINCE_RESOURCE_YEAR}）`, get: (p) => p.blankCountyRate, unit: '%' }
 ];
 
-const SOURCE_LABELS = { osm: 'OpenStreetMap', curated: '人工核校名录' };
+const SOURCE_LABELS = { osm: 'OpenStreetMap', curated: '人工核校名录', amap: '高德地图开放平台', nominatim: 'OSM Nominatim 检索' };
 
 function pathFor(polygons) {
   return polygons

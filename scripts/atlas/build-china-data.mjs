@@ -4,7 +4,7 @@
 // - 分省精神卫生资源表（中国卫生政策研究 2019，数据截至 2015 年底）
 // - 省级 GeoJSON 精简（坐标保留 2 位小数）
 // 运行：node scripts/atlas/build-china-data.mjs
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -14,6 +14,36 @@ const OUT = join(ROOT, 'src', 'atlas');
 const readJson = (f) => JSON.parse(readFileSync(join(RAW, f), 'utf-8'));
 
 // ---------- 1. POI 合并与分类 ----------
+
+// 高德坐标为 GCJ-02，转换为 WGS-84 与 OSM 坐标系对齐（单次插值，误差约 1-2 米）
+const GCJ_A = 6378245;
+const GCJ_EE = 0.00669342162296594323;
+function transformLat(x, y) {
+  let ret = -100 + 2 * x + 3 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+  ret += (20 * Math.sin(6 * x * Math.PI) + 20 * Math.sin(2 * x * Math.PI)) * 2 / 3;
+  ret += (20 * Math.sin(y * Math.PI) + 40 * Math.sin(y / 3 * Math.PI)) * 2 / 3;
+  ret += (160 * Math.sin(y / 12 * Math.PI) + 320 * Math.sin(y * Math.PI / 30)) * 2 / 3;
+  return ret;
+}
+function transformLng(x, y) {
+  let ret = 300 + x + 2 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+  ret += (20 * Math.sin(6 * x * Math.PI) + 20 * Math.sin(2 * x * Math.PI)) * 2 / 3;
+  ret += (20 * Math.sin(x * Math.PI) + 40 * Math.sin(x / 3 * Math.PI)) * 2 / 3;
+  ret += (150 * Math.sin(x / 12 * Math.PI) + 300 * Math.sin(x / 30 * Math.PI)) * 2 / 3;
+  return ret;
+}
+function gcj02ToWgs84(lng, lat) {
+  if (lng < 72 || lng > 137 || lat < 1 || lat > 55) return [lng, lat];
+  let dlat = transformLat(lng - 105, lat - 35);
+  let dlng = transformLng(lng - 105, lat - 35);
+  const radlat = (lat / 180) * Math.PI;
+  let magic = Math.sin(radlat);
+  magic = 1 - GCJ_EE * magic * magic;
+  const sqrtmagic = Math.sqrt(magic);
+  dlat = (dlat * 180) / ((GCJ_A * (1 - GCJ_EE)) / (magic * sqrtmagic) * Math.PI);
+  dlng = (dlng * 180) / (GCJ_A / sqrtmagic * Math.cos(radlat) * Math.PI);
+  return [lng - dlng, lat - dlat];
+}
 const CATEGORY_RULES = [
   { id: 'health-center', label: '心理/精神卫生中心', test: (n) => /心理卫生|心理健康|心理康复|精神康复|心理援助|精神卫生中心|精神卫生防治/.test(n) },
   { id: 'specialized', label: '精神专科医院', test: (n) => /精神病|精神专科|精神科|心理医院|脑科|安定|安康|康宁|广济|仙岳|回龙观|第六医院|第七医院|第八医院|第一专科|安宁医院|平山|宁安/.test(n) },
@@ -57,6 +87,51 @@ for (const file of ['osm-mental.json', 'osm-mental-q3.json']) {
   }
 }
 
+// Nominatim 逐省检索结果：只保留名称明确的精神卫生相关条目，剔除产业园/管委会/研究院等噪声
+const sweep = readJson('nominatim-sweep.json')
+  .filter((r) => {
+    const n = r.name ?? '';
+    return /精神|心理|脑科|安定|康宁|安宁医院/.test(n)
+      && !/管理委员会|产业园|服务中心|服务中|研究院|研究所|学院|大学|车站|公司|宿舍|小区|家园$/.test(n);
+  })
+  .map((r) => ({
+    name: r.name,
+    lat: r.lat,
+    lng: r.lng,
+    source: 'nominatim',
+    city: null,
+    precision: 'address',
+    addr: (r.display ?? '').slice(0, 60) || null,
+    note: null,
+    kind: 'search'
+  }));
+
+// 高德开放平台 POI（GCJ-02 → WGS-84；仅保留医疗保健类或名称明确含精神/心理的条目）
+const amapRaw = existsSync(join(RAW, 'amap-poi.json')) ? Object.values(readJson('amap-poi.json')) : [];
+const amapRows = amapRaw
+  .filter((p) => {
+    const t = p.type ?? '';
+    const n = p.name ?? '';
+    const medical = t.startsWith('医疗保健');
+    const nameHit = /精神|心理|睡眠/.test(n) && /医院|中心|科|门诊|诊所|咨询/.test(n);
+    const noise = /幼儿园|学校|培训|公司$/.test(n);
+    return (medical || nameHit) && !noise;
+  })
+  .map((p) => {
+    const [lng, lat] = gcj02ToWgs84(...p.location.split(',').map(Number));
+    return {
+      name: p.name,
+      lat,
+      lng,
+      source: 'amap',
+      city: p.adname ? `${p.cityname} ${p.adname}` : (p.cityname ?? null),
+      precision: 'address',
+      addr: p.address ?? null,
+      note: p.type ?? null,
+      kind: 'poi'
+    };
+  });
+
 const curated = readJson('curated-geocoded.json').map((r) => ({
   name: r.name,
   lat: r.lat,
@@ -73,12 +148,22 @@ const curated = readJson('curated-geocoded.json').map((r) => ({
 const normName = (n) => n.replace(/[\s（）()·]/g, '').toLowerCase();
 const seen = new Map();
 const merged = [];
-for (const row of [...curated, ...osmRows]) {
+for (const row of [...curated, ...amapRows, ...sweep, ...osmRows]) {
   const key = `${row.lat.toFixed(3)}:${row.lng.toFixed(3)}`;
   const prev = seen.get(key);
   if (prev && (normName(prev.name).includes(normName(row.name)) || normName(row.name).includes(normName(prev.name)))) continue;
-  if (prev && prev.source === 'osm' && row.source === 'curated') {
-    // 人工核校数据优先
+  if (prev && prev.source === 'osm' && (row.source === 'curated' || row.source === 'nominatim')) {
+    // 人工核校/检索命中的条目优先于普通 OSM 条目
+    seen.set(key, row);
+    merged.splice(merged.findIndex((m) => m === prev), 1, row);
+    continue;
+  }
+  if (prev && prev.source === 'nominatim' && row.source === 'curated') {
+    seen.set(key, row);
+    merged.splice(merged.findIndex((m) => m === prev), 1, row);
+    continue;
+  }
+  if (prev && prev.source !== 'curated' && row.source === 'amap') {
     seen.set(key, row);
     merged.splice(merged.findIndex((m) => m === prev), 1, row);
     continue;
