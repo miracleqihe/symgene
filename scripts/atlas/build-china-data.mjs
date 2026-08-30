@@ -166,6 +166,14 @@ for (const row of rawTable.slice(3)) {
 const nationalRow = provinceStats.find((r) => r.national);
 const provinceOnly = provinceStats.filter((r) => !r.national);
 
+// 短省名 → GeoJSON 全称（按名合并分省统计与边界所必需）
+function normalizeProvinceName(name) {
+  const SPECIAL = { 北京: '北京市', 天津: '天津市', 上海: '上海市', 重庆: '重庆市', 内蒙古: '内蒙古自治区', 广西: '广西壮族自治区', 西藏: '西藏自治区', 宁夏: '宁夏回族自治区', 新疆: '新疆维吾尔自治区' };
+  if (SPECIAL[name]) return SPECIAL[name];
+  if (/(省|市|自治区)$/.test(name)) return name;
+  return name + '省';
+}
+
 // 可选的最新分省数据：若 raw/atlas-public/china-province-resources-latest.json 存在则替换分省基线。
 // 建议来源：《中国卫生健康统计年鉴》表“各地区精神病医院机构、床位及人员数”（2024/2025 版）。
 // 期望格式：{ "year": 2024, "rows": [{ "name": "北京市", "institutions": 64, "openBeds": 10560 }, ...] }
@@ -176,11 +184,14 @@ try {
   const rows = Array.isArray(latest) ? latest : latest.rows ?? [];
   if (rows.length) {
     LATEST_PROVINCE_YEAR = latest.year ?? 2024;
-    provinceResourceOut = rows.map((r) => ({
-      name: String(r.name ?? r[0] ?? '').trim(),
-      institutionsLatest: Number(r.institutions ?? r[1]) || 0,
-      openBedsLatest: Number(r.openBeds ?? r[2]) || 0
-    }));
+    provinceResourceOut = rows
+      .map((r) => ({
+        name: String(r.name ?? r[0] ?? '').trim(),
+        institutionsLatest: r.institutions ?? null,
+        openBedsLatest: Number(r.openBeds ?? r[2]) || 0
+      }))
+      .filter((r) => r.name && r.name !== '总计' && r.name !== '全国')
+      .map((r) => ({ ...r, name: normalizeProvinceName(r.name) }));
     console.log('latest provincial resource data loaded, year =', LATEST_PROVINCE_YEAR);
   }
 } catch {

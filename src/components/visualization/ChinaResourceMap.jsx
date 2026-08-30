@@ -5,9 +5,11 @@ import {
   PROVINCE_RESOURCE_YEAR,
   SCORING_MODEL, CHINA_FACTS, SOCIAL_CRAWL_STATUS,
   CHINA_CATEGORY_ORDER, CHINA_CATEGORY_COLORS,
-  SOCIAL_REPUTATION_META, getReputation,
+  SOCIAL_REPUTATION_META, getReputation, SERVICE_2025,
+  NATIONAL_TREND,
   quantileShade, withAlpha, project, computeScore
 } from '../../atlas/china/index.js';
+import { DATA_VERSION } from '../../atlas/sources.js';
 
 const MAP_W = 740;
 const MAP_H = 600;
@@ -43,6 +45,7 @@ export default function ChinaResourceMap() {
   const [query, setQuery] = useState('');
   const [selectedProvince, setSelectedProvince] = useState(null);
   const [selectedInstId, setSelectedInstId] = useState(null);
+  const [showReviews, setShowReviews] = useState(false);
 
   const metric = METRICS.find((m) => m.id === metricId) ?? METRICS[0];
   const metricMax = useMemo(
@@ -222,7 +225,38 @@ export default function ChinaResourceMap() {
                 <dt>擅长方向</dt><dd>待接入</dd>
                 <dt>坐标精度</dt><dd>{selectedInst.precision === 'city' ? '市级质心（未精确定位）' : '已核校'}</dd>
                 <dt>数据来源</dt><dd>{SOURCE_LABELS[selectedInst.source] ?? selectedInst.source}</dd>
+                <dt>数据更新</dt><dd>{DATA_VERSION}</dd>
               </dl>
+              {selectedReputation?.notesList?.length > 0 && (
+                <div className="china-reviews">
+                  <button
+                    type="button"
+                    className="china-reviews-toggle"
+                    aria-expanded={showReviews}
+                    onClick={() => setShowReviews(!showReviews)}
+                  >
+                    {showReviews ? '收起评价' : `查看公开评价（${selectedReputation.notesList.length} 篇）`}
+                  </button>
+                  {showReviews && (
+                    <ul className="china-review-list">
+                      {selectedReputation.notesList.map((review) => (
+                        <li key={review.url || review.title}>
+                          <a href={review.url} target="_blank" rel="noreferrer">{review.title}</a>
+                          <small>
+                            {review.date ?? '日期不详'} · {review.liked.toLocaleString('zh-Hans')} 赞
+                            {review.pos > 0 && <b className="china-review-pos"> 好评词 {review.pos}</b>}
+                            {review.neg > 0 && <b className="china-review-neg"> 差评词 {review.neg}</b>}
+                          </small>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <p className="china-review-disclaimer">
+                    以上为小红书公开笔记的标题与链接（观点属原作者），不涉及任何用户身份信息；
+                    好评/差评为关键词命中，仅供参考。
+                  </p>
+                </div>
+              )}
               <button type="button" className="china-card-close" onClick={() => setSelectedInstId(null)}>收起详情</button>
             </article>
           ) : (
@@ -319,6 +353,44 @@ export default function ChinaResourceMap() {
             ? `当前已接入小红书首批公开讨论（更新于 ${SOCIAL_REPUTATION_META.updatedAt}，覆盖 ${SOCIAL_REPUTATION_META.noteCount} 篇笔记、${SOCIAL_REPUTATION_META.commentCount.toLocaleString('zh-Hans')} 条评论），微博/抖音批次待采集。口碑分=好评词命中占比（0–100），样本不足时不评分。`
             : `当前状态：${SOCIAL_CRAWL_STATUS.note}`}
         </p>
+      </div>
+
+      <div className="china-trend" aria-labelledby="china-trend-title">
+        <div className="china-score-head">
+          <Database size={16} aria-hidden="true" />
+          <h3 id="china-trend-title">全国口径趋势：精神病医院数量（{NATIONAL_TREND.unit}）</h3>
+        </div>
+        <div className="china-trend-bars">
+          {NATIONAL_TREND.rows.map((row) => {
+            const max = Math.max(...NATIONAL_TREND.rows.map((r) => r.hospitals ?? 0));
+            const fmtWan = (v) => v == null ? '—' : `${(v / 10000).toFixed(v >= 60000 ? 1 : 2)} 万`;
+            return (
+              <div key={row.year} className="china-trend-row">
+                <span className="china-trend-year">
+                  {row.year} <i className="china-trend-level" data-level={row.level} aria-hidden="true" />
+                </span>
+                <span className="china-trend-bar" aria-hidden="true">
+                  {row.hospitals !== null && <i style={{ width: `${Math.round((row.hospitals / max) * 100)}%` }} />}
+                </span>
+                <span className="china-trend-value">
+                  {row.hospitals !== null ? `${row.hospitals.toLocaleString('zh-Hans')} 家` : '待官方值'}
+                  <small> · 医师 {fmtWan(row.physicians)} · 护士 {fmtWan(row.nurses)}{row.bedsMentalHospitals ? ` · 床位 ${(row.bedsMentalHospitals / 10000).toFixed(1)} 万` : ''}</small>
+                </span>
+                {row.note && <span className="china-trend-note">{row.note}</span>}
+              </div>
+            );
+          })}
+        </div>
+        <div className="china-service-2025">
+          <strong>2025 年服务建设结果（国家卫健委）</strong>
+          <ul>
+            {SERVICE_2025.items.map((item) => (
+              <li key={item.label}><span>{item.label}</span>{item.value}</li>
+            ))}
+          </ul>
+          <p className="china-trend-source">{SERVICE_2025.source}</p>
+        </div>
+        <p className="china-trend-source">来源：{NATIONAL_TREND.source}。注意口径：此处为精神病医院专科口径；广义“精神卫生机构”（含综合医院精神科等）2020 年为 5,936 家。</p>
       </div>
 
       <div className="china-facts" aria-label="理解中国精神卫生的四个事实">

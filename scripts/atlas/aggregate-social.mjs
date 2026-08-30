@@ -87,10 +87,26 @@ const ensure = (name) => {
   if (!agg.has(name)) {
     agg.set(name, {
       mentions: 0, likedCount: 0, collectedCount: 0, commentCount: 0, shareCount: 0,
-      commentSamples: 0, posHits: 0, negHits: 0
+      commentSamples: 0, posHits: 0, negHits: 0,
+      notesList: []
     });
   }
   return agg.get(name);
+};
+
+// 公开笔记的展示用元数据（标题/链接/日期/互动数/情感词命中）——不含作者任何信息
+const MAX_NOTES_SHOWN = 20;
+const pushNote = (a, note, posHits, negHits) => {
+  if (a.notesList.length >= MAX_NOTES_SHOWN) return;
+  const ts = Number(note.time ?? 0);
+  a.notesList.push({
+    title: String(note.title ?? note.desc ?? '').slice(0, 60) || '（无标题）',
+    url: note.note_url ?? '',
+    date: ts ? new Date(ts).toISOString().slice(0, 10) : null,
+    liked: Number(String(note.liked_count ?? '0').replace(/[^0-9]/g, '')) || 0,
+    pos: posHits,
+    neg: negHits
+  });
 };
 
 for (const note of notes) {
@@ -104,8 +120,11 @@ for (const note of notes) {
   a.collectedCount += num(note.collected_count);
   a.commentCount += num(note.comment_count);
   a.shareCount += num(note.share_count);
-  a.posHits += countHits(text, POSITIVE_WORDS);
-  a.negHits += countHits(text, NEGATIVE_WORDS);
+  const pos = countHits(text, POSITIVE_WORDS);
+  const neg = countHits(text, NEGATIVE_WORDS);
+  a.posHits += pos;
+  a.negHits += neg;
+  pushNote(a, note, pos, neg);
 }
 
 for (const c of comments) {

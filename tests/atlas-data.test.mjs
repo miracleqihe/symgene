@@ -125,7 +125,7 @@ test('atlas: 来源与免责声明齐备', () => {
 });
 
 test('atlas-china: 机构名录完整且坐标合理', async () => {
-  const { INSTITUTIONS, PROVINCES, PROVINCE_RESOURCE_STATS } = await import('../src/atlas/china/index.js');
+  const { INSTITUTIONS, PROVINCES, PROVINCE_RESOURCE_STATS, PROVINCE_RESOURCE_YEAR } = await import('../src/atlas/china/index.js');
   assert.ok(INSTITUTIONS.length >= 200, `机构数过少: ${INSTITUTIONS.length}`);
   const provinceNames = new Set(PROVINCES.map((p) => p.name));
   for (const inst of INSTITUTIONS) {
@@ -137,9 +137,12 @@ test('atlas-china: 机构名录完整且坐标合理', async () => {
   }
   assert.ok(PROVINCES.length >= 34, '省级边界数量不足');
   assert.equal(PROVINCE_RESOURCE_STATS.length, 31, '分省资源表应为 31 省');
+  assert.equal(PROVINCE_RESOURCE_YEAR, 2024, '分省资源基线应为 2024 年');
   for (const row of PROVINCE_RESOURCE_STATS) {
-    assert.ok(row.name.endsWith('省') || row.name.endsWith('自治区') || row.name.endsWith('市'), `省份名异常: ${row.name}`);
-    assert.ok(row.institutions2015 >= 0 && row.openBeds2015 >= 0);
+    assert.ok(/(省|市|自治区)$/.test(row.name), `省份名异常: ${row.name}`);
+    const beds = row.openBedsLatest ?? row.openBeds2015;
+    const insts = row.institutionsLatest ?? row.institutions2015 ?? 0;
+    assert.ok(beds >= 0 && insts >= 0, `数值异常: ${row.name}`);
   }
 });
 

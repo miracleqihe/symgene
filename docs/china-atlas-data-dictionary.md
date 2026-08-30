@@ -28,7 +28,7 @@ POI 接口（需 API Key）并与卫健委医疗机构登记信息公开查询�
 
 ## 2. 分省公开资源统计（`src/atlas/chinaProvinceStats.js`）
 
-当前基线：**2015 年底**（史晨辉等《中国精神卫生资源状况分析》，中国卫生政策
+当前基线：**2024 年**（精神科床位数，医院分科口径）——（史晨辉等《中国精神卫生资源状况分析》，中国卫生政策
 研究 2019——国家精神卫生项目办全国调查）。字段：
 
 | 字段 | 说明 |
@@ -40,7 +40,12 @@ POI 接口（需 API Key）并与卫健委医疗机构登记信息公开查询�
 | blankCountyTotal / blankCounty2015 / blankCountyRate | 区县总数 / 无精神卫生资源区县数 / 空白率（%） |
 | national | 是否为全国合计行（仅 2015 原始表含） |
 
-**升级到最新年份**：放入 `raw/atlas-public/china-province-resources-latest.json`：
+2024 年数值提取自《2025中国卫生健康统计年鉴》表 3-1-6《2024年各地区医院分科
+床位数》精神科列（31 省求和与全国合计 991,751 张精确吻合；四川 109,030 张最高、
+西藏 620 张最低）。2015 年版（机构数/编制与开放床位/空白区县率，史晨辉等）保留
+于 git 历史，需要时可将 `china-province-resources-latest.json` 移除并重跑构建回退。
+
+**升级到更新年份**：替换 `raw/atlas-public/china-province-resources-latest.json`：
 
 ```json
 { "year": 2024, "rows": [ { "name": "北京市", "institutions": 64, "openBeds": 10560 } ] }
