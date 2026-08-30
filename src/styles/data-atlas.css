@@ -1348,3 +1348,50 @@ span.atlas-loc-cell[tabindex="0"]:focus-visible {
   color: var(--text-secondary, var(--ink));
   opacity: .85;
 }
+
+.china-trend-level {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-left: 4px;
+}
+
+.china-trend-level[data-level="A"] { background: #3e8271; }
+.china-trend-level[data-level="B"] { background: #b98a4b; }
+.china-trend-level[data-level="P"] { background: #c2c9cf; }
+
+.china-service-2025 {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--brand-mint-soft);
+  border-radius: var(--radius-sm);
+}
+
+.china-service-2025 strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--ink-strong);
+}
+
+.china-service-2025 ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 6px 16px;
+}
+
+.china-service-2025 li {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+.china-service-2025 li span {
+  display: inline-block;
+  min-width: 128px;
+  color: var(--text-secondary, var(--ink));
+}

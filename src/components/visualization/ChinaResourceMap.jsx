@@ -5,7 +5,7 @@ import {
   PROVINCE_RESOURCE_YEAR,
   SCORING_MODEL, CHINA_FACTS, SOCIAL_CRAWL_STATUS,
   CHINA_CATEGORY_ORDER, CHINA_CATEGORY_COLORS,
-  SOCIAL_REPUTATION_META, getReputation,
+  SOCIAL_REPUTATION_META, getReputation, SERVICE_2025,
   NATIONAL_TREND,
   quantileShade, withAlpha, project, computeScore
 } from '../../atlas/china/index.js';
@@ -363,19 +363,32 @@ export default function ChinaResourceMap() {
         <div className="china-trend-bars">
           {NATIONAL_TREND.rows.map((row) => {
             const max = Math.max(...NATIONAL_TREND.rows.map((r) => r.hospitals ?? 0));
+            const fmtWan = (v) => v == null ? '—' : `${(v / 10000).toFixed(v >= 60000 ? 1 : 2)} 万`;
             return (
               <div key={row.year} className="china-trend-row">
-                <span className="china-trend-year">{row.year}</span>
+                <span className="china-trend-year">
+                  {row.year} <i className="china-trend-level" data-level={row.level} aria-hidden="true" />
+                </span>
                 <span className="china-trend-bar" aria-hidden="true">
                   {row.hospitals !== null && <i style={{ width: `${Math.round((row.hospitals / max) * 100)}%` }} />}
                 </span>
                 <span className="china-trend-value">
                   {row.hospitals !== null ? `${row.hospitals.toLocaleString('zh-Hans')} 家` : '待官方值'}
+                  <small> · 医师 {fmtWan(row.physicians)} · 护士 {fmtWan(row.nurses)}{row.bedsMentalHospitals ? ` · 床位 ${(row.bedsMentalHospitals / 10000).toFixed(1)} 万` : ''}</small>
                 </span>
                 {row.note && <span className="china-trend-note">{row.note}</span>}
               </div>
             );
           })}
+        </div>
+        <div className="china-service-2025">
+          <strong>2025 年服务建设结果（国家卫健委）</strong>
+          <ul>
+            {SERVICE_2025.items.map((item) => (
+              <li key={item.label}><span>{item.label}</span>{item.value}</li>
+            ))}
+          </ul>
+          <p className="china-trend-source">{SERVICE_2025.source}</p>
         </div>
         <p className="china-trend-source">来源：{NATIONAL_TREND.source}。注意口径：此处为精神病医院专科口径；广义“精神卫生机构”（含综合医院精神科等）2020 年为 5,936 家。</p>
       </div>

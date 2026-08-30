@@ -441,6 +441,17 @@ describe('信息可视化栏目', () => {
     await expectNoSeriousAxeViolations(container);
   });
 
+  test('中国资源地图：全国口径趋势与 2025 服务面板可见', { timeout: 30000 }, async () => {
+    const { user } = await renderApp();
+    await openFromHome(user, '信息可视化');
+    await screen.findByRole('heading', { name: '精神疾病数据图谱', level: 1 }, { timeout: 4000 });
+    await user.click(screen.getByRole('tab', { name: /中国资源地图/ }));
+    expect(await screen.findByText('全国口径趋势：精神病医院数量（家）', {}, { timeout: 4000 })).toBeInTheDocument();
+    expect(screen.getByText('2,800 家')).toBeInTheDocument();
+    expect(screen.getByText(/接听超 70 万通/)).toBeInTheDocument();
+    expect(screen.getAllByText(/待官方值/).length).toBeGreaterThan(0);
+  });
+
   test('疾病图层切换更新图例说明', async () => {
     const { user } = await renderApp();
     await openFromHome(user, '信息可视化');
