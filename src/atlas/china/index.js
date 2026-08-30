@@ -6,12 +6,19 @@ import {
   SCORING_MODEL, CHINA_FACTS, SOCIAL_CRAWL_STATUS,
   CHINA_CATEGORY_ORDER, CHINA_CATEGORY_COLORS
 } from '../chinaMeta.js';
+import { SOCIAL_REPUTATION, SOCIAL_REPUTATION_META } from '../chinaSocialReputation.js';
 
 export {
   PROVINCE_GEO, INSTITUTIONS, PROVINCE_RESOURCE_STATS, PROVINCE_RESOURCE_YEAR,
   SCORING_MODEL, CHINA_FACTS, SOCIAL_CRAWL_STATUS,
-  CHINA_CATEGORY_ORDER, CHINA_CATEGORY_COLORS
+  CHINA_CATEGORY_ORDER, CHINA_CATEGORY_COLORS,
+  SOCIAL_REPUTATION, SOCIAL_REPUTATION_META
 };
+
+/** 机构口碑聚合（社交平台公开讨论，仅机构级指标）：{ ...聚合值, reputationScore } | null */
+export function getReputation(instName) {
+  return SOCIAL_REPUTATION[instName] ?? null;
+}
 
 const STATS_BY_NAME = new Map(PROVINCE_RESOURCE_STATS.map((row) => [row.name, row]));
 

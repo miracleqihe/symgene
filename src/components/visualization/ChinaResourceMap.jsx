@@ -5,6 +5,7 @@ import {
   PROVINCE_RESOURCE_YEAR,
   SCORING_MODEL, CHINA_FACTS, SOCIAL_CRAWL_STATUS,
   CHINA_CATEGORY_ORDER, CHINA_CATEGORY_COLORS,
+  SOCIAL_REPUTATION_META, getReputation,
   quantileShade, withAlpha, project, computeScore
 } from '../../atlas/china/index.js';
 
@@ -63,6 +64,7 @@ export default function ChinaResourceMap() {
     () => INSTITUTIONS.find((inst) => inst.id === selectedInstId) ?? null,
     [selectedInstId]
   );
+  const selectedReputation = selectedInst ? getReputation(selectedInst.name) : null;
 
   const visibleProvinceNames = useMemo(
     () => new Set(filteredInstitutions.map((inst) => inst.province)),
@@ -202,7 +204,19 @@ export default function ChinaResourceMap() {
                 <dt>类别</dt><dd>{selectedInst.categoryLabel}</dd>
                 <dt>地区</dt><dd>{selectedInst.province}{selectedInst.city ? ` · ${String(selectedInst.city).slice(0, 24)}` : ''}</dd>
                 <dt>综合评分</dt><dd><b className="china-score-pending">待数据接入</b></dd>
-                <dt>大众口碑</dt><dd>待接入（社交平台聚合）</dd>
+                <dt>大众口碑</dt>
+                <dd>
+                  {selectedReputation?.reputationScore != null
+                    ? <b className="china-rep-score">{selectedReputation.reputationScore} / 100</b>
+                    : '待接入'}
+                  {selectedReputation?.reputationScore != null && <small className="china-rep-note">好评词占比，非平台评分</small>}
+                </dd>
+                <dt>讨论热度</dt>
+                <dd>
+                  {selectedReputation
+                    ? `${selectedReputation.mentions} 篇笔记 · ${selectedReputation.commentCount.toLocaleString('zh-Hans')} 条评论`
+                    : '暂无匹配讨论'}
+                </dd>
                 <dt>资源设备</dt><dd>待接入（卫健委登记信息）</dd>
                 <dt>专业度</dt><dd>待接入（公开介绍文本抽取）</dd>
                 <dt>擅长方向</dt><dd>待接入</dd>
@@ -301,7 +315,9 @@ export default function ChinaResourceMap() {
         <ShieldCheck size={17} aria-hidden="true" />
         <p>
           <strong>口碑数据的来源与边界：</strong>{SOCIAL_CRAWL_STATUS.method}
-          当前状态：{SOCIAL_CRAWL_STATUS.note}
+          {SOCIAL_REPUTATION_META.noteCount > 0
+            ? `当前已接入小红书首批公开讨论（更新于 ${SOCIAL_REPUTATION_META.updatedAt}，覆盖 ${SOCIAL_REPUTATION_META.noteCount} 篇笔记、${SOCIAL_REPUTATION_META.commentCount.toLocaleString('zh-Hans')} 条评论），微博/抖音批次待采集。口碑分=好评词命中占比（0–100），样本不足时不评分。`
+            : `当前状态：${SOCIAL_CRAWL_STATUS.note}`}
         </p>
       </div>
 

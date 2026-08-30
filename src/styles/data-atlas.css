@@ -1207,3 +1207,16 @@ span.atlas-loc-cell[tabindex="0"]:focus-visible {
     display: none;
   }
 }
+
+.china-rep-score {
+  color: #3e8271;
+  font-family: 'DM Mono', monospace;
+}
+
+.china-rep-note {
+  display: block;
+  font-size: 10.5px;
+  color: var(--text-secondary, var(--ink));
+  opacity: .75;
+  margin-top: 2px;
+}

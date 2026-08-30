@@ -153,5 +153,5 @@ test('atlas-china: 评分模型与事实卡片合规', async () => {
   for (const fact of CHINA_FACTS) {
     assert.ok(fact.title && fact.body && fact.source);
   }
-  assert.equal(SOCIAL_CRAWL_STATUS.status, 'config-ready');
+  assert.equal(SOCIAL_CRAWL_STATUS.status, 'xhs-v1-live');
 });
