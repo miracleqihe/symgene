@@ -87,7 +87,7 @@ export const NATIONAL_TREND = {
     { year: 2021, hospitals: 2098, physicians: 51448, nurses: 131400, level: 'A', note: '床位原表口径待逐格提取；广义精神卫生医疗服务机构 5,936 家；登记在册严重精神障碍患者 660 万、规范管理率 92%' },
     { year: 2022, hospitals: 2277, physicians: 56166, nurses: 146451, bedsMentalHospitals: 840871, level: 'B', note: '床位 84.1 万张为“精神病医院”口径（同行评议文献引用 2023 年鉴）' },
     { year: 2023, hospitals: 2583, physicians: null, nurses: null, level: 'B', note: '人员/床位原表待逐格提取' },
-    { year: 2024, hospitals: 2800, physicians: 68000, nurses: 192000, level: 'B', note: '医师“近 6.8 万”、护士“约 19.2 万”为 2025 年鉴引用口径；另有约 1,000 家公立精神专科医院、近 2,000 家公立综合医院设心理/精神科' },
+    { year: 2024, hospitals: 2800, physicians: 68000, nurses: 192000, bedsMentalHospitals: 991751, level: 'B', note: '医院精神科床位 99.2 万张（全医疗卫生机构口径 104.9 万张，年鉴表 3-1-5/3-1-6）；另有约 1,000 家公立精神专科医院、近 2,000 家公立综合医院设心理/精神科' },
     { year: 2025, hospitals: null, physicians: null, nurses: null, level: 'P', note: '同口径年度存量待官方发布（不做插值）；当年服务建设数据见下方 2025 服务面板' }
   ]
 };
