@@ -418,3 +418,34 @@ describe('axe baseline', () => {
     await expectNoSeriousAxeViolations(container);
   });
 });
+
+describe('信息可视化栏目', () => {
+  test('导航包含信息可视化，点击后渲染时空矩阵、散点图与族裔视图', { timeout: 30000 }, async () => {
+    const { user, container } = await renderApp();
+    const nav = screen.getByRole('navigation', { name: '主导航' });
+    expect(within(nav).getByRole('button', { name: /信息可视化/ })).toBeInTheDocument();
+
+    await openFromHome(user, '信息可视化');
+    expect(await screen.findByRole('heading', { name: '精神疾病数据图谱', level: 1 }, { timeout: 4000 })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /患病率矩阵/ })).toBeInTheDocument();
+    expect(screen.getByRole('complementary', { name: '关联分析散点图' })).toBeInTheDocument();
+    expect(screen.getByRole('table', { name: /美国各族裔/ })).toBeInTheDocument();
+
+    const slider = screen.getByRole('slider', { name: /选择年份/ });
+    expect(slider).toHaveValue('0');
+    fireEvent.change(slider, { target: { value: '5' } });
+    expect(slider).toHaveValue('5');
+    const yearHeader = screen.getByText('2021', { selector: '.atlas-year-cell' });
+    expect(yearHeader).toHaveClass('current');
+
+    await expectNoSeriousAxeViolations(container);
+  });
+
+  test('疾病图层切换更新图例说明', async () => {
+    const { user } = await renderApp();
+    await openFromHome(user, '信息可视化');
+    await screen.findByRole('heading', { name: '精神疾病数据图谱', level: 1 });
+    await user.click(screen.getByRole('button', { name: /焦虑症/ }));
+    expect(screen.getByText(/焦虑症：浅 → 深/)).toBeInTheDocument();
+  });
+});

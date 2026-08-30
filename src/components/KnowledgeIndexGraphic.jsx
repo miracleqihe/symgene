@@ -5,7 +5,8 @@ const INDEX_ITEMS = [
   { id: 'disorders', label: '疾病科普' },
   { id: 'cases', label: '案例分析' },
   { id: 'resources', label: '网络资源' },
-  { id: 'reviews', label: '前沿综述' }
+  { id: 'reviews', label: '前沿综述' },
+  { id: 'atlas', label: '信息可视化' }
 ];
 
 export default function KnowledgeIndexGraphic({ onNavigate }) {

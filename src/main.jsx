@@ -1,7 +1,7 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
-  ArrowLeft, ArrowUpRight, BookOpen, Brain, ChevronDown, ChevronRight, CircleHelp, Edit3, ExternalLink,
+  ArrowLeft, ArrowUpRight, BarChart3, BookOpen, Brain, ChevronDown, ChevronRight, CircleHelp, Edit3, ExternalLink,
   FileText, FlaskConical, HeartPulse, Home, Library, Menu, Plus, Search, ShieldCheck,
   Sparkles, Telescope, Trash2, X
 } from 'lucide-react';
@@ -34,8 +34,12 @@ const PAGE_META = {
   disorders: { number: '02', accent: 'yellow' },
   cases: { number: '03', accent: 'ink' },
   resources: { number: '04', accent: 'teal' },
-  reviews: { number: '05', accent: 'teal' }
+  reviews: { number: '05', accent: 'teal' },
+  atlas: { number: '06', accent: 'mint' }
 };
+
+// 信息可视化栏目为懒加载路由（React.lazy），数据模块不计入首屏包
+const DataAtlasPage = React.lazy(() => import('./components/visualization/DataAtlasPage.jsx'));
 
 function resolvePageDirection(from, to) {
   if (from === 'home' && to !== 'home') return 'forward';
@@ -137,7 +141,8 @@ export function App({ canEdit = CAN_EDIT } = {}) {
     disorders: data.disorders.length,
     cases: data.cases.length,
     resources: data.resources.length,
-    reviews: reviewData.menus.length
+    reviews: reviewData.menus.length,
+    atlas: 12
   }), [data]);
 
   const searchResults = useMemo(() => matchKnowledge(query, data), [data, query]);
@@ -339,6 +344,11 @@ export function App({ canEdit = CAN_EDIT } = {}) {
             {activePage === 'cases' && <CasesPage data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} onOpenDisorder={(disorder) => openItem('disorders', disorder)} mainContentRef={mainContentRef} canEdit={canEdit} focusOnMount={pageFocusRequest?.page === 'cases'} onPageFocused={() => setPageFocusRequest(null)} focusSelected={detailFocusRequest?.type === 'cases' && detailFocusRequest.id === selected?.id} onSelectedFocused={() => setDetailFocusRequest(null)} />}
             {activePage === 'resources' && <ResourcesPage data={data} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} canEdit={canEdit} focusOnMount={pageFocusRequest?.page === 'resources'} onPageFocused={() => setPageFocusRequest(null)} />}
             {activePage === 'reviews' && <FrontierReviewsPage focusOnMount={pageFocusRequest?.page === 'reviews'} onPageFocused={() => setPageFocusRequest(null)} />}
+            {activePage === 'atlas' && (
+              <React.Suspense fallback={<div className="page atlas-lazy-fallback" role="status" aria-label="信息可视化加载中" />}>
+                <DataAtlasPage focusOnMount={pageFocusRequest?.page === 'atlas'} onPageFocused={() => setPageFocusRequest(null)} />
+              </React.Suspense>
+            )}
           </AnimatedPresence>
         </main>
       </div>
@@ -376,6 +386,7 @@ function NavIcon({ id }) {
   if (id === 'disorders') return <HeartPulse {...props} />;
   if (id === 'cases') return <FileText {...props} />;
   if (id === 'reviews') return <Telescope {...props} />;
+  if (id === 'atlas') return <BarChart3 {...props} />;
   return <Library {...props} />;
 }
 
