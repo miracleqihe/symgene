@@ -25,6 +25,8 @@ const CATEGORY_RULES = [
 const FALLBACK_CATEGORY = { id: 'related', label: '精神卫生相关机构' };
 // OSM 噪声条目（非医疗/非精神卫生场景，人工排查后剔除）
 const NOISE_NAMES = ['沁音', '情缘婚姻家庭辅导'];
+// 过于泛化的名称无法定位具体机构，不作为 POI/匹配目标
+const GENERIC_NAMES = /^(精神科|心理咨询|心理门诊|心理科|精神病院|心理卫生|心理咨询科)$|^(精神|心理)$/
 const classify = (name) => {
   for (const rule of CATEGORY_RULES) {
     if (rule.test(name)) return { id: rule.id, label: rule.label };
@@ -38,7 +40,7 @@ for (const file of ['osm-mental.json', 'osm-mental-q3.json']) {
   for (const el of data.elements ?? []) {
     const tags = el.tags ?? {};
     const name = (tags.name ?? '').replace(/\u200e/g, '').trim();
-    if (!name || NOISE_NAMES.some((noise) => name.includes(noise))) continue;
+    if (!name || NOISE_NAMES.some((noise) => name.includes(noise)) || GENERIC_NAMES.test(name)) continue;
     const lat = el.lat ?? el.center?.lat;
     const lng = el.lon ?? el.center?.lng ?? el.center?.lon;
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
