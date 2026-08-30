@@ -45,6 +45,42 @@ export const SOURCES = [
     url: 'https://www.kff.org/racial-equity-and-health-policy/key-data-on-health-and-health-care-by-race-and-ethnicity/',
     coverage: '美国全国层面单年快照：成人任何精神障碍患病率、患者接受精神健康服务比例（2024）；自杀与药物过量死亡率（2023）；部分族裔无公布值',
     license: 'KFF 内容可引用，需注明出处'
+  },
+  {
+    id: 'osm-poi',
+    label: '中国心理治疗机构点位（POI）',
+    org: 'OpenStreetMap 贡献者 + 人工核校的知名专科机构名录',
+    detail: '经 Overpass API 按精神卫生关键词检索，另对知名精神专科机构逐家人工核校地理编码；坐标精度分为“已核校”与“市级质心”两级并逐条标注。',
+    url: 'https://www.openstreetmap.org/copyright',
+    coverage: '225 家机构（截至数据版本日），覆盖 32 个省级地区；为公开地图数据的部分收录，非全国注册机构全集',
+    license: 'Open Database License (ODbL)，需注明 © OpenStreetMap 贡献者'
+  },
+  {
+    id: 'china-province-resource',
+    label: '中国分省精神卫生资源统计',
+    org: '史晨辉等《中国精神卫生资源状况分析》，中国卫生政策研究 2019',
+    detail: '分省精神卫生机构数、编制/开放床位与空白区县情况（数据截至 2015 年底，来源于国家精神卫生项目办调查）。',
+    url: 'http://journal.healthpolicy.cn/html/20190208.htm',
+    coverage: '31 个省份 × 机构数/床位/空白区县率（2010 与 2015 两个时点）',
+    license: '开放获取期刊论文，引用需注明出处'
+  },
+  {
+    id: 'china-geo-boundary',
+    label: '中国省级地图边界',
+    org: '阿里云 DataV GeoAtlas（公开地理数据）',
+    detail: '省级行政区边界 GeoJSON（坐标精简至约 1 公里）。',
+    url: 'https://datav.aliyun.com/portal/school/atlas/area_selector',
+    coverage: '34 个省级行政区划',
+    license: '公开地图服务，使用需遵守中国地图审图号规范；本页仅做示意性科普展示'
+  },
+  {
+    id: 'cmhs',
+    label: '中国精神障碍患病率（CMHS）',
+    org: '中国精神卫生调查（黄悦勤等），Lancet Psychiatry 2019',
+    detail: '覆盖 31 省 157 个县/区的全国流行病学调查：任何精神障碍（不含老年期痴呆）终生患病率 16.6%，12 个月患病率 9.3%。',
+    url: 'https://doi.org/10.1016/S2215-0366(18)30511-X',
+    coverage: '全国层面估计',
+    license: '学术论文，引用需注明出处'
   }
 ];
 

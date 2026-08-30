@@ -29,6 +29,7 @@ Sym Gen 是一个面向公众的精神与心理健康公益知识库。项目以
 - 精神科医生密度与心理健康支出占比：WHO Mental Health Atlas（经 GHO 发布，快照值）
 - 自杀死亡率：WHO 全球卫生估计（经 GHO 发布，2000 年以来的国家 × 年份序列）
 - 美国族裔患病率与治疗可及性：KFF 对 SAMHSA NSDUH 2024 与 CDC 死因数据的整理（全国快照）
+- 中国资源地图：机构点位来自 OpenStreetMap（ODbL）+ 人工核校知名专科机构名录；分省资源统计来自《中国精神卫生资源状况分析》（中国卫生政策研究 2019，截至 2015 年底）；患病率事实卡来自中国精神卫生调查 CMHS（Lancet Psychiatry 2019）；数据字典与评分模型见 [docs/china-atlas-data-dictionary.md](docs/china-atlas-data-dictionary.md)
 
 数据由一次性构建脚本归一生成：
 
