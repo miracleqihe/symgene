@@ -57,6 +57,25 @@ for (const file of ['osm-mental.json', 'osm-mental-q3.json']) {
   }
 }
 
+// Nominatim 逐省检索结果：只保留名称明确的精神卫生相关条目，剔除产业园/管委会/研究院等噪声
+const sweep = readJson('nominatim-sweep.json')
+  .filter((r) => {
+    const n = r.name ?? '';
+    return /精神|心理|脑科|安定|康宁|安宁医院/.test(n)
+      && !/管理委员会|产业园|服务中心|服务中|研究院|研究所|学院|大学|车站|公司|宿舍|小区|家园$/.test(n);
+  })
+  .map((r) => ({
+    name: r.name,
+    lat: r.lat,
+    lng: r.lng,
+    source: 'nominatim',
+    city: null,
+    precision: 'address',
+    addr: (r.display ?? '').slice(0, 60) || null,
+    note: null,
+    kind: 'search'
+  }));
+
 const curated = readJson('curated-geocoded.json').map((r) => ({
   name: r.name,
   lat: r.lat,
@@ -73,12 +92,17 @@ const curated = readJson('curated-geocoded.json').map((r) => ({
 const normName = (n) => n.replace(/[\s（）()·]/g, '').toLowerCase();
 const seen = new Map();
 const merged = [];
-for (const row of [...curated, ...osmRows]) {
+for (const row of [...curated, ...sweep, ...osmRows]) {
   const key = `${row.lat.toFixed(3)}:${row.lng.toFixed(3)}`;
   const prev = seen.get(key);
   if (prev && (normName(prev.name).includes(normName(row.name)) || normName(row.name).includes(normName(prev.name)))) continue;
-  if (prev && prev.source === 'osm' && row.source === 'curated') {
-    // 人工核校数据优先
+  if (prev && prev.source === 'osm' && (row.source === 'curated' || row.source === 'nominatim')) {
+    // 人工核校/检索命中的条目优先于普通 OSM 条目
+    seen.set(key, row);
+    merged.splice(merged.findIndex((m) => m === prev), 1, row);
+    continue;
+  }
+  if (prev && prev.source === 'nominatim' && row.source === 'curated') {
     seen.set(key, row);
     merged.splice(merged.findIndex((m) => m === prev), 1, row);
     continue;
