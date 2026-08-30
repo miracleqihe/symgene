@@ -76,6 +76,21 @@ export const SOCIAL_CRAWL_STATUS = {
   note: '采集配置已就绪；数据到位后由聚合脚本生成口碑分，页面自动启用。此前所有机构的口碑分与综合评分显示为“待数据接入”，不做估算。'
 };
 
+// 全国口径趋势：精神病医院（专科口径，《中国卫生健康统计年鉴》历年卷）。
+// 注意与广义“精神卫生机构”口径区分（2020 年广义口径 5,936 家，含综合医院精神科等）。
+// 2022 年数值原文标注待确认、2025 年官方值尚未发布，均不收录，页面如实标注。
+export const NATIONAL_TREND = {
+  unit: '家',
+  source: '《中国卫生健康统计年鉴》历年卷（精神病医院专科口径）整理；2025 年官方值待发布',
+  rows: [
+    { year: 2021, hospitals: 2098, note: '床位约 75.4 万张；执业（助理）医师约 4.57 万名' },
+    { year: 2022, hospitals: null, note: '原表待确认，暂不收录' },
+    { year: 2023, hospitals: 2583, note: '' },
+    { year: 2024, hospitals: 2800, note: '执业（助理）医师近 6.8 万名；注册护士 19.2 万名（2025 年鉴口径）' },
+    { year: 2025, hospitals: null, note: '官方完整值待发布' }
+  ]
+};
+
 export const CHINA_CATEGORY_ORDER = ['specialized', 'health-center', 'counseling', 'education', 'related'];
 export const CHINA_CATEGORY_COLORS = {
   specialized: '#4f948b',

@@ -1220,3 +1220,131 @@ span.atlas-loc-cell[tabindex="0"]:focus-visible {
   opacity: .75;
   margin-top: 2px;
 }
+
+/* ---------- 评价列表与全国趋势 ---------- */
+
+.china-reviews { margin-top: 12px; }
+
+.china-reviews-toggle {
+  padding: 6px 13px;
+  border: 1px solid rgba(48, 91, 96, .22);
+  border-radius: var(--radius-round);
+  background: var(--brand-mint-soft);
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--ink-strong);
+  cursor: pointer;
+}
+
+.china-reviews-toggle:hover { box-shadow: var(--shadow-control); }
+
+.china-review-list {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.china-review-list li {
+  padding: 8px 10px;
+  border: 1px solid rgba(48, 91, 96, .12);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+}
+
+.china-review-list a {
+  display: block;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #347f91;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.china-review-list small {
+  display: block;
+  margin-top: 3px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10.5px;
+  color: var(--text-secondary, var(--ink));
+}
+
+.china-review-pos { color: #3e8271; margin-left: 6px; }
+.china-review-neg { color: #c26d5a; margin-left: 6px; }
+
+.china-review-disclaimer {
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-secondary, var(--ink));
+  opacity: .8;
+}
+
+.china-trend {
+  margin-top: 18px;
+  padding: 16px 18px;
+  border: 1px solid rgba(48, 91, 96, .14);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+}
+
+.china-trend-bars {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.china-trend-row {
+  display: grid;
+  grid-template-columns: 44px minmax(90px, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.china-trend-year {
+  font-family: 'DM Mono', monospace;
+  font-size: 12.5px;
+  color: var(--ink-strong);
+}
+
+.china-trend-bar {
+  height: 14px;
+  background: rgba(48, 91, 96, .07);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+  display: block;
+}
+
+.china-trend-bar i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(79, 148, 139, .55), rgba(79, 148, 139, .9));
+  border-radius: inherit;
+}
+
+.china-trend-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--ink-strong);
+  white-space: nowrap;
+}
+
+.china-trend-note {
+  grid-column: 2 / -1;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-secondary, var(--ink));
+  opacity: .85;
+}
+
+.china-trend-source {
+  margin: 12px 0 0;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--text-secondary, var(--ink));
+  opacity: .85;
+}
