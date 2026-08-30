@@ -472,6 +472,8 @@
 | `src/components/paperPlaneGeometry.js` | 纸飞机和信纸几何、帧常量 |
 | `src/components/visualization/` | 信息可视化栏目（DataAtlasPage、PrevalenceMatrix、CorrelationScatter、EthnicityPanel、SpectrumLegend） |
 | `src/atlas/` | 信息可视化数据模块：geo/prevalence/context/ethnicity 由 `scripts/atlas/build-atlas-data.mjs` 生成，spectrum/sources/display/index 为手写维护 |
+| `src/atlas/china*` + `src/atlas/china/` | 中国资源地图数据：GeoJSON 精简/机构名录/分省统计由 `scripts/atlas/build-china-data.mjs` 生成；chinaMeta（评分模型、CMHS 事实、12356）与 china/index.js 为手写 |
+| `src/components/visualization/ChinaResourceMap.jsx` | 中国心理治疗资源地图（choropleth + 机构点 + 筛选 + 详情卡 + 评分模型 + 中国特点卡）；经 DataAtlasPage 顶部 tab 切换全球/中国 |
 | `src/styles/data-atlas.css` | 信息可视化栏目样式（含 `.page-header-mint` 强调色） |
 | `src/styles/editorial.css` | 当前主要视觉和响应式覆盖 |
 | `src/styles/motion.css` | 页面与内容转场 |
