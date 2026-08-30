@@ -470,9 +470,19 @@
 | `src/components/PaperPlaneLetter.jsx` | 信件状态机、交互、遮罩和 HTML 文案 |
 | `src/components/PaperPlaneComposition.jsx` | Remotion 折面与信纸帧 |
 | `src/components/paperPlaneGeometry.js` | 纸飞机和信纸几何、帧常量 |
+| `src/components/visualization/` | 信息可视化栏目（DataAtlasPage、PrevalenceMatrix、CorrelationScatter、EthnicityPanel、SpectrumLegend） |
+| `src/atlas/` | 信息可视化数据模块：geo/prevalence/context/ethnicity 由 `scripts/atlas/build-atlas-data.mjs` 生成，spectrum/sources/display/index 为手写维护 |
+| `src/styles/data-atlas.css` | 信息可视化栏目样式（含 `.page-header-mint` 强调色） |
 | `src/styles/editorial.css` | 当前主要视觉和响应式覆盖 |
 | `src/styles/motion.css` | 页面与内容转场 |
 | `src/styles/tokens.css` | 色彩、字体、缓动和基础变量 |
+
+信息可视化栏目（第 06 号页面，`atlas`）的实现约定：
+
+- 整页经 `React.lazy` 懒加载，`src/atlas/` 的数据模块（含约 640KB 的患病率长表）只进入懒加载分包，主包不引入。
+- 矩阵单元格用 `role="img"` + `aria-label` 承载数值信息，不做 table 角色（区域折叠按钮会破坏 axe 的 table 结构校验）；纯视觉元素一律 `aria-hidden`。
+- 谱系配色（`src/atlas/spectrum.js`）从品牌色延展，保持低饱和；同一谱系同一色相，深浅映射患病率，满刻度取该疾病在数据中的最大值。
+- 数据规模、口径或年份变更时只改 `scripts/atlas/build-atlas-data.mjs` 后重新生成，不要手改生成文件；`tests/atlas-data.test.mjs` 与 `tests/ui/app.test.jsx`（信息可视化 describe）是门槛。
 
 ## 7. 后续 AI 必须遵循的设计风格
 

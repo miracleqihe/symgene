@@ -18,6 +18,25 @@ Sym Gen 是一个面向公众的精神与心理健康公益知识库。项目以
 - 122 个疾病科普词条
 - 122 个教学性案例，每个疾病至少关联一个案例
 - 4 项公开网络资源
+- 「信息可视化」栏目：204 个国家/地区 × 2016–2023 的 12 类精神障碍患病率时空矩阵、关联分析散点图与美国族裔对比视图
+
+## 信息可视化的数据来源
+
+「信息可视化」栏目（`src/atlas/`）的流行病学数据全部来自公开权威数据库，页面底部附完整来源与使用条款：
+
+- 患病率：IHME 全球疾病负担研究 GBD 2023（204 个国家/地区 × 2016–2023 × 12 个疾病条目，含全年龄与年龄标准化口径）
+- 人均 GDP：世界银行 World Development Indicators
+- 精神科医生密度与心理健康支出占比：WHO Mental Health Atlas（经 GHO 发布，快照值）
+- 自杀死亡率：WHO 全球卫生估计（经 GHO 发布，2000 年以来的国家 × 年份序列）
+- 美国族裔患病率与治疗可及性：KFF 对 SAMHSA NSDUH 2024 与 CDC 死因数据的整理（全国快照）
+
+数据由一次性构建脚本归一生成：
+
+```bash
+node scripts/atlas/build-atlas-data.mjs
+```
+
+脚本读取本地缓存的原始下载文件（不入库），产出 `src/atlas/*.js` 数据模块（入库）。`src/atlas/geo.js`、`prevalence.js`、`context.js`、`ethnicity.js` 为生成文件，请勿手改；`spectrum.js`、`sources.js`、`display.js`、`index.js` 为手写维护文件。修改数据口径时先更新构建脚本再重新生成，`tests/atlas-data.test.mjs` 会校验记录完整性、数值范围与谱系引用一致性。
 
 ## 核心原则
 
