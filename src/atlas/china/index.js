@@ -1,12 +1,19 @@
 // 中国资源地图聚合选择器：合并省级边界、收录机构、公开资源统计与评分模型。
 import { PROVINCE_GEO } from '../chinaGeo.js';
-import { INSTITUTIONS } from '../chinaInstitutions.js';
+import institutionsDocument from '../institutions.json' with { type: 'json' };
 import { PROVINCE_RESOURCE_STATS, PROVINCE_RESOURCE_YEAR } from '../chinaProvinceStats.js';
 import {
   SCORING_MODEL, CHINA_FACTS, SOCIAL_CRAWL_STATUS,
   CHINA_CATEGORY_ORDER, CHINA_CATEGORY_COLORS, NATIONAL_TREND, SERVICE_2025
 } from '../chinaMeta.js';
 import { SOCIAL_REPUTATION, SOCIAL_REPUTATION_META } from '../chinaSocialReputation.js';
+
+if (institutionsDocument.schemaVersion !== 1
+  || !Array.isArray(institutionsDocument?.country?.china?.institutions)) {
+  throw new Error('institutions.json 不符合 schemaVersion 1 的 country.china.institutions 契约');
+}
+
+const INSTITUTIONS = institutionsDocument.country.china.institutions;
 
 export {
   PROVINCE_GEO, INSTITUTIONS, PROVINCE_RESOURCE_STATS, PROVINCE_RESOURCE_YEAR,
