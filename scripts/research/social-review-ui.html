@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+  <title>Sym Gen · 本地证据审阅</title>
+  <style>
+    :root { color-scheme: light; --ink:#16363c; --muted:#62777a; --line:#d8e2df; --paper:#f7f5ee; --card:#fffefa; --mint:#dcebe6; --accent:#367d77; --warn:#9b6b2f; --danger:#a64a43; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:15px/1.65 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; }
+    button,input,textarea { font:inherit; }
+    button { cursor:pointer; }
+    .top { padding:22px clamp(18px,4vw,58px); border-bottom:1px solid var(--line); background:rgba(255,254,250,.94); position:sticky; top:0; z-index:3; }
+    .top-row { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; }
+    h1 { margin:0; font-size:clamp(22px,3vw,34px); letter-spacing:.04em; }
+    .subtitle,.meta { margin:3px 0 0; color:var(--muted); }
+    .warning { margin:14px 0 0; padding:10px 14px; border-left:4px solid var(--warn); background:#fff7e8; }
+    .progress { min-width:220px; text-align:right; }
+    progress { width:220px; height:10px; accent-color:var(--accent); }
+    .layout { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(330px,.75fr); gap:22px; padding:24px clamp(18px,4vw,58px) 70px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; box-shadow:0 8px 30px rgba(25,57,60,.05); }
+    .record { padding:24px; min-height:520px; }
+    .badges { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:18px; }
+    .badge { padding:3px 9px; border-radius:999px; background:var(--mint); color:#285e59; font-size:12px; }
+    .badge.audit { background:#eee7d9; color:#73552b; }
+    .text-block { margin:14px 0; padding:18px; border:1px solid var(--line); border-radius:10px; background:white; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .context { background:#f1f5f3; }
+    .context h2,.record h2 { margin:0 0 8px; font-size:14px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
+    details { margin-top:18px; color:var(--muted); }
+    details pre { white-space:pre-wrap; overflow-wrap:anywhere; font-size:12px; }
+    .nav { display:flex; justify-content:space-between; gap:9px; margin-top:22px; flex-wrap:wrap; }
+    .btn { border:1px solid var(--line); background:white; color:var(--ink); border-radius:8px; padding:8px 13px; }
+    .btn.primary { background:var(--accent); color:white; border-color:var(--accent); }
+    .btn:focus-visible,input:focus-visible,textarea:focus-visible { outline:3px solid rgba(54,125,119,.28); outline-offset:2px; }
+    .form { padding:20px; position:sticky; top:170px; align-self:start; max-height:calc(100vh - 195px); overflow:auto; }
+    fieldset { border:0; border-top:1px solid var(--line); padding:14px 0 5px; margin:0; }
+    legend { font-weight:700; padding:0 8px 0 0; }
+    .choices { display:grid; gap:7px; margin-top:8px; }
+    .choice { display:flex; gap:8px; align-items:flex-start; padding:5px 0; }
+    .aspects { grid-template-columns:1fr 1fr; }
+    textarea { width:100%; min-height:72px; resize:vertical; border:1px solid var(--line); border-radius:8px; padding:9px; background:white; }
+    .reviewer { display:grid; grid-template-columns:110px 1fr; gap:8px; align-items:center; margin-bottom:14px; }
+    .reviewer input { min-width:0; border:1px solid var(--line); border-radius:8px; padding:8px; }
+    .tools { display:flex; flex-wrap:wrap; gap:8px; padding-top:14px; border-top:1px solid var(--line); }
+    .file { position:relative; overflow:hidden; }
+    .file input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+    .status { min-height:1.6em; color:var(--muted); margin:8px 0 0; }
+    .empty { padding:40px; }
+    @media (max-width:900px) { .top { position:static; } .top-row { align-items:flex-start; flex-direction:column; } .progress { text-align:left; } .layout { grid-template-columns:1fr; } .form { position:static; max-height:none; } }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="top-row">
+      <div><h1>本地证据审阅</h1><p class="subtitle">三家医院服务体验试点 · 不生成评分或排名</p></div>
+      <div class="progress"><div id="progressText">正在读取本地队列…</div><progress id="progressBar" max="1" value="0"></progress></div>
+    </div>
+      <p class="warning"><strong>隐私边界：</strong>文本仅在本机显示；不要截图、复制、上传或联系作者。程序已检测到的高风险与标识符证据已分流，但自动检测不等于匿名化；请先标记残留信息。标签只保存在当前页面内存，需主动导出。</p>
+  </header>
+  <main id="app" class="layout" hidden>
+    <section class="card record" aria-labelledby="recordHeading">
+      <div id="badges" class="badges"></div>
+      <h2 id="recordHeading">待审记录</h2>
+      <div id="recordText" class="text-block"></div>
+      <section id="contextSection" class="text-block context" hidden><h2>机构匹配依据</h2><div id="contextText"></div><small>只显示上文触发匹配的机构词，不载入整篇敏感上文。</small></section>
+      <details><summary>查看机器初筛信息（避免先入为主，默认折叠）</summary><pre id="machine"></pre></details>
+      <nav class="nav" aria-label="记录导航">
+        <button id="previous" class="btn" type="button">上一条</button>
+        <button id="nextUnreviewed" class="btn" type="button">下一条未完成</button>
+        <button id="next" class="btn primary" type="button">保存并下一条</button>
+      </nav>
+    </section>
+    <form id="reviewForm" class="card form">
+      <div class="reviewer"><label for="reviewerAlias">审阅者代号</label><input id="reviewerAlias" maxlength="40" autocomplete="off" placeholder="例如 reviewer-a"></div>
+      <fieldset><legend>1. 医院归因是否正确？</legend><div class="choices" data-field="entityDecision"></div></fieldset>
+      <fieldset><legend>2. 是否为服务经历？</legend><div class="choices" data-field="experienceDecision"></div></fieldset>
+      <fieldset><legend>3. 涉及哪些服务维度？</legend><div class="choices aspects" data-field="aspects"></div></fieldset>
+      <fieldset><legend>4. 是否仍含可识别信息？</legend><div class="choices" data-field="privacyDecision"></div></fieldset>
+      <fieldset><legend>5. 是否可进入匿名聚合候选？</legend><div class="choices" data-field="aggregationDecision"></div></fieldset>
+      <fieldset><legend><label for="notes">审阅备注（不要抄录身份信息）</label></legend><textarea id="notes" maxlength="500"></textarea></fieldset>
+      <div class="tools">
+        <button id="export" class="btn primary" type="button">导出当前标签</button>
+        <label class="btn file">导入标签继续<input id="importLabels" type="file" accept="application/json"></label>
+      </div>
+      <p id="status" class="status" role="status"></p>
+    </form>
+  </main>
+  <div id="error" class="empty" role="alert" hidden></div>
+  <script>
+    const LABELS = {
+      entityDecision: [['correct','正确'],['incorrect','错误'],['uncertain','不确定']],
+      experienceDecision: [['firsthand','本人经历'],['accompanied','陪诊经历'],['not_experience','不是服务经历'],['uncertain','不确定']],
+      privacyDecision: [['clear','未发现残留'],['residual_identifier','仍可能可识别'],['uncertain','不确定']],
+      aggregationDecision: [['include','可进入候选'],['exclude','排除'],['uncertain','待复核']],
+      aspects: [['access_and_wait','挂号与等待'],['cost_and_billing','费用与收费'],['staff_interaction','沟通与尊重'],['process_and_information','流程与隐私'],['environment_and_facilities','环境与设施'],['continuity_and_follow_up','复诊与转诊'],['self_reported_outcome','自述结果（不作疗效）'],['other','其他']]
+    };
+    const state = { queue:null, index:0, labels:new Map() };
+    const $ = (id) => document.getElementById(id);
+    const setStatus = (text) => { $('status').textContent = text; };
+
+    function buildChoices() {
+      for (const [field, options] of Object.entries(LABELS)) {
+        const holder = document.querySelector(`[data-field="${field}"]`);
+        holder.replaceChildren(...options.map(([value,label]) => {
+          const wrapper = document.createElement('label'); wrapper.className = 'choice';
+          const input = document.createElement('input'); input.type = field === 'aspects' ? 'checkbox' : 'radio'; input.name = field; input.value = value;
+          const span = document.createElement('span'); span.textContent = label;
+          wrapper.append(input, span); return wrapper;
+        }));
+      }
+    }
+
+    function currentRecord() { return state.queue.records[state.index]; }
+    function readForm() {
+      const value = { reviewId: currentRecord().reviewId, aspects: [] };
+      for (const field of ['entityDecision','experienceDecision','privacyDecision','aggregationDecision']) value[field] = document.querySelector(`input[name="${field}"]:checked`)?.value ?? null;
+      value.aspects = [...document.querySelectorAll('input[name="aspects"]:checked')].map((input) => input.value);
+      value.notes = $('notes').value.trim();
+      value.complete = Boolean(value.entityDecision && value.experienceDecision && value.privacyDecision && value.aggregationDecision);
+      return value;
+    }
+    function saveForm() { if (state.queue) state.labels.set(currentRecord().reviewId, readForm()); updateProgress(); }
+    function loadForm() {
+      const reviewerAlias = $('reviewerAlias').value;
+      $('reviewForm').reset();
+      $('reviewerAlias').value = reviewerAlias;
+      const label = state.labels.get(currentRecord().reviewId);
+      if (!label) return;
+      for (const field of ['entityDecision','experienceDecision','privacyDecision','aggregationDecision']) {
+        if (label[field]) document.querySelector(`input[name="${field}"][value="${label[field]}"]`).checked = true;
+      }
+      for (const checkbox of document.querySelectorAll('input[name="aspects"]')) checkbox.checked = (label.aspects ?? []).includes(checkbox.value);
+      $('notes').value = label.notes ?? '';
+    }
+    function render() {
+      const record = currentRecord();
+      $('recordText').textContent = record.text;
+      $('contextSection').hidden = !record.context;
+      $('contextText').textContent = record.context?.matchedTerms?.join('、') ?? '';
+      $('machine').textContent = JSON.stringify(record.machine, null, 2);
+      const cohort = record.cohort === 'primary_candidate' ? '主要候选' : record.cohort === 'target_negative_audit' ? '目标机构负例抽查' : '未匹配漏判抽查';
+      const badges = [cohort, record.platform, record.proposedInstitution ?? '未匹配机构', record.machine.matchMethod ?? '无匹配方法'];
+      $('badges').replaceChildren(...badges.map((text,index) => { const span=document.createElement('span'); span.className=`badge${index===0&&record.cohort!=='primary_candidate'?' audit':''}`; span.textContent=text; return span; }));
+      $('previous').disabled = state.index === 0;
+      $('next').textContent = state.index === state.queue.records.length - 1 ? '保存本条' : '保存并下一条';
+      loadForm(); updateProgress();
+    }
+    function updateProgress() {
+      const complete = [...state.labels.values()].filter((label) => label.complete).length;
+      $('progressText').textContent = `${complete} / ${state.queue.records.length} 条完成 · 当前 ${state.index + 1}`;
+      $('progressBar').max = state.queue.records.length; $('progressBar').value = complete;
+    }
+    function move(delta) { saveForm(); state.index = Math.max(0, Math.min(state.queue.records.length - 1, state.index + delta)); render(); }
+
+    function exportLabels() {
+      saveForm();
+      const reviewerAlias = $('reviewerAlias').value.trim();
+      if (!reviewerAlias) { setStatus('请先填写不含真实姓名的审阅者代号。'); $('reviewerAlias').focus(); return; }
+      const payload = {
+        schemaVersion:1, publicationStatus:'LOCAL_LABELS_ONLY', queueId:state.queue.queueId,
+        reviewerAlias, exportedAt:new Date().toISOString(), annotations:[...state.labels.values()].sort((a,b)=>a.reviewId.localeCompare(b.reviewId))
+      };
+      const blob = new Blob([JSON.stringify(payload,null,2)+'\n'], {type:'application/json'});
+      const url = URL.createObjectURL(blob); const link=document.createElement('a'); link.href=url; link.download=`${state.queue.queueId}-${reviewerAlias}-labels.json`; link.click(); URL.revokeObjectURL(url);
+      setStatus(`已导出 ${payload.annotations.length} 条标签；文件不含帖子正文。`);
+    }
+
+    async function importLabels(file) {
+      const payload = JSON.parse(await file.text());
+      if (payload?.publicationStatus !== 'LOCAL_LABELS_ONLY' || payload.queueId !== state.queue.queueId || !Array.isArray(payload.annotations)) throw new Error('标签文件与当前队列不匹配');
+      const validIds = new Set(state.queue.records.map((record) => record.reviewId));
+      for (const annotation of payload.annotations) if (validIds.has(annotation.reviewId)) state.labels.set(annotation.reviewId, annotation);
+      $('reviewerAlias').value = payload.reviewerAlias ?? '';
+      render(); setStatus(`已导入 ${state.labels.size} 条本地标签。`);
+    }
+
+    async function start() {
+      buildChoices();
+      const response = await fetch('/queue.json', {cache:'no-store'});
+      if (!response.ok) throw new Error(`无法读取队列（HTTP ${response.status}）`);
+      state.queue = await response.json();
+      if (state.queue?.publicationStatus !== 'LOCAL_REVIEW_ONLY' || !Array.isArray(state.queue.records) || state.queue.records.length === 0) throw new Error('审阅队列格式无效或为空');
+      $('app').hidden = false; render();
+    }
+    $('previous').addEventListener('click', () => move(-1));
+    $('next').addEventListener('click', () => move(1));
+    $('nextUnreviewed').addEventListener('click', () => { saveForm(); const next=state.queue.records.findIndex((record,index)=>index>state.index&&!state.labels.get(record.reviewId)?.complete); const anywhere=state.queue.records.findIndex((record)=>!state.labels.get(record.reviewId)?.complete); state.index=next>=0?next:anywhere>=0?anywhere:state.index; render(); });
+    $('export').addEventListener('click', exportLabels);
+    $('importLabels').addEventListener('change', (event) => { const file=event.target.files?.[0]; if (file) importLabels(file).catch((error)=>setStatus(error.message)); event.target.value=''; });
+    window.addEventListener('beforeunload', (event) => { if (state.labels.size > 0) { event.preventDefault(); event.returnValue=''; } });
+    start().catch((error) => { $('error').hidden=false; $('error').textContent=error.message; $('progressText').textContent='队列读取失败'; });
+  </script>
+</body>
+</html>
