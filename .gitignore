@@ -11,3 +11,6 @@ tmp/
 
 .DS_Store
 *.log
+
+# Local coding-agent plans and session artifacts.
+.zcode/

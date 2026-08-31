@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
   LOCS, DISEASES, YEARS, PREVALENCE, GDP, SUICIDE,
@@ -122,6 +123,27 @@ test('atlas: 来源与免责声明齐备', () => {
     assert.ok(source.org && source.url && source.coverage && source.license);
   }
   assert.ok(DISCLAIMERS.length >= 4);
+});
+
+test('atlas-china: 机构目录使用带国家命名空间的 JSON 契约', () => {
+  const institutionsUrl = new URL('../src/atlas/institutions.json', import.meta.url);
+  const legacyModuleUrl = new URL('../src/atlas/chinaInstitutions.js', import.meta.url);
+  assert.ok(existsSync(institutionsUrl), '缺少 src/atlas/institutions.json');
+  assert.equal(existsSync(legacyModuleUrl), false, '不应继续维护 chinaInstitutions.js');
+
+  const document = JSON.parse(readFileSync(institutionsUrl, 'utf8'));
+  assert.equal(document.schemaVersion, 1);
+  assert.ok(document.country && typeof document.country === 'object', '缺少 country 命名空间');
+  assert.ok(document.country.china, '缺少 country.china');
+  assert.ok(Array.isArray(document.country.china.sources), 'country.china.sources 必须是数组');
+  assert.ok(Array.isArray(document.country.china.institutions), 'country.china.institutions 必须是数组');
+  assert.ok(document.country.china.institutions.length >= 1426, '迁移后不得丢失当前机构结果');
+
+  const institutions = document.country.china.institutions;
+  const ids = new Set(institutions.map((item) => item.id));
+  assert.equal(ids.size, institutions.length, '机构 ID 必须在 country.china 内唯一');
+  const sources = [...new Set(institutions.map((item) => item.source))].sort();
+  assert.deepEqual(document.country.china.sources, sources, '来源列表必须与机构数据一致且稳定排序');
 });
 
 test('atlas-china: 机构名录完整且坐标合理', async () => {

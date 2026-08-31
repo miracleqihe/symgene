@@ -3,23 +3,43 @@
 对应项目计划《心理治疗资源地图与综合评分系统》的交付物要求。数据版本见
 `src/atlas/chinaMeta.js` 的 `DATA_VERSION`（全局）与页面底部标注。
 
-## 1. 机构主数据库（`src/atlas/chinaInstitutions.js`）
+## 1. 机构主数据库（`src/atlas/institutions.json`）
 
 生成命令：`node scripts/atlas/build-china-data.mjs`
 原始来源（本地 `raw/atlas-public/`，不入库）：
 OpenStreetMap Overpass 两次查询 + 人工核校知名专科机构名录（Nominatim 地理编码）。
 
+发布数据使用 `schemaVersion: 1`，并按国家命名空间组织：
+
+```json
+{
+  "schemaVersion": 1,
+  "country": {
+    "china": {
+      "sources": ["amap", "curated", "nominatim", "osm"],
+      "institutions": []
+    }
+  }
+}
+```
+
+高德检索脚本只负责 provider 数据采集，写入本地
+`raw/atlas-public/institutions.json` 的
+`country.china.providers.amap.results`；分类、坐标转换、跨来源去重和省份归属仍由
+`scripts/atlas/build-china-data.mjs` 完成。前端和机构级口碑聚合都只读取发布数据的
+`country.china.institutions`，不直接依赖高德原始响应。
+
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| id | string | `curated-*` / `osm-*`，来源内唯一 |
+| id | string | `amap-*` / `curated-*` / `nominatim-*` / `osm-*`，目录内唯一 |
 | name | string | 机构名称（公开名称，未脱敏处理个人字段——本表不涉及个人） |
-| lat / lng | number | 坐标（GCJ 无转换，原始 WGS-84/OSM 坐标系，示意用途） |
+| lat / lng | number | WGS-84 坐标；高德 GCJ-02 数据在构建阶段转换，示意用途 |
 | province | string | 通过省级边界射线法命中归属，兼容飞地 |
 | adcode | string | 6 位省级行政区划码 |
 | city | string \| null | 城市（人工名录自带；OSM 条目为 addr:city，常为空） |
 | category / categoryLabel | string | `specialized` 精神专科医院 / `health-center` 心理·精神卫生中心 / `counseling` 心理咨询机构 / `education` 心理健康教育机构 / `related` 精神卫生相关机构 |
 | precision | string \| null | `address`（名称编码且城市校验通过或人工核校）／`city`（市级质心兜底）——地图上逐条可查 |
-| source | string | `osm`（© OpenStreetMap 贡献者，ODbL）／`curated`（人工核校） |
+| source | string | `amap`（高德开放平台）／`osm`（© OpenStreetMap 贡献者，ODbL）／`nominatim`（OpenStreetMap 检索）／`curated`（人工核校） |
 | note | string \| null | 人工核校备注 |
 
 收录范围声明：**本表是公开地图数据的部分收录，不是全国注册机构全集**。

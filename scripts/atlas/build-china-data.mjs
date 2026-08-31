@@ -4,7 +4,7 @@
 // - 分省精神卫生资源表（中国卫生政策研究 2019，数据截至 2015 年底）
 // - 省级 GeoJSON 精简（坐标保留 2 位小数）
 // 运行：node scripts/atlas/build-china-data.mjs
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -107,7 +107,22 @@ const sweep = readJson('nominatim-sweep.json')
   }));
 
 // 高德开放平台 POI（GCJ-02 → WGS-84；仅保留医疗保健类或名称明确含精神/心理的条目）
-const amapRaw = existsSync(join(RAW, 'amap-poi.json')) ? Object.values(readJson('amap-poi.json')) : [];
+function readAmapResults() {
+  const institutionsPath = join(RAW, 'institutions.json');
+  if (existsSync(institutionsPath)) {
+    const document = readJson('institutions.json');
+    const results = document?.country?.china?.providers?.amap?.results;
+    if (document.schemaVersion !== 1 || !results || Array.isArray(results) || typeof results !== 'object') {
+      throw new Error('raw/atlas-public/institutions.json 不符合 schemaVersion 1 的 country.china.providers.amap.results 契约');
+    }
+    return Object.values(results);
+  }
+
+  // 兼容旧抓取缓存；下一次运行 fetch-amap-poi.mjs 后会迁移到 institutions.json。
+  return existsSync(join(RAW, 'amap-poi.json')) ? Object.values(readJson('amap-poi.json')) : [];
+}
+
+const amapRaw = readAmapResults();
 const amapRows = amapRaw
   .filter((p) => {
     const t = p.type ?? '';
@@ -300,10 +315,18 @@ writeFileSync(
   `export const PROVINCE_GEO = ${JSON.stringify(geoOut)};\n`
 );
 writeFileSync(
-  join(OUT, 'chinaInstitutions.js'),
-  banner('POI 来源：OpenStreetMap（ODbL）+ 人工核校知名专科机构名录；坐标精度见 precision 字段。') +
-  `export const INSTITUTIONS = ${JSON.stringify(institutions)};\n`
+  join(OUT, 'institutions.json'),
+  `${JSON.stringify({
+    schemaVersion: 1,
+    country: {
+      china: {
+        sources: [...new Set(institutions.map((item) => item.source))].sort(),
+        institutions
+      }
+    }
+  }, null, 2)}\n`
 );
+rmSync(join(OUT, 'chinaInstitutions.js'), { force: true });
 writeFileSync(
   join(OUT, 'chinaProvinceStats.js'),
   banner(`分省资源数据：史晨辉等《中国精神卫生资源状况分析》，中国卫生政策研究 2019，数据截至 2015 年底。当前基线年份：${LATEST_PROVINCE_YEAR}。`) +
