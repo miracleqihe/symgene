@@ -1,3 +1,5 @@
+> `dev → main` 晋级请改用[晋级 PR 模板](https://github.com/miracleqihe/symgene/compare/main...dev?expand=1&template=promotion.md)，不要填写本普通贡献模板。
+
 ## 变更说明
 
 <!-- 说明为什么需要这项变更、实现了什么，以及明确不在本次范围内的事项。 -->

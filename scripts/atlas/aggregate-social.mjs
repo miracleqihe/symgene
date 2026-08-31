@@ -43,8 +43,13 @@ if (!existsSync(CRAWL_DIR)) {
   process.exit(1);
 }
 
-const instSrc = readFileSync(join(ROOT, 'src', 'atlas', 'chinaInstitutions.js'), 'utf-8');
-const INSTITUTIONS = JSON.parse(instSrc.match(/export const INSTITUTIONS = (\[.*\]);/s)[1]);
+const institutionsDocument = JSON.parse(
+  readFileSync(join(ROOT, 'src', 'atlas', 'institutions.json'), 'utf-8')
+);
+const INSTITUTIONS = institutionsDocument?.country?.china?.institutions;
+if (institutionsDocument.schemaVersion !== 1 || !Array.isArray(INSTITUTIONS)) {
+  throw new Error('src/atlas/institutions.json 不符合 schemaVersion 1 的 country.china.institutions 契约');
+}
 
 // 主名 + 别名的匹配串（按长度降序，避免短词抢命中）
 const matchers = [];

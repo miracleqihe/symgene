@@ -1,4 +1,5 @@
-// 高德 POI 逐城抓取（断点续传）。Key 与进度存 raw/，不入库。
+// 高德 POI 逐城抓取（断点续传）。只负责 provider 检索，不包含分类、去重等业务逻辑。
+// Key、进度与原始结果存 raw/，不入库。
 // 运行：node scripts/atlas/fetch-amap-poi.mjs [每日查询上限，默认 95]
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -15,16 +16,47 @@ const CITIES = JSON.parse(readFileSync(join(RAW, 'amap-cities.json'), 'utf-8'));
 // 直辖市与省会优先
 const ordered = [...DIRECT, ...CITIES.filter((c) => !DIRECT.includes(c))];
 
-const POI_FILE = join(RAW, 'amap-poi.json');
+const INSTITUTIONS_FILE = join(RAW, 'institutions.json');
+const LEGACY_POI_FILE = join(RAW, 'amap-poi.json');
 const PROG_FILE = join(RAW, 'amap-progress.json');
-const pois = existsSync(POI_FILE) ? JSON.parse(readFileSync(POI_FILE, 'utf-8')) : {};
+
+function createInstitutionsDocument(results = {}) {
+  return {
+    schemaVersion: 1,
+    country: {
+      china: {
+        providers: {
+          amap: { results }
+        }
+      }
+    }
+  };
+}
+
+function readInstitutionsDocument() {
+  if (existsSync(INSTITUTIONS_FILE)) {
+    const document = JSON.parse(readFileSync(INSTITUTIONS_FILE, 'utf-8'));
+    const results = document?.country?.china?.providers?.amap?.results;
+    if (document.schemaVersion !== 1 || !results || Array.isArray(results) || typeof results !== 'object') {
+      throw new Error('raw/atlas-public/institutions.json 不符合 schemaVersion 1 的 country.china.providers.amap.results 契约');
+    }
+    return document;
+  }
+  if (existsSync(LEGACY_POI_FILE)) {
+    return createInstitutionsDocument(JSON.parse(readFileSync(LEGACY_POI_FILE, 'utf-8')));
+  }
+  return createInstitutionsDocument();
+}
+
+const institutionsDocument = readInstitutionsDocument();
+const pois = institutionsDocument.country.china.providers.amap.results;
 const prog = existsSync(PROG_FILE) ? JSON.parse(readFileSync(PROG_FILE, 'utf-8')) : { done: [], counts: {} };
 
 let queries = prog.queriesUsed ?? 0;
 let added = 0;
 const save = () => {
-  writeFileSync(POI_FILE, JSON.stringify(pois));
-  writeFileSync(PROG_FILE, JSON.stringify(prog));
+  writeFileSync(INSTITUTIONS_FILE, `${JSON.stringify(institutionsDocument, null, 2)}\n`);
+  writeFileSync(PROG_FILE, `${JSON.stringify(prog, null, 2)}\n`);
 };
 
 for (const city of ordered) {
