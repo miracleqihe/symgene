@@ -178,5 +178,16 @@ test('atlas-china: 评分模型与事实卡片合规', async () => {
   for (const fact of CHINA_FACTS) {
     assert.ok(fact.title && fact.body && fact.source);
   }
-  assert.equal(SOCIAL_CRAWL_STATUS.status, 'xhs-v1-live');
+  assert.equal(SOCIAL_CRAWL_STATUS.status, 'research-audit');
+});
+
+test('atlas-china: 未审阅社交数据不会进入生产模块', async () => {
+  const { SOCIAL_REPUTATION_META, SOCIAL_REPUTATION } = await import('../src/atlas/chinaSocialReputation.js');
+  assert.equal(SOCIAL_REPUTATION_META.status, 'research-only');
+  assert.equal(SOCIAL_REPUTATION_META.noteCount, 0);
+  assert.equal(SOCIAL_REPUTATION_META.commentCount, 0);
+  assert.deepEqual(Object.keys(SOCIAL_REPUTATION), []);
+
+  const source = readFileSync(new URL('../src/atlas/chinaSocialReputation.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(source, /notesList|reputationScore|https?:\/\//);
 });

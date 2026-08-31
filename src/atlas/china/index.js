@@ -22,7 +22,7 @@ export {
   SOCIAL_REPUTATION, SOCIAL_REPUTATION_META
 };
 
-/** 机构口碑聚合（社交平台公开讨论，仅机构级指标）：{ ...聚合值, reputationScore } | null */
+/** 经发布审阅的机构体验聚合；当前生产数据为空，返回 null。 */
 export function getReputation(instName) {
   return SOCIAL_REPUTATION[instName] ?? null;
 }
