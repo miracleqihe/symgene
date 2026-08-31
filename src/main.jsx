@@ -512,7 +512,7 @@ function ListPage({ type, data, selected, onSelect, onEdit, onDelete, onAdd, mai
   }, []);
 
   return <div className="page library-page page-enter">
-    <PageHeader page={type} eyebrow={type === 'drugs' ? 'MEDICATIONS' : 'DISORDERS'} title={label} description={type === 'drugs' ? '按《精神药物手册》的章节与药理学分类整理常见精神科药物。' : '从症状、病程与功能影响出发，建立可读的疾病词条。'} count={items.length + ' 个词条'} onAdd={() => onAdd(type)} addLabel="新增词条" canEdit={canEdit} focusOnMount={focusOnMount} onFocused={onPageFocused} />
+    <PageHeader page={type} eyebrow={type === 'drugs' ? 'MEDICATIONS' : 'DISORDERS'} title={label} description={type === 'drugs' ? '按《精神药物手册》的章节与药理学分类整理常见精神科药物。' : '症状、病程与功能分类的精神疾病词条。'} count={items.length + ' 个词条'} onAdd={() => onAdd(type)} addLabel="新增词条" canEdit={canEdit} focusOnMount={focusOnMount} onFocused={onPageFocused} />
     <div className="workspace-grid">
       <section className={'index-panel ' + (type === 'drugs' ? 'drug-index-panel' : 'disorder-index-panel')} ref={indexPanelRef}>
         <div className="panel-label">
@@ -704,7 +704,7 @@ function CaseDetail({ item, disorder, onBack, onEdit, onDelete, detailRef, canEd
 
 function ResourcesPage({ data, onEdit, onDelete, onAdd, canEdit, focusOnMount, onPageFocused }) {
   return <div className="page resources-page page-enter">
-    <PageHeader page="resources" eyebrow="LIBRARY" title="网络资源" description="外部网站与开放资料的统一入口，原始书籍仅作为项目内部依据。" count={data.resources.length + ' 项资源'} onAdd={() => onAdd('resources')} addLabel="新增资源" canEdit={canEdit} focusOnMount={focusOnMount} onFocused={onPageFocused} />
+    <PageHeader page="resources" eyebrow="LIBRARY" title="网络资源"  count={data.resources.length + ' 项资源'} onAdd={() => onAdd('resources')} addLabel="新增资源" canEdit={canEdit} focusOnMount={focusOnMount} onFocused={onPageFocused} />
     <div className="resource-list">
       {data.resources.map((item) => <article className="resource-row" key={item.id}>
         <div className="resource-copy"><span className="eyebrow">{item.source}</span><h2>{item.title}</h2><p>{item.description}</p></div>
