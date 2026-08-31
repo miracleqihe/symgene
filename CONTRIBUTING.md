@@ -176,7 +176,15 @@ CI 通过只代表自动检查通过，不等于自动获得合并权限。评�
 - `Branch policy` 和 `Verify` 检查通过；
 - `@miracleqihe` 完成人工审核并明确批准；
 - 所有 review conversation 已解决；
-- PR 使用 merge commit 合并，标题建议为 `release: promote dev to main (YYYY-MM-DD)`。
+- PR 使用 merge commit 合并，标题必须为 `release: promote dev to main (YYYY-MM-DD)`。
+
+创建晋级 PR 时使用专用模板：
+
+```text
+https://github.com/miracleqihe/symgene/compare/main...dev?expand=1&template=promotion.md
+```
+
+`Promotion PR policy` 会确定性检查来源分支、标题、必需章节、模板占位符和未确认复选框，并由 `github-actions[bot]` 在同一条评论中提醒 PR 创建者修正。GitHub Copilot code review 可以补充代码层建议，但它只提交非阻断的 review comment，不能替代状态检查或 `@miracleqihe` 的人工批准。
 
 合并到 `main` 后，GitHub Pages 工作流会再次执行完整验证，只有验证成功才部署。部署完成后将 `main` 同步回 `dev`，并按需创建版本标签和发布说明。
 
@@ -196,7 +204,7 @@ CI 通过只代表自动检查通过，不等于自动获得合并权限。评�
 2. 从 `dev` 创建 `codex/branch-governance`，将本规范、CI、CODEOWNERS 和 PR 模板先通过 PR 合并到 `dev`；
 3. 由 `@miracleqihe` 审核并完成第一次 `dev → main` 晋级；如果 GitHub 尚未识别新 workflow 的 check，第一次晋级以本地 `npm run verify` 结果作为迁移期证据；
 4. 将第一次晋级后的 `main` 同步回 `dev`，在 `dev` 上手动运行一次 `CI`；
-5. 创建测试 PR，确认 `Verify` 和 `Branch policy` 已出现在 Ruleset 的 check 选择列表；
+5. 创建测试 PR，确认 `Verify`、`Branch policy` 和 `Promotion PR policy` 已出现在 Ruleset 的 check 选择列表；
 6. 先启用 `dev` Ruleset，再启用 `main` Ruleset；此后停止所有直接推送。
 
 仓库默认分支保持 `main`，用于展示稳定版本；贡献者必须在创建 PR 时主动把 base 改为 `dev`。
@@ -210,6 +218,7 @@ CI 通过只代表自动检查通过，不等于自动获得合并权限。评�
 - Require status check：`Verify`；
 - Require branches to be up to date before merging；
 - Require conversation resolution before merging；
+- Automatically request Copilot code review，并按维护需要启用 Review new pushes；
 - Block force pushes and deletions；
 - 不允许普通贡献者 bypass。
 
@@ -218,18 +227,20 @@ CI 通过只代表自动检查通过，不等于自动获得合并权限。评�
 - Require a pull request before merging；
 - Require at least 1 approval；
 - Require review from Code Owners，由 `@miracleqihe` 审核；
-- Require status checks：`Branch policy`、`Verify`；
+- Require status checks：`Branch policy`、`Verify`、`Promotion PR policy`；
 - Require branches to be up to date before merging；
 - Require conversation resolution before merging；
+- Automatically request Copilot code review，并按维护需要启用 Review new pushes；
 - Block force pushes and deletions；
 - 不允许普通贡献者 bypass。
 
-`CODEOWNERS` 会自动请求审核，但只有启用 “Require review from Code Owners” 后才会成为合并门禁。
+`CODEOWNERS` 会自动请求审核，但只有启用 “Require review from Code Owners” 后才会成为合并门禁。Copilot code review 只能留下 `Comment`，不会给出 `Approve` 或 `Request changes`，因此也不计入必需审批。
 
 ## 设计参考
 
 - [GitHub Rulesets 可用规则](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets)：PR、审批、状态检查、同步要求和禁止强推；
 - [GitHub CODEOWNERS](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners)：自动请求所有者审核并与分支保护结合；
+- [GitHub Copilot 自动代码审核](https://docs.github.com/en/copilot/how-tos/copilot-on-github/set-up-copilot/configure-automatic-review)：通过个人设置或仓库 Ruleset 自动请求 Copilot review；
 - [GitHub Pull request merge 策略](https://docs.github.com/en/pull-requests/reference/pull-request-merges)：squash、rebase 和 merge commit 的历史差异。
 
 ## 报告问题与功能建议
