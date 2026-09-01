@@ -512,7 +512,7 @@ function ListPage({ type, data, selected, onSelect, onEdit, onDelete, onAdd, mai
   }, []);
 
   return <div className="page library-page page-enter">
-    <PageHeader page={type} eyebrow={type === 'drugs' ? 'MEDICATIONS' : 'DISORDERS'} title={label} description={type === 'drugs' ? '按《精神药物手册》的章节与药理学分类整理常见精神科药物。' : '从症状、病程与功能影响出发，建立可读的疾病词条。'} count={items.length + ' 个词条'} onAdd={() => onAdd(type)} addLabel="新增词条" canEdit={canEdit} focusOnMount={focusOnMount} onFocused={onPageFocused} />
+    <PageHeader page={type} eyebrow={type === 'drugs' ? 'MEDICATIONS' : 'DISORDERS'} title={label} description={type === 'drugs' ? '按《精神药物手册》的章节与药理学分类整理常见精神科药物。' : '症状、病程与功能分类的精神疾病词条。'} count={items.length + ' 个词条'} onAdd={() => onAdd(type)} addLabel="新增词条" canEdit={canEdit} focusOnMount={focusOnMount} onFocused={onPageFocused} />
     <div className="workspace-grid">
       <section className={'index-panel ' + (type === 'drugs' ? 'drug-index-panel' : 'disorder-index-panel')} ref={indexPanelRef}>
         <div className="panel-label">
@@ -670,7 +670,7 @@ function CasesPage({ data, selected, onSelect, onEdit, onDelete, onAdd, onOpenDi
     return { disorders: sortedDisorders, casesByDisorder: groupedCases };
   }, [data.cases, data.disorders]);
   return <div className="page cases-page page-enter">
-    <PageHeader page="cases" eyebrow="CASE NOTES" title="案例分析" description="按疾病词条分组的教学性案例，用于练习观察、评估与沟通。" count={data.cases.length + ' 个案例'} onAdd={() => onAdd('cases')} addLabel="新增案例" canEdit={canEdit} focusOnMount={focusOnMount} onFocused={onPageFocused} />
+    <PageHeader page="cases" eyebrow="CASE NOTES" title="案例分析" description="按疾病词条分组的精神疾病案例。" count={data.cases.length + ' 个案例'} onAdd={() => onAdd('cases')} addLabel="新增案例" canEdit={canEdit} focusOnMount={focusOnMount} onFocused={onPageFocused} />
     <AnimatedPresence viewKey={selected?.id || EMPTY_VIEW} emptyKey={EMPTY_VIEW} kind="detail" className="case-detail-presence" exitMs={145} enterMs={360} settleMs={620} resolveDirection={resolveDetailDirection}>
       {selected && <CaseDetail detailRef={detailRef} item={selected} disorder={selectedDisorder} onBack={closeCase} onEdit={() => onEdit('cases', selected)} onDelete={() => onDelete('cases', selected)} canEdit={canEdit} />}
     </AnimatedPresence>
@@ -704,7 +704,7 @@ function CaseDetail({ item, disorder, onBack, onEdit, onDelete, detailRef, canEd
 
 function ResourcesPage({ data, onEdit, onDelete, onAdd, canEdit, focusOnMount, onPageFocused }) {
   return <div className="page resources-page page-enter">
-    <PageHeader page="resources" eyebrow="LIBRARY" title="网络资源" description="外部网站与开放资料的统一入口，原始书籍仅作为项目内部依据。" count={data.resources.length + ' 项资源'} onAdd={() => onAdd('resources')} addLabel="新增资源" canEdit={canEdit} focusOnMount={focusOnMount} onFocused={onPageFocused} />
+    <PageHeader page="resources" eyebrow="LIBRARY" title="网络资源"  count={data.resources.length + ' 项资源'} onAdd={() => onAdd('resources')} addLabel="新增资源" canEdit={canEdit} focusOnMount={focusOnMount} onFocused={onPageFocused} />
     <div className="resource-list">
       {data.resources.map((item) => <article className="resource-row" key={item.id}>
         <div className="resource-copy"><span className="eyebrow">{item.source}</span><h2>{item.title}</h2><p>{item.description}</p></div>
