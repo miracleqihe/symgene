@@ -166,7 +166,7 @@ export default function FrontierReviewsPage({ focusOnMount, onPageFocused }) {
             <span>REFERENCES</span>
             <h3 id="frontier-references-title">本章核心文献</h3>
           </div>
-          <p className="frontier-reference-note">DOI（Digital Object Identifier，数字对象标识符）用于定位论文的原始页面。</p>
+          <p className="frontier-reference-note"></p>
           <ol>
             {activeMenu.references.map((reference) => (
               <li key={reference.id}>

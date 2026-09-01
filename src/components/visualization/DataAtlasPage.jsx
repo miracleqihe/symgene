@@ -80,10 +80,10 @@ export default function DataAtlasPage({ focusOnMount, onPageFocused }) {
               <span className="eyebrow">POPULATION DATA</span>
               <h2 id="atlas-intro-title">把看不见的负担画出来</h2>
               <p>
-                精神疾病的负担很少被“看见”。这一页把来自 IHME 全球疾病负担研究（GBD 2023）的国家级患病率估计，
-                与世界银行的经济数据、世界卫生组织的精神卫生系统指标放到同一张图里：
-                每一行是一个国家或地区，每一列是一个年份；颜色越深，代表选中的疾病在人群中越常见；
-                单元格下方的小柱越高，代表精神卫生服务的供给越充足。
+              精神疾病带来的负担往往不易被察觉。这张图汇集了 IHME 全球疾病负担研究（GBD 2023）的国家级患病率估计，
+            以及各国家和地区的经济数据与世界卫生组织精神卫生系统指标，帮助你从疾病流行和服务供给两个角度观察不同地区的情况。
+            图中，每一行代表一个国家或地区，每一列代表一个年份。颜色越深，表示所选疾病的估计患病率越高；
+            单元格下方的小柱越高，表示相应指标所反映的精神卫生服务供给水平越高。
               </p>
             </div>
             <div className="atlas-safety-note" role="note">
@@ -128,8 +128,8 @@ export default function DataAtlasPage({ focusOnMount, onPageFocused }) {
       <section className="atlas-sources" aria-labelledby="atlas-sources-title">
         <div>
           <span className="eyebrow">SOURCES</span>
-          <h2 id="atlas-sources-title">数据从哪里来</h2>
-          <p>所有数据均来自公开发表的权威数据库，可点击来源名称访问原始入口。</p>
+          <h2 id="atlas-sources-title">数据源</h2>
+          <p>所有数据均来自公开发表的权威数据库，点击来源名称访问原始入口。</p>
         </div>
         <ol className="atlas-source-list">
           {SOURCES.map((source) => (

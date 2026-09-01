@@ -55,7 +55,6 @@ export default function PrevalenceMatrix({
         <div>
           <span className="eyebrow">TIME × REGION MATRIX</span>
           <h2>患病率时空矩阵</h2>
-          <p className="atlas-panel-note">行 = 国家/地区（按大区分组）；列 = 年份；颜色深浅 = 患病率；当前年份列的墨色小柱 = 精神科医生密度（供给侧代理）。</p>
         </div>
       </div>
 
