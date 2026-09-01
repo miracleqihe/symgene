@@ -670,7 +670,7 @@ function CasesPage({ data, selected, onSelect, onEdit, onDelete, onAdd, onOpenDi
     return { disorders: sortedDisorders, casesByDisorder: groupedCases };
   }, [data.cases, data.disorders]);
   return <div className="page cases-page page-enter">
-    <PageHeader page="cases" eyebrow="CASE NOTES" title="案例分析" description="按疾病词条分组的教学性案例，用于练习观察、评估与沟通。" count={data.cases.length + ' 个案例'} onAdd={() => onAdd('cases')} addLabel="新增案例" canEdit={canEdit} focusOnMount={focusOnMount} onFocused={onPageFocused} />
+    <PageHeader page="cases" eyebrow="CASE NOTES" title="案例分析" description="按疾病词条分组的精神疾病案例。" count={data.cases.length + ' 个案例'} onAdd={() => onAdd('cases')} addLabel="新增案例" canEdit={canEdit} focusOnMount={focusOnMount} onFocused={onPageFocused} />
     <AnimatedPresence viewKey={selected?.id || EMPTY_VIEW} emptyKey={EMPTY_VIEW} kind="detail" className="case-detail-presence" exitMs={145} enterMs={360} settleMs={620} resolveDirection={resolveDetailDirection}>
       {selected && <CaseDetail detailRef={detailRef} item={selected} disorder={selectedDisorder} onBack={closeCase} onEdit={() => onEdit('cases', selected)} onDelete={() => onDelete('cases', selected)} canEdit={canEdit} />}
     </AnimatedPresence>
