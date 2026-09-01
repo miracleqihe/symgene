@@ -99,7 +99,6 @@ export default function CorrelationScatter({ yearIdx, diseaseKeys, stdMode, high
         <div>
           <span className="eyebrow">CORRELATION VIEW</span>
           <h2>关联分析副窗口</h2>
-          <p className="atlas-panel-note">每个点是一个国家/地区；悬停可联动矩阵高亮。r 只描述相关，不构成因果结论。</p>
         </div>
       </div>
 
