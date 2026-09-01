@@ -19,7 +19,7 @@ jobs:
     permissions:
       contents: read
       issues: write
-      pull-requests: read
+      pull-requests: write
     steps:
       # pull_request_target has a write-capable token. Never check out or run the
       # pull request head; the validator must come from the trusted base commit.
