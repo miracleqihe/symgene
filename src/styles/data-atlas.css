@@ -1221,6 +1221,101 @@ span.atlas-loc-cell[tabindex="0"]:focus-visible {
   margin-top: 2px;
 }
 
+.china-polarity {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.china-pol {
+  font-size: 10.5px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--line, rgba(0, 0, 0, .12));
+  white-space: nowrap;
+}
+
+.china-pol-pos {
+  color: #2f7d5f;
+  border-color: rgba(47, 125, 95, .35);
+  background: rgba(47, 125, 95, .08);
+}
+
+.china-pol-neg {
+  color: #a4523f;
+  border-color: rgba(164, 82, 63, .35);
+  background: rgba(164, 82, 63, .08);
+}
+
+.china-pol-neu {
+  color: var(--text-secondary, var(--ink));
+  background: var(--surface-subtle, rgba(0, 0, 0, .03));
+}
+
+.china-rep-policy {
+  margin: 8px 0 0;
+  padding: 7px 9px;
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: var(--text-secondary, var(--ink));
+  background: var(--surface-subtle, rgba(0, 0, 0, .03));
+  border-left: 2px solid var(--line, rgba(0, 0, 0, .12));
+  border-radius: 3px;
+}
+
+/* ---------- 三维度评分（机构详情卡） ---------- */
+
+.china-dimensions {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.china-dimensions h4 {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-strong);
+}
+
+.china-dim-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 8px;
+}
+
+.china-dim-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 10px;
+  background: var(--brand-mint-soft);
+  border: 1px solid rgba(48, 91, 96, .12);
+  border-radius: var(--radius-sm);
+}
+
+.china-dim-label {
+  font-size: 11.5px;
+  color: var(--text-secondary, var(--ink));
+}
+
+.china-dim-score {
+  font-family: 'DM Mono', monospace;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-strong);
+}
+
+.china-dim-detail {
+  font-size: 10px;
+  line-height: 1.5;
+  font-family: 'DM Mono', monospace;
+  color: var(--text-secondary, var(--ink));
+  opacity: .75;
+}
+
+.china-metadata { margin-top: 8px; }
+
 /* ---------- 评价列表与全国趋势 ---------- */
 
 .china-reviews { margin-top: 12px; }
@@ -1266,15 +1361,210 @@ span.atlas-loc-cell[tabindex="0"]:focus-visible {
 }
 
 .china-review-list small {
-  display: block;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
   margin-top: 3px;
   font-family: 'DM Mono', monospace;
   font-size: 10.5px;
   color: var(--text-secondary, var(--ink));
 }
 
+.china-review-platform {
+  display: inline-block;
+  padding: 1px 6px;
+  font-size: 9.5px;
+  border-radius: 3px;
+  background: rgba(48, 91, 96, .08);
+  color: var(--ink);
+}
+
 .china-review-pos { color: #3e8271; margin-left: 6px; }
 .china-review-neg { color: #c26d5a; margin-left: 6px; }
+
+.china-review-dims {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.china-review-dim-tag {
+  font-size: 9px;
+  padding: 2px 5px;
+  border-radius: 2px;
+  background: rgba(62, 130, 113, .1);
+  color: #3e8271;
+}
+
+.china-review-dim-tag[data-type="resource"] { background: rgba(185, 138, 75, .12); color: #9b7647; }
+.china-review-dim-tag[data-type="experience"] { background: rgba(95, 159, 183, .14); color: #347f91; }
+
+/* ---------- 分层呈现（地图概览 / 评分与口碑 / 趋势与背景） ---------- */
+
+.china-layer-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(48, 91, 96, .1);
+}
+
+.china-layer-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 15px;
+  border: 1px solid rgba(48, 91, 96, .22);
+  border-radius: var(--radius-round);
+  background: var(--paper);
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color var(--duration-state, 180ms) var(--ease-state, ease), color var(--duration-state, 180ms) var(--ease-state, ease);
+}
+
+.china-layer-tab:hover { box-shadow: var(--shadow-control); }
+
+.china-layer-tab.active {
+  background: var(--accent-teal);
+  border-color: var(--accent-teal);
+  color: #fff;
+}
+
+.china-layer-tab:focus-visible {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+}
+
+/* ---------- 口碑一览（评分与口碑层） ---------- */
+
+.china-rep-ranking {
+  margin-top: 18px;
+  padding: 16px 18px;
+  border: 1px solid rgba(48, 91, 96, .14);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+}
+
+.china-panel-note-small {
+  margin: 8px 0 12px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-secondary, var(--ink));
+}
+
+.china-rep-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.china-rep-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) auto auto;
+  gap: 8px 14px;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid rgba(48, 91, 96, .1);
+  border-radius: var(--radius-sm);
+  background: var(--surface-quiet, var(--brand-mint-soft));
+}
+
+.china-rep-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.china-rep-row-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.china-rep-row-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: 10.5px;
+  color: var(--text-secondary, var(--ink));
+  opacity: .8;
+}
+
+.china-rep-row-dims {
+  display: flex;
+  gap: 6px;
+}
+
+.china-rep-dim-pill {
+  padding: 2px 8px;
+  border: 1px solid rgba(48, 91, 96, .16);
+  border-radius: var(--radius-round);
+  background: var(--paper);
+  font-family: 'DM Mono', monospace;
+  font-size: 10.5px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .china-rep-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- 人工审阅进展（评分与口碑层） ---------- */
+
+.china-review-progress {
+  margin-top: 18px;
+  padding: 16px 18px;
+  border: 1px solid rgba(48, 91, 96, .14);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+}
+
+.china-review-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.china-review-stats li {
+  padding: 10px 12px;
+  border: 1px solid rgba(48, 91, 96, .12);
+  border-radius: var(--radius-sm);
+  background: var(--surface-quiet, var(--brand-mint-soft));
+  text-align: center;
+}
+
+.china-review-stats b {
+  display: block;
+  font-family: 'DM Mono', monospace;
+  font-size: 21px;
+  line-height: 1.2;
+  color: var(--ink-strong);
+}
+
+.china-review-stats span {
+  font-size: 11.5px;
+  color: var(--text-secondary, var(--ink));
+}
+
+.china-review-stats li.is-include b { color: #3e8271; }
+.china-review-stats li.is-pending b { color: #9b7647; }
+.china-review-stats li.is-exclude b { color: #c26d5a; }
+
 
 .china-review-disclaimer {
   margin: 8px 0 0;

@@ -7,6 +7,7 @@ import {
   CHINA_CATEGORY_ORDER, CHINA_CATEGORY_COLORS, NATIONAL_TREND, SERVICE_2025
 } from '../chinaMeta.js';
 import { SOCIAL_REPUTATION, SOCIAL_REPUTATION_META } from '../chinaSocialReputation.js';
+import { SOUTH_CHINA_SEA } from '../chinaSeaGeo.js';
 
 if (institutionsDocument.schemaVersion !== 1
   || !Array.isArray(institutionsDocument?.country?.china?.institutions)) {
@@ -19,7 +20,7 @@ export {
   PROVINCE_GEO, INSTITUTIONS, PROVINCE_RESOURCE_STATS, PROVINCE_RESOURCE_YEAR,
   SCORING_MODEL, CHINA_FACTS, SOCIAL_CRAWL_STATUS,
   CHINA_CATEGORY_ORDER, CHINA_CATEGORY_COLORS, NATIONAL_TREND, SERVICE_2025,
-  SOCIAL_REPUTATION, SOCIAL_REPUTATION_META
+  SOCIAL_REPUTATION, SOCIAL_REPUTATION_META, SOUTH_CHINA_SEA
 };
 
 /** 机构口碑聚合（社交平台公开讨论，仅机构级指标）：{ ...聚合值, reputationScore } | null */
@@ -90,14 +91,17 @@ export function withAlpha(hex, alpha) {
   return `rgba(${r}, ${g}, ${b}, ${Math.round(alpha * 100) / 100})`;
 }
 
-/** 中国范围等经纬投影（含 cos(36°) 宽度校正）。返回 [x, y] 归一化到 [0, 1] */
+/** 中国范围等经纬投影。返回 [x, y] 归一化到 [0, 1]×[0, 1]。
+ *  注意：横向比例校正（cos 36°）由画布宽高比承担——SVG 画布宽高比应为
+ *  (LNG1-LNG0)·cos36° : (LAT1-LAT0)，即约 827:600（见 ChinaResourceMap 的 MAP_W/MAP_H），
+ *  否则东经 124° 以东会被裁出画布（2026-09 前的旧版即有此裁切缺陷）。 */
 const LNG0 = 73;
 const LNG1 = 136;
 const LAT0 = 17.5;
 const LAT1 = 54.5;
-const K = Math.cos((36 * Math.PI) / 180);
+export const CHINA_MAP_ASPECT = ((LNG1 - LNG0) * Math.cos((36 * Math.PI) / 180)) / (LAT1 - LAT0);
 export function project(lng, lat) {
-  const x = (lng - LNG0) / (LNG1 - LNG0) * (1 / K);
+  const x = (lng - LNG0) / (LNG1 - LNG0);
   const y = (LAT1 - lat) / (LAT1 - LAT0);
   return [x, y];
 }

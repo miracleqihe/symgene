@@ -446,10 +446,29 @@ describe('信息可视化栏目', () => {
     await openFromHome(user, '信息可视化');
     await screen.findByRole('heading', { name: '精神疾病数据图谱', level: 1 }, { timeout: 4000 });
     await user.click(screen.getByRole('tab', { name: /中国资源地图/ }));
+    // 地图内容按“地图概览 / 评分与口碑 / 趋势与背景”分层，趋势面板属于第三层
+    expect(await screen.findByRole('tab', { name: '地图概览' }, { timeout: 4000 })).toHaveAttribute('aria-selected', 'true');
+    await user.click(screen.getByRole('tab', { name: '趋势与背景' }));
     expect(await screen.findByText('全国口径趋势：精神病医院数量（家）', {}, { timeout: 4000 })).toBeInTheDocument();
     expect(screen.getByText('2,800 家')).toBeInTheDocument();
     expect(screen.getByText(/接听超 70 万通/)).toBeInTheDocument();
     expect(screen.getAllByText(/待官方值/).length).toBeGreaterThan(0);
+  });
+
+  test('中国资源地图：分层切换与完整画布（含南海诸岛附图）', { timeout: 30000 }, async () => {
+    const { user } = await renderApp();
+    await openFromHome(user, '信息可视化');
+    await screen.findByRole('heading', { name: '精神疾病数据图谱', level: 1 }, { timeout: 4000 });
+    await user.click(screen.getByRole('tab', { name: /中国资源地图/ }));
+
+    expect(await screen.findByRole('tab', { name: '地图概览' }, { timeout: 4000 })).toHaveAttribute('aria-selected', 'true');
+    // 画布宽高比与等经纬投影一致（827×600），东经 124° 以东不再被裁出画布
+    expect(document.querySelector('.china-map-svg').getAttribute('viewBox')).toBe('0 0 827 600');
+    expect(screen.getByRole('img', { name: '南海诸岛附图' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: '评分与口碑' }));
+    expect(await screen.findByText(/综合评分模型/)).toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: '南海诸岛附图' })).not.toBeInTheDocument();
   });
 
   test('疾病图层切换更新图例说明', async () => {
