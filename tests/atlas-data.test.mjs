@@ -168,6 +168,26 @@ test('atlas-china: 机构名录完整且坐标合理', async () => {
   }
 });
 
+test('atlas-china: 东北省级边界完整落在地图画布内', async () => {
+  const { PROVINCE_GEO, project } = await import('../src/atlas/china/index.js');
+  const northeastNames = ['黑龙江省', '吉林省', '辽宁省'];
+
+  for (const name of northeastNames) {
+    const province = PROVINCE_GEO.find((item) => item.name === name);
+    assert.ok(province, `缺少东北省级边界: ${name}`);
+
+    for (const coordinate of province.polygons.flat()) {
+      const [x, y] = project(...coordinate, 740 / 600);
+      assert.ok(x >= 0 && x <= 1, `${name} 横向超出地图画布: ${coordinate.join(',')}`);
+      assert.ok(y >= 0 && y <= 1, `${name} 纵向超出地图画布: ${coordinate.join(',')}`);
+    }
+  }
+
+  const heilongjiang = PROVINCE_GEO.find((item) => item.name === '黑龙江省');
+  const easternmost = Math.max(...heilongjiang.polygons.flat().map(([lng]) => lng));
+  assert.ok(easternmost >= 135, '黑龙江边界数据本身应包含最东端轮廓');
+});
+
 test('atlas-china: 评分模型与事实卡片合规', async () => {
   const { SCORING_MODEL, CHINA_FACTS, SOCIAL_CRAWL_STATUS, computeScore } = await import('../src/atlas/china/index.js');
   const w = SCORING_MODEL.weights;

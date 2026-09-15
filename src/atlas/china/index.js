@@ -90,15 +90,19 @@ export function withAlpha(hex, alpha) {
   return `rgba(${r}, ${g}, ${b}, ${Math.round(alpha * 100) / 100})`;
 }
 
-/** 中国范围等经纬投影（含 cos(36°) 宽度校正）。返回 [x, y] 归一化到 [0, 1] */
+/** 中国大陆范围等经纬投影（含 cos(36°) 比例校正）。返回归一化画布坐标。 */
 const LNG0 = 73;
 const LNG1 = 136;
 const LAT0 = 17.5;
 const LAT1 = 54.5;
 const K = Math.cos((36 * Math.PI) / 180);
-export function project(lng, lat) {
-  const x = (lng - LNG0) / (LNG1 - LNG0) * (1 / K);
-  const y = (LAT1 - lat) / (LAT1 - LAT0);
+const LAT_MID = (LAT0 + LAT1) / 2;
+export function project(lng, lat, mapAspect) {
+  // 先让全部经度落入画布，再在纬度方向保持等比例并垂直居中。
+  // 旧实现把 x 额外除以 K，使东经约 124° 以东超出 SVG 而被裁切。
+  const x = (lng - LNG0) / (LNG1 - LNG0);
+  const yPerLat = mapAspect / ((LNG1 - LNG0) * K);
+  const y = 0.5 + (LAT_MID - lat) * yPerLat;
   return [x, y];
 }
 

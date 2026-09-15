@@ -27,7 +27,7 @@ function pathFor(polygons) {
   return polygons
     .map((ring) => ring
       .map(([lng, lat], index) => {
-        const [x, y] = project(lng, lat);
+        const [x, y] = project(lng, lat, MAP_W / MAP_H);
         return `${index === 0 ? 'M' : 'L'}${(x * MAP_W).toFixed(1)} ${(y * MAP_H).toFixed(1)}`;
       })
       .join(' ') + 'Z')
@@ -146,7 +146,9 @@ export default function ChinaResourceMap() {
           >
             {PROVINCES.map((province) => {
               const value = metric.get(province);
-              const dimmed = visibleProvinceNames.size > 0 && !visibleProvinceNames.has(province.name);
+              const dimmed = selectedProvince
+                ? province.name !== selectedProvince
+                : visibleProvinceNames.size > 0 && !visibleProvinceNames.has(province.name);
               const step = value === null || value === undefined ? 0 : quantileShade(value, metricMax, STEPS);
               const shade = metricId === 'blank'
                 ? withAlpha('#c26d5a', 0.1 + 0.75 * (step / (STEPS - 1)))
@@ -169,7 +171,7 @@ export default function ChinaResourceMap() {
               );
             })}
             {filteredInstitutions.map((inst) => {
-              const [x, y] = project(inst.lng, inst.lat);
+              const [x, y] = project(inst.lng, inst.lat, MAP_W / MAP_H);
               const selected = selectedInstId === inst.id;
               return (
                 <circle

@@ -452,6 +452,22 @@ describe('信息可视化栏目', () => {
     expect(screen.getAllByText(/待官方值/).length).toBeGreaterThan(0);
   });
 
+  test('中国资源地图：选中无机构省份时其他省份仍统一变浅', { timeout: 30000 }, async () => {
+    const { user } = await renderApp();
+    await openFromHome(user, '信息可视化');
+    await screen.findByRole('heading', { name: '精神疾病数据图谱', level: 1 }, { timeout: 4000 });
+    await user.click(screen.getByRole('tab', { name: /中国资源地图/ }));
+
+    const taiwanPath = screen.getByText(/^台湾省：/, { selector: 'title' }).parentElement;
+    const beijingPath = screen.getByText(/^北京市：/, { selector: 'title' }).parentElement;
+    const heilongjiangPath = screen.getByText(/^黑龙江省：/, { selector: 'title' }).parentElement;
+    await user.click(taiwanPath);
+
+    expect(taiwanPath).toHaveAttribute('stroke', '#103842');
+    expect(beijingPath).toHaveAttribute('fill', 'rgba(48, 91, 96, 0.06)');
+    expect(heilongjiangPath).toHaveAttribute('fill', 'rgba(48, 91, 96, 0.06)');
+  });
+
   test('疾病图层切换更新图例说明', async () => {
     const { user } = await renderApp();
     await openFromHome(user, '信息可视化');
