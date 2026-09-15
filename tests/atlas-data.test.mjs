@@ -168,6 +168,90 @@ test('atlas-china: 机构名录完整且坐标合理', async () => {
   }
 });
 
+test('atlas-china: 南海诸岛数据落在合规范围内', async () => {
+  const { SOUTH_CHINA_SEA } = await import('../src/atlas/china/index.js');
+  assert.ok(SOUTH_CHINA_SEA.polygons.length > 0, '南海诸岛岛礁数据缺失');
+  assert.ok(SOUTH_CHINA_SEA.source.includes('DataV'), '南海数据来源需可核查');
+  let minLat = 90;
+  for (const ring of SOUTH_CHINA_SEA.polygons) {
+    assert.ok(ring.length >= 4, '岛礁环坐标过少');
+    for (const [lng, lat] of ring) {
+      assert.ok(lng > 105 && lng < 122, `南海经度越界: ${lng}`);
+      assert.ok(lat > 3 && lat < 22, `南海纬度越界: ${lat}`);
+      if (lat < minLat) minLat = lat;
+    }
+  }
+  assert.ok(minLat < 10, '南海数据应覆盖南沙群岛（南至曾母暗沙附近）');
+});
+
+test('atlas-china: 发布态口碑数据不含任何可识别或外链字段', async () => {
+  const { SOCIAL_REPUTATION, SOCIAL_REPUTATION_META } = await import('../src/atlas/china/index.js');
+  const dump = JSON.stringify(SOCIAL_REPUTATION) + JSON.stringify(SOCIAL_REPUTATION_META);
+  assert.ok(!/sci-?hub/i.test(dump), '发布数据不得包含 sci-hub 链接');
+  assert.ok(!dump.includes('xiaohongshu.com'), '发布数据不得包含小红书原帖链接');
+  assert.ok(!dump.includes('douyin.com'), '发布数据不得包含抖音原帖链接');
+  assert.ok(!dump.includes('xsec_token'), '发布数据不得包含平台追踪参数');
+  assert.equal(SOCIAL_REPUTATION_META.publicationGate, 'HUMAN_ADJUDICATED_ONLY', '发布口径必须是人工审阅后');
+  const banned = ['notesList', 'authorRef', 'nickname', 'creator_hash', 'creatorHash', 'userId', 'url', 'ip'];
+  for (const [name, agg] of Object.entries(SOCIAL_REPUTATION)) {
+    for (const key of Object.keys(agg)) {
+      assert.ok(!banned.includes(key), `${name} 含可识别/外链字段: ${key}`);
+    }
+    const threshold = SOCIAL_REPUTATION_META.review?.minSampleForScore ?? 20;
+    if (agg.mentions < threshold) {
+      assert.equal(agg.reputationScore, null, `${name} 样本不足不得给出评分`);
+    }
+    assert.equal(agg.strict + agg.relaxed, agg.mentions, `${name} 归因口径拆分之和应等于可用样本量`);
+  }
+});
+
+test('atlas-china: 不产出机构综合口碑分，只产出服务体验倾向分', async () => {
+  const { SOCIAL_REPUTATION, SOCIAL_REPUTATION_META } = await import('../src/atlas/china/index.js');
+  const policy = SOCIAL_REPUTATION_META.scorePolicy ?? {};
+  assert.equal(policy.producesCompositeScore, false, '发布口径必须声明不产出机构综合口碑分');
+  assert.ok(policy.reason, '必须给出抽样偏差的读法提醒');
+  assert.ok(policy.formula, '必须公开计分公式');
+  const threshold = SOCIAL_REPUTATION_META.review?.minSampleForScore ?? 20;
+  const minAspect = policy.minAspectSample ?? 3;
+  const minDims = policy.minDimensionsForScore ?? 3;
+  for (const [name, agg] of Object.entries(SOCIAL_REPUTATION)) {
+    // 综合口碑分与旧三维评分永远不发
+    assert.equal(agg.reputationScore, null, `${name} 不得产出机构综合口碑分`);
+    assert.equal(agg.dimensions, null, `${name} 不得发布推算的三维评分`);
+
+    // 极性计数必须能对上样本量
+    const p = agg.polarity ?? { positive: 0, negative: 0, neutral: 0 };
+    assert.equal(p.positive + p.negative + p.neutral, agg.mentions, `${name} 正/负/中性之和应等于可用样本量`);
+
+    // 单维度样本不足时不得给分，避免 1 条好评 = 100 分
+    const scored = [];
+    for (const [aspect, d] of Object.entries(agg.dimensionScores ?? {})) {
+      assert.equal(d.positive + d.negative + d.neutral, d.n, `${name}/${aspect} 极性计数之和应等于维度样本量`);
+      if (d.n >= minAspect) {
+        const expect = Math.round(((d.positive + 0.5 * d.neutral) / d.n) * 1000) / 10;
+        assert.equal(d.score, expect, `${name}/${aspect} 维度分应符合公示公式`);
+        assert.ok(d.score >= 0 && d.score <= 100, `${name}/${aspect} 维度分应在 0-100 内`);
+        scored.push(aspect);
+      } else {
+        assert.equal(d.score, null, `${name}/${aspect} 仅 ${d.n} 条，低于 ${minAspect} 条下限不得给分`);
+      }
+    }
+
+    if (agg.mentions >= threshold && scored.length >= minDims) {
+      assert.equal(agg.reviewStatus, 'scored', `${name} 达标应标记为已评分`);
+      const mean = Math.round((scored.reduce((s, a) => s + agg.dimensionScores[a].score, 0) / scored.length) * 10) / 10;
+      assert.equal(agg.serviceScore, mean, `${name} 总分应为达标维度的简单平均`);
+      assert.ok(agg.serviceScore >= 0 && agg.serviceScore <= 100, `${name} 总分应在 0-100 内`);
+      assert.ok(agg.serviceScoreNote.includes(`${agg.polarity.positive} 条偏正面`),
+        `${name} 必须同时公示正负面原始条数，不能只给一个分数`);
+    } else {
+      assert.equal(agg.serviceScore, null, `${name} 未达评分条件不得给出分数`);
+      assert.equal(agg.reviewStatus, agg.mentions >= threshold ? 'profile_published' : 'insufficient_sample',
+        `${name} 状态标记与样本量不符`);
+    }
+  }
+});
+
 test('atlas-china: 评分模型与事实卡片合规', async () => {
   const { SCORING_MODEL, CHINA_FACTS, SOCIAL_CRAWL_STATUS, computeScore } = await import('../src/atlas/china/index.js');
   const w = SCORING_MODEL.weights;

@@ -1,19 +1,31 @@
 import React, { useMemo, useState } from 'react';
-import { MapPin, ShieldCheck, Database, Search } from 'lucide-react';
+import { MapPin, ShieldCheck, Database, Search, Layers } from 'lucide-react';
 import {
   PROVINCES, INSTITUTIONS, INSTITUTIONS_BY_PROVINCE, CATEGORY_COUNTS,
   PROVINCE_RESOURCE_YEAR,
   SCORING_MODEL, CHINA_FACTS, SOCIAL_CRAWL_STATUS,
   CHINA_CATEGORY_ORDER, CHINA_CATEGORY_COLORS,
-  SOCIAL_REPUTATION_META, getReputation, SERVICE_2025,
+  SOCIAL_REPUTATION_META, SOCIAL_REPUTATION, getReputation, SERVICE_2025,
   NATIONAL_TREND,
-  quantileShade, withAlpha, project, computeScore
+  quantileShade, withAlpha, project, computeScore, SOUTH_CHINA_SEA, CHINA_MAP_ASPECT
 } from '../../atlas/china/index.js';
 import { DATA_VERSION } from '../../atlas/sources.js';
 
-const MAP_W = 740;
+// 等经纬投影画布：宽高比须为 (136-73)·cos36° : (54.5-17.5) ≈ 827:600，
+// 否则东缘会被裁出画布（旧版 MAP_W=740 即有此缺陷）。
 const MAP_H = 600;
+const MAP_W = Math.round(MAP_H * CHINA_MAP_ASPECT);
 const STEPS = 5;
+
+// 南海诸岛附图（右下角）：覆盖三沙市全域（约 lng 105-122，lat 2-21）。
+const INSET = { x: MAP_W - 176, y: MAP_H - 196, w: 168, h: 188 };
+const INSET_LNG = [105, 122.5];
+const INSET_LAT = [2, 21];
+function projectInset(lng, lat) {
+  const x = INSET.x + 8 + ((lng - INSET_LNG[0]) / (INSET_LNG[1] - INSET_LNG[0])) * (INSET.w - 16);
+  const y = INSET.y + INSET.h - 20 - ((lat - INSET_LAT[0]) / (INSET_LAT[1] - INSET_LAT[0])) * (INSET.h - 34);
+  return [x, y];
+}
 
 const METRICS = [
   { id: 'count', label: '收录机构数（持续更新）', get: (p) => p.institutionCount, unit: '家' },
@@ -21,14 +33,32 @@ const METRICS = [
   { id: 'blank', label: `空白区县率（${PROVINCE_RESOURCE_YEAR}）`, get: (p) => p.blankCountyRate, unit: '%' }
 ];
 
+const LAYERS = [
+  { id: 'map', label: '地图概览' },
+  { id: 'scoring', label: '评分与口碑' },
+  { id: 'trend', label: '趋势与背景' }
+];
+
+// 非医学服务维度（与审阅队列 annotationSchema.aspects 一致）
+const ASPECT_LABELS = {
+  access_and_wait: '挂号与等待',
+  cost_and_billing: '费用与结算',
+  staff_interaction: '医患沟通',
+  process_and_information: '流程与告知',
+  environment_and_facilities: '环境与设施',
+  continuity_and_follow_up: '复诊与连续性',
+  self_reported_outcome: '自述结果',
+  other: '其他'
+};
+
 const SOURCE_LABELS = { osm: 'OpenStreetMap', curated: '人工核校名录', amap: '高德地图开放平台', nominatim: 'OSM Nominatim 检索' };
 
-function pathFor(polygons) {
+function pathFor(polygons, projectFn = project, w = 1, h = 1) {
   return polygons
     .map((ring) => ring
       .map(([lng, lat], index) => {
-        const [x, y] = project(lng, lat);
-        return `${index === 0 ? 'M' : 'L'}${(x * MAP_W).toFixed(1)} ${(y * MAP_H).toFixed(1)}`;
+        const [x, y] = projectFn(lng, lat);
+        return `${index === 0 ? 'M' : 'L'}${(x * w).toFixed(1)} ${(y * h).toFixed(1)}`;
       })
       .join(' ') + 'Z')
     .join(' ');
@@ -45,7 +75,7 @@ export default function ChinaResourceMap() {
   const [query, setQuery] = useState('');
   const [selectedProvince, setSelectedProvince] = useState(null);
   const [selectedInstId, setSelectedInstId] = useState(null);
-  const [showReviews, setShowReviews] = useState(false);
+  const [layer, setLayer] = useState('map');
 
   const metric = METRICS.find((m) => m.id === metricId) ?? METRICS[0];
   const metricMax = useMemo(
@@ -69,6 +99,12 @@ export default function ChinaResourceMap() {
   );
   const selectedReputation = selectedInst ? getReputation(selectedInst.name) : null;
 
+// 已达发布门槛（≥ minSampleForScore）的机构名单，用于面板文案，避免把硬编码结论写死在 JSX 里
+const threshold = SOCIAL_REPUTATION_META.review?.minSampleForScore ?? 20;
+const reachedNames = Object.entries(SOCIAL_REPUTATION)
+  .filter(([, a]) => a.mentions >= threshold)
+  .map(([name]) => name);
+
   const visibleProvinceNames = useMemo(
     () => new Set(filteredInstitutions.map((inst) => inst.province)),
     [filteredInstitutions]
@@ -78,6 +114,7 @@ export default function ChinaResourceMap() {
     const rows = PROVINCES.filter((p) => p.institutionCount > 0 || p.openBeds !== null);
     return selectedProvince ? rows.filter((p) => p.name === selectedProvince) : rows;
   }, [selectedProvince]);
+
 
   return (
     <section className="atlas-panel china-map-panel" aria-label="中国心理治疗资源地图">
@@ -92,316 +129,460 @@ export default function ChinaResourceMap() {
         </div>
       </div>
 
-      <div className="china-controls">
-        <div className="china-metric-toggle" role="group" aria-label="着色指标">
-          {METRICS.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              aria-pressed={metricId === m.id}
-              onClick={() => setMetricId(m.id)}
-            >{m.label}</button>
-          ))}
-        </div>
-        <label className="china-search">
-          <Search size={14} aria-hidden="true" />
-          <input
-            type="search"
-            value={query}
-            placeholder="搜索机构名称"
-            onChange={(event) => setQuery(event.target.value)}
-            aria-label="搜索机构名称"
-          />
-        </label>
-      </div>
-
-      <div className="china-category-filter" role="group" aria-label="按机构类别筛选">
-        <button
-          type="button"
-          className={categoryFilter === null ? 'atlas-chip active' : 'atlas-chip'}
-          aria-pressed={categoryFilter === null}
-          onClick={() => setCategoryFilter(null)}
-        >全部（{INSTITUTIONS.length}）</button>
-        {CATEGORY_COUNTS.map((cat) => (
+      <div className="china-layer-tabs" role="tablist" aria-label="地图内容分层">
+        {LAYERS.map(({ id, label }) => (
           <button
-            key={cat.id}
+            key={id}
             type="button"
-            className={categoryFilter === cat.id ? 'atlas-chip active' : 'atlas-chip'}
-            aria-pressed={categoryFilter === cat.id}
-            onClick={() => setCategoryFilter(categoryFilter === cat.id ? null : cat.id)}
+            role="tab"
+            id={`china-layer-tab-${id}`}
+            aria-controls={`china-layer-panel-${id}`}
+            aria-selected={layer === id}
+            className={layer === id ? 'china-layer-tab active' : 'china-layer-tab'}
+            onClick={() => setLayer(id)}
           >
-            <i style={{ background: CHINA_CATEGORY_COLORS[cat.id] }} aria-hidden="true" />
-            {cat.label}（{cat.count}）
+            <Layers size={13} aria-hidden="true" />
+            {label}
           </button>
         ))}
       </div>
 
-      <div className="china-map-layout">
-        <div className="china-map-holder">
-          <svg
-            className="china-map-svg"
-            viewBox={`0 0 ${MAP_W} ${MAP_H}`}
-            role="img"
-            aria-label={`中国地图，按${metric.label}着色，共标注 ${filteredInstitutions.length} 家机构`}
-          >
-            {PROVINCES.map((province) => {
-              const value = metric.get(province);
-              const dimmed = visibleProvinceNames.size > 0 && !visibleProvinceNames.has(province.name);
-              const step = value === null || value === undefined ? 0 : quantileShade(value, metricMax, STEPS);
-              const shade = metricId === 'blank'
-                ? withAlpha('#c26d5a', 0.1 + 0.75 * (step / (STEPS - 1)))
-                : withAlpha('#4f948b', 0.12 + 0.72 * (step / (STEPS - 1)));
-              const selected = selectedProvince === province.name;
-              return (
-                <path
-                  key={province.adcode}
-                  d={pathFor(province.polygons)}
-                  fill={dimmed ? 'rgba(48, 91, 96, 0.06)' : shade}
-                  stroke={selected ? '#103842' : 'rgba(255, 253, 248, 0.85)'}
-                  strokeWidth={selected ? 1.6 : 0.7}
-                  className="china-province"
-                  onMouseEnter={(event) => { event.currentTarget.style.filter = 'brightness(0.94)'; }}
-                  onMouseLeave={(event) => { event.currentTarget.style.filter = ''; }}
-                  onClick={() => setSelectedProvince(selected ? null : province.name)}
-                >
-                  <title>{`${province.name}：${metric.label} ${fmt(value, metric.unit)}｜收录机构 ${province.institutionCount} 家${selected ? '（已选中，再次点击取消）' : ''}`}</title>
-                </path>
-              );
-            })}
-            {filteredInstitutions.map((inst) => {
-              const [x, y] = project(inst.lng, inst.lat);
-              const selected = selectedInstId === inst.id;
-              return (
-                <circle
-                  key={inst.id}
-                  cx={(x * MAP_W).toFixed(1)}
-                  cy={(y * MAP_H).toFixed(1)}
-                  r={selected ? 5 : 2.6}
-                  className="china-inst-point"
-                  fill={CHINA_CATEGORY_COLORS[inst.category] ?? '#7d8896'}
-                  stroke={selected ? '#103842' : 'rgba(255, 253, 248, 0.9)'}
-                  strokeWidth={selected ? 1.6 : 0.8}
-                  onClick={() => setSelectedInstId(selected ? null : inst.id)}
-                >
-                  <title>{`${inst.name}（${inst.categoryLabel}）｜${inst.province}`}</title>
-                </circle>
-              );
-            })}
-          </svg>
-          <p className="china-map-legend">
-            <span><i className="china-legend-block" aria-hidden="true" style={{ background: 'rgba(79, 148, 139, .18)' }} />少</span>
-            <i className="china-legend-gradient" aria-hidden="true" style={{ background: 'linear-gradient(90deg, rgba(79,148,139,.18), rgba(79,148,139,.84))' }} />
-            <span>多（{metric.label}，{metric.unit}）</span>
-            {metricId === 'blank' && <span className="china-legend-note">空白区县率使用珊瑚色：颜色越深，无精神卫生资源的区县越多</span>}
-          </p>
-        </div>
+      {layer === 'map' && (
+        <div role="tabpanel" id="china-layer-panel-map" aria-labelledby="china-layer-tab-map">
+          <div className="china-controls">
+            <div className="china-metric-toggle" role="group" aria-label="着色指标">
+              {METRICS.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  aria-pressed={metricId === m.id}
+                  onClick={() => setMetricId(m.id)}
+                >{m.label}</button>
+              ))}
+            </div>
+            <label className="china-search">
+              <Search size={14} aria-hidden="true" />
+              <input
+                type="search"
+                value={query}
+                placeholder="搜索机构名称"
+                onChange={(event) => setQuery(event.target.value)}
+                aria-label="搜索机构名称"
+              />
+            </label>
+          </div>
 
-        <aside className="china-side" aria-label="机构明细与统计">
-          {selectedInst ? (
-            <article className="china-inst-card" aria-label="机构详情">
-              <header>
-                <MapPin size={15} aria-hidden="true" />
-                <h3>{selectedInst.name}</h3>
-              </header>
-              <dl>
-                <dt>类别</dt><dd>{selectedInst.categoryLabel}</dd>
-                <dt>地区</dt><dd>{selectedInst.province}{selectedInst.city ? ` · ${String(selectedInst.city).slice(0, 24)}` : ''}</dd>
-                <dt>综合评分</dt><dd><b className="china-score-pending">待数据接入</b></dd>
-                <dt>大众口碑</dt>
-                <dd>
-                  {selectedReputation?.reputationScore != null
-                    ? <b className="china-rep-score">{selectedReputation.reputationScore} / 100</b>
-                    : '待接入'}
-                  {selectedReputation?.reputationScore != null && <small className="china-rep-note">好评词占比，非平台评分</small>}
-                </dd>
-                <dt>讨论热度</dt>
-                <dd>
-                  {selectedReputation
-                    ? `${selectedReputation.mentions} 篇笔记 · ${selectedReputation.commentCount.toLocaleString('zh-Hans')} 条评论`
-                    : '暂无匹配讨论'}
-                </dd>
-                <dt>资源设备</dt><dd>待接入（卫健委登记信息）</dd>
-                <dt>专业度</dt><dd>待接入（公开介绍文本抽取）</dd>
-                <dt>擅长方向</dt><dd>待接入</dd>
-                <dt>坐标精度</dt><dd>{selectedInst.precision === 'city' ? '市级质心（未精确定位）' : '已核校'}</dd>
-                <dt>数据来源</dt><dd>{SOURCE_LABELS[selectedInst.source] ?? selectedInst.source}</dd>
-                <dt>数据更新</dt><dd>{DATA_VERSION}</dd>
-              </dl>
-              {selectedReputation?.notesList?.length > 0 && (
-                <div className="china-reviews">
-                  <button
-                    type="button"
-                    className="china-reviews-toggle"
-                    aria-expanded={showReviews}
-                    onClick={() => setShowReviews(!showReviews)}
-                  >
-                    {showReviews ? '收起评价' : `查看公开评价（${selectedReputation.notesList.length} 篇）`}
-                  </button>
-                  {showReviews && (
-                    <ul className="china-review-list">
-                      {selectedReputation.notesList.map((review) => (
-                        <li key={review.url || review.title}>
-                          <a href={review.url} target="_blank" rel="noreferrer">{review.title}</a>
-                          <small>
-                            {review.date ?? '日期不详'} · {review.liked.toLocaleString('zh-Hans')} 赞
-                            {review.pos > 0 && <b className="china-review-pos"> 好评词 {review.pos}</b>}
-                            {review.neg > 0 && <b className="china-review-neg"> 差评词 {review.neg}</b>}
-                          </small>
-                        </li>
-                      ))}
-                    </ul>
+          <div className="china-category-filter" role="group" aria-label="按机构类别筛选">
+            <button
+              type="button"
+              className={categoryFilter === null ? 'atlas-chip active' : 'atlas-chip'}
+              aria-pressed={categoryFilter === null}
+              onClick={() => setCategoryFilter(null)}
+            >全部（{INSTITUTIONS.length}）</button>
+            {CATEGORY_COUNTS.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                className={categoryFilter === cat.id ? 'atlas-chip active' : 'atlas-chip'}
+                aria-pressed={categoryFilter === cat.id}
+                onClick={() => setCategoryFilter(categoryFilter === cat.id ? null : cat.id)}
+              >
+                <i style={{ background: CHINA_CATEGORY_COLORS[cat.id] }} aria-hidden="true" />
+                {cat.label}（{cat.count}）
+              </button>
+            ))}
+          </div>
+
+          <div className="china-map-layout">
+            <div className="china-map-holder">
+              <svg
+                className="china-map-svg"
+                viewBox={`0 0 ${MAP_W} ${MAP_H}`}
+                role="img"
+                aria-label={`中国地图，按${metric.label}着色，共标注 ${filteredInstitutions.length} 家机构`}
+              >
+                {PROVINCES.map((province) => {
+                  const value = metric.get(province);
+                  const dimmed = visibleProvinceNames.size > 0 && !visibleProvinceNames.has(province.name);
+                  const step = value === null || value === undefined ? 0 : quantileShade(value, metricMax, STEPS);
+                  const shade = metricId === 'blank'
+                    ? withAlpha('#c26d5a', 0.1 + 0.75 * (step / (STEPS - 1)))
+                    : withAlpha('#4f948b', 0.12 + 0.72 * (step / (STEPS - 1)));
+                  const selected = selectedProvince === province.name;
+                  return (
+                    <path
+                      key={province.adcode}
+                      d={pathFor(province.polygons, project, MAP_W, MAP_H)}
+                      fill={dimmed ? 'rgba(48, 91, 96, 0.06)' : shade}
+                      stroke={selected ? '#103842' : 'rgba(255, 253, 248, 0.85)'}
+                      strokeWidth={selected ? 1.6 : 0.7}
+                      className="china-province"
+                      onMouseEnter={(event) => { event.currentTarget.style.filter = 'brightness(0.94)'; }}
+                      onMouseLeave={(event) => { event.currentTarget.style.filter = ''; }}
+                      onClick={() => setSelectedProvince(selected ? null : province.name)}
+                    >
+                      <title>{`${province.name}：${metric.label} ${fmt(value, metric.unit)}｜收录机构 ${province.institutionCount} 家${selected ? '（已选中，再次点击取消）' : ''}`}</title>
+                    </path>
+                  );
+                })}
+                {filteredInstitutions.map((inst) => {
+                  const [x, y] = project(inst.lng, inst.lat);
+                  const selected = selectedInstId === inst.id;
+                  return (
+                    <circle
+                      key={inst.id}
+                      cx={(x * MAP_W).toFixed(1)}
+                      cy={(y * MAP_H).toFixed(1)}
+                      r={selected ? 5 : 2.6}
+                      className="china-inst-point"
+                      fill={CHINA_CATEGORY_COLORS[inst.category] ?? '#7d8896'}
+                      stroke={selected ? '#103842' : 'rgba(255, 253, 248, 0.9)'}
+                      strokeWidth={selected ? 1.6 : 0.8}
+                      onClick={() => setSelectedInstId(selected ? null : inst.id)}
+                    >
+                      <title>{`${inst.name}（${inst.categoryLabel}）｜${inst.province}`}</title>
+                    </circle>
+                  );
+                })}
+                {/* 南海诸岛附图（右下角，覆盖三沙市全域，数据源见 chinaSeaGeo.js） */}
+                <g role="img" aria-label="南海诸岛附图">
+                  <rect
+                    x={INSET.x} y={INSET.y} width={INSET.w} height={INSET.h}
+                    fill="var(--paper, #fffdf8)" stroke="rgba(48, 91, 96, .3)" strokeWidth="1"
+                  />
+                  {SOUTH_CHINA_SEA.polygons.map((ring, i) => (
+                    <path
+                      key={i}
+                      d={pathFor([ring], projectInset, 1, 1)}
+                      fill="rgba(79, 148, 139, .45)"
+                      stroke="rgba(48, 91, 96, .45)"
+                      strokeWidth="0.5"
+                    />
+                  ))}
+                  <text
+                    x={INSET.x + INSET.w / 2} y={INSET.y + INSET.h - 7}
+                    textAnchor="middle" fontSize="11" fill="var(--ink-strong, #1c2b2e)"
+                  >南海诸岛</text>
+                </g>
+              </svg>
+              <p className="china-map-legend">
+                <span><i className="china-legend-block" aria-hidden="true" style={{ background: 'rgba(79, 148, 139, .18)' }} />少</span>
+                <i className="china-legend-gradient" aria-hidden="true" style={{ background: 'linear-gradient(90deg, rgba(79,148,139,.18), rgba(79,148,139,.84))' }} />
+                <span>多（{metric.label}，{metric.unit}）</span>
+                {metricId === 'blank' && <span className="china-legend-note">空白区县率使用珊瑚色：颜色越深，无精神卫生资源的区县越多</span>}
+              </p>
+            </div>
+
+            <aside className="china-side" aria-label="机构明细与统计">
+              {selectedInst ? (
+                <article className="china-inst-card" aria-label="机构详情">
+                  <header>
+                    <MapPin size={15} aria-hidden="true" />
+                    <h3>{selectedInst.name}</h3>
+                  </header>
+                  <dl>
+                    <dt>类别</dt><dd>{selectedInst.categoryLabel}</dd>
+                    <dt>地区</dt><dd>{selectedInst.province}{selectedInst.city ? ` · ${String(selectedInst.city).slice(0, 24)}` : ''}</dd>
+                    <dt>{SOCIAL_REPUTATION_META.scorePolicy?.scoreName ?? '服务体验倾向分'}</dt>
+                    <dd>
+                      {selectedReputation?.serviceScore != null
+                        ? <b className="china-rep-score">{selectedReputation.serviceScore} / 100</b>
+                        : <b className="china-score-pending">
+                            {selectedReputation?.reviewStatus === 'profile_published' ? '达标维度不足，暂不合成总分' : '样本不足，暂不评分'}
+                          </b>}
+                      {selectedReputation && (
+                        <small className="china-rep-note">
+                          经人工审阅的可用证据 {selectedReputation.mentions ?? 0} 条（发布阈值{' '}
+                          {SOCIAL_REPUTATION_META.review?.minSampleForScore ?? 20} 条）
+                          {selectedReputation.mentions > 0 && (
+                            <>
+                              <br />
+                              {selectedReputation.attributionNote}
+                            </>
+                          )}
+                        </small>
+                      )}
+                    </dd>
+                  </dl>
+
+                  {selectedReputation?.mentions > 0 && (
+                    <div className="china-polarity">
+                      <span className="china-pol china-pol-pos">正面 {selectedReputation.polarity.positive}</span>
+                      <span className="china-pol china-pol-neg">负面 {selectedReputation.polarity.negative}</span>
+                      <span className="china-pol china-pol-neu">中性 {selectedReputation.polarity.neutral}</span>
+                    </div>
                   )}
-                  <p className="china-review-disclaimer">
-                    以上为小红书公开笔记的标题与链接（观点属原作者），不涉及任何用户身份信息；
-                    好评/差评为关键词命中，仅供参考。
+
+                  {SOCIAL_REPUTATION_META.scorePolicy && (
+                    <p className="china-rep-policy">
+                      {SOCIAL_REPUTATION_META.scorePolicy.formula}
+                      <br />
+                      <b>读法提醒：</b>{SOCIAL_REPUTATION_META.scorePolicy.reason}
+                    </p>
+                  )}
+
+                  {selectedReputation?.dimensionScores && Object.keys(selectedReputation.dimensionScores).length > 0 && (
+                    <div className="china-dimensions">
+                      <h4>非医学服务维度（经人工逐条审阅）</h4>
+                      <div className="china-dim-grid">
+                        {Object.entries(selectedReputation.dimensionScores).map(([aspect, d]) => (
+                          <div className="china-dim-item" key={aspect}>
+                            <span className="china-dim-label">{ASPECT_LABELS[aspect] ?? aspect}</span>
+                            <span className="china-dim-score">
+                              {d.score != null ? `${d.score} / 100` : '—'}
+                            </span>
+                            <small className="china-dim-detail">
+                              {d.n} 条提及 · {d.positive} 正 / {d.negative} 负 / {d.neutral} 中
+                              {d.suppressed ? ` · ${d.suppressed}，不评分` : ''}
+                            </small>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <dl className="china-metadata">
+                    <dt>可用样本</dt>
+                    <dd>
+                      {selectedReputation
+                        ? `${selectedReputation.mentions ?? 0} 条通过人工审阅`
+                        : '暂无通过审阅的证据'}
+                    </dd>
+                    {selectedReputation?.byPlatform && Object.keys(selectedReputation.byPlatform).length > 0 && (
+                      <>
+                        <dt>来源平台</dt>
+                        <dd>{Object.entries(selectedReputation.byPlatform).map(([p, n]) => `${p} ${n} 条`).join(' · ')}</dd>
+                      </>
+                    )}
+                    <dt>坐标精度</dt><dd>{selectedInst.precision === 'city' ? '市级质心（未精确定位）' : '已核校'}</dd>
+                    <dt>机构来源</dt><dd>{SOURCE_LABELS[selectedInst.source] ?? selectedInst.source}</dd>
+                    <dt>数据更新</dt><dd>{DATA_VERSION}</dd>
+                  </dl>
+                  {selectedReputation && (
+                    <p className="china-review-disclaimer">
+                      本页不展示任何原帖内容、链接、账号或作者信息。公开内容需先经人工逐条审阅
+                      （确认机构归因、本人或陪诊经历、非医学服务维度、无可识别信息），
+                      通过后才计入上方匿名计数。
+                    </p>
+                  )}
+                  <button type="button" className="china-card-close" onClick={() => setSelectedInstId(null)}>收起详情</button>
+                </article>
+              ) : (
+                <div className="china-stats" aria-label="统计面板">
+                  <div className="china-stat-row">
+                    <span className="china-stat-num">{filteredInstitutions.length}</span>
+                    <span className="china-stat-label">当前筛选机构</span>
+                  </div>
+                  <div className="china-stat-row">
+                    <span className="china-stat-num">{visibleProvinceNames.size}</span>
+                    <span className="china-stat-label">覆盖省级地区</span>
+                  </div>
+                  <div className="china-stat-row">
+                    <span className="china-stat-num">{PROVINCES.length}</span>
+                    <span className="china-stat-label">地图覆盖省级地区</span>
+                  </div>
+                  <p className="china-stats-note">
+                    评分模型已就绪（口碑 40% + 资源 30% + 专业度 30%）；
+                    口碑数据接入前，所有机构评分显示为“待数据接入”，不做无依据估算。
+                    评分与口碑明细见“评分与口碑”分层。
                   </p>
                 </div>
               )}
-              <button type="button" className="china-card-close" onClick={() => setSelectedInstId(null)}>收起详情</button>
-            </article>
-          ) : (
-            <div className="china-stats" aria-label="统计面板">
-              <div className="china-stat-row">
-                <span className="china-stat-num">{filteredInstitutions.length}</span>
-                <span className="china-stat-label">当前筛选机构</span>
+
+              <div className="china-province-list" role="list" aria-label="各省收录机构数">
+                <div className="china-province-list-head">
+                  <span>{selectedProvince ? `${selectedProvince}（点击取消）` : '各省级地区'}</span>
+                  <span>收录 / {PROVINCE_RESOURCE_YEAR}床位</span>
+                </div>
+                <div className="china-province-list-body" tabIndex={0}>
+                  {provincePanelList.map((province) => {
+                    const list = INSTITUTIONS_BY_PROVINCE.get(province.name) ?? [];
+                    return (
+                      <div key={province.adcode} role="listitem">
+                        <button
+                          type="button"
+                          className={selectedProvince === province.name ? 'china-province-row selected' : 'china-province-row'}
+                          onClick={() => setSelectedProvince(selectedProvince === province.name ? null : province.name)}
+                        >
+                          <span>{province.name}</span>
+                          <small>{province.institutionCount} 家 · {province.openBeds === null ? '—' : `${province.openBeds} 张`}</small>
+                        </button>
+                        {selectedProvince === province.name && list.length > 0 && (
+                          <ul className="china-inst-list">
+                            {list.map((inst) => (
+                              <li key={inst.id}>
+                                <button
+                                  type="button"
+                                  className={selectedInstId === inst.id ? 'china-inst-row selected' : 'china-inst-row'}
+                                  onClick={() => setSelectedInstId(inst.id)}
+                                >
+                                  <i style={{ background: CHINA_CATEGORY_COLORS[inst.category] }} aria-hidden="true" />
+                                  <span>{inst.name}</span>
+                                  <small>{inst.categoryLabel}</small>
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="china-stat-row">
-                <span className="china-stat-num">{visibleProvinceNames.size}</span>
-                <span className="china-stat-label">覆盖省级地区</span>
+            </aside>
+          </div>
+        </div>
+      )}
+
+      {layer === 'scoring' && (
+        <div role="tabpanel" id="china-layer-panel-scoring" aria-labelledby="china-layer-tab-scoring">
+          <div className="china-score-panel" aria-labelledby="china-score-title">
+            <div className="china-score-head">
+              <Database size={16} aria-hidden="true" />
+              <h3 id="china-score-title">综合评分模型（{SCORING_MODEL.version}）</h3>
+            </div>
+            <p className="china-score-formula">{SCORING_MODEL.formula}</p>
+            <div className="china-score-dims">
+              {SCORING_MODEL.dims.map((dim) => (
+                <article key={dim.id} className="china-score-dim">
+                  <header>
+                    <strong>{dim.label}</strong>
+                    <span className="china-score-status" data-status={dim.status}>
+                      {dim.status === 'pending' ? '待数据接入' : '部分可用'}
+                    </span>
+                  </header>
+                  <p>{dim.fields}</p>
+                  <p className="china-score-note">{dim.note}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          {SOCIAL_REPUTATION_META.review && (
+            <div className="china-review-progress" aria-labelledby="china-review-progress-title">
+              <div className="china-score-head">
+                <ShieldCheck size={16} aria-hidden="true" />
+                <h3 id="china-review-progress-title">人工审阅进展（队列 {SOCIAL_REPUTATION_META.review.queueId.slice(0, 12)}…）</h3>
               </div>
-              <div className="china-stat-row">
-                <span className="china-stat-num">32</span>
-                <span className="china-stat-label">地图覆盖省级地区</span>
-              </div>
-              <p className="china-stats-note">
-                评分模型已就绪（口碑 40% + 资源 30% + 专业度 30%）；
-                口碑数据接入前，所有机构评分显示为“待数据接入”，不做无依据估算。
+              <ul className="china-review-stats">
+                <li><b>{SOCIAL_REPUTATION_META.review.total}</b><span>已裁定</span></li>
+                <li className="is-include"><b>{SOCIAL_REPUTATION_META.review.included}</b><span>纳入匿名聚合</span></li>
+                <li className="is-pending"><b>{SOCIAL_REPUTATION_META.review.pending}</b><span>待复核</span></li>
+                <li className="is-exclude"><b>{SOCIAL_REPUTATION_META.review.excluded}</b><span>排除</span></li>
+              </ul>
+              <p className="china-panel-note-small">
+                每条公开内容都按五个维度人工裁定：机构归因是否正确、是否本人或陪诊经历、涉及哪些非医学服务维度、
+                是否残留人名/账号/联系方式/精确就诊轨迹、是否可保留为匿名聚合候选。
+                含医学诊断、处方、疗效或治疗建议，残留可识别信息，机构归因不明确，无法证明亲历，
+                或属广告、转述、新闻、一般讨论的一律排除；无法确定时记为“待复核”，不做猜测。
               </p>
+              <p className="china-panel-note-small">
+                 评分门槛：单一机构需 ≥ {SOCIAL_REPUTATION_META.review.minSampleForScore} 条通过审阅的亲历证据、
+                 且至少 {SOCIAL_REPUTATION_META.scorePolicy?.minDimensionsForScore ?? 3} 个维度各自达到{' '}
+                 {SOCIAL_REPUTATION_META.scorePolicy?.minAspectSample ?? 3} 条，才会合成分数。
+                 {reachedNames.length
+                   ? `${reachedNames.join('、')} 已达样本门槛；未达门槛的机构不发布分数。`
+                   : '当前三家目标机构均未达门槛，因此本页不展示任何分数。'}
+                 无论是否达标，本页都不展示原帖链接、账号或原文。
+              </p>
+              <p className="china-panel-note-small">
+                <strong>覆盖面：</strong>本轮人工审阅只覆盖{' '}
+                {Object.keys(SOCIAL_REPUTATION).length} 家采集目标机构。
+                地图上其余 {INSTITUTIONS.length - Object.keys(SOCIAL_REPUTATION).length} 家
+                尚未采集到公开讨论证据，一律显示为“样本不足”，不做估算；
+                它们在地图概览里的收录信息与床位统计不受影响。
+              </p>
+              <ul className="china-rep-list">
+                {Object.entries(SOCIAL_REPUTATION).map(([name, agg]) => (
+                  <li key={name} className="china-rep-row">
+                    <div className="china-rep-row-main">
+                      <span className="china-rep-row-name">{name}</span>
+                     <small className="china-rep-row-meta">
+                       通过审阅 {agg.mentions} 条 · {agg.scoreNote}
+                       {agg.serviceScore != null && (
+                         <>
+                           <br />
+                           {agg.serviceScoreNote}
+                         </>
+                       )}
+                     </small>
+                     </div>
+                     <div className="china-rep-row-dims" aria-hidden="true">
+                       {Object.entries(agg.aspects ?? {}).map(([aspect, n]) => (
+                         <span key={aspect} className="china-rep-dim-pill">{ASPECT_LABELS[aspect] ?? aspect} {n}</span>
+                       ))}
+                     </div>
+                     <b className="china-rep-score">
+                       {agg.serviceScore != null ? `${agg.serviceScore} 分` : (agg.mentions > 0 ? `${agg.mentions} 条` : '—')}
+                     </b>
+                     {agg.serviceScore != null && <span className="visually-hidden">{agg.serviceScore} / 100</span>}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
-          <div className="china-province-list" role="list" aria-label="各省收录机构数">
-            <div className="china-province-list-head">
-              <span>{selectedProvince ? `${selectedProvince}（点击取消）` : '各省级地区'}</span>
-              <span>收录 / 2015床位</span>
+          <div className="china-social-note" role="note">
+            <ShieldCheck size={17} aria-hidden="true" />
+            <p>
+              <strong>口碑数据的来源与边界：</strong>{SOCIAL_CRAWL_STATUS.method}
+              {' '}当前发布口径：{SOCIAL_REPUTATION_META.statusNote}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {layer === 'trend' && (
+        <div role="tabpanel" id="china-layer-panel-trend" aria-labelledby="china-layer-tab-trend">
+          <div className="china-trend" aria-labelledby="china-trend-title">
+            <div className="china-score-head">
+              <Database size={16} aria-hidden="true" />
+              <h3 id="china-trend-title">全国口径趋势：精神病医院数量（{NATIONAL_TREND.unit}）</h3>
             </div>
-            <div className="china-province-list-body" tabIndex={0}>
-              {provincePanelList.map((province) => {
-                const list = INSTITUTIONS_BY_PROVINCE.get(province.name) ?? [];
+            <div className="china-trend-bars">
+              {NATIONAL_TREND.rows.map((row) => {
+                const max = Math.max(...NATIONAL_TREND.rows.map((r) => r.hospitals ?? 0));
+                const fmtWan = (v) => v == null ? '—' : `${(v / 10000).toFixed(v >= 60000 ? 1 : 2)} 万`;
                 return (
-                  <div key={province.adcode} role="listitem">
-                    <button
-                      type="button"
-                      className={selectedProvince === province.name ? 'china-province-row selected' : 'china-province-row'}
-                      onClick={() => setSelectedProvince(selectedProvince === province.name ? null : province.name)}
-                    >
-                      <span>{province.name}</span>
-                      <small>{province.institutionCount} 家 · {province.openBeds === null ? '—' : `${province.openBeds} 张`}</small>
-                    </button>
-                    {selectedProvince === province.name && list.length > 0 && (
-                      <ul className="china-inst-list">
-                        {list.map((inst) => (
-                          <li key={inst.id}>
-                            <button
-                              type="button"
-                              className={selectedInstId === inst.id ? 'china-inst-row selected' : 'china-inst-row'}
-                              onClick={() => setSelectedInstId(inst.id)}
-                            >
-                              <i style={{ background: CHINA_CATEGORY_COLORS[inst.category] }} aria-hidden="true" />
-                              <span>{inst.name}</span>
-                              <small>{inst.categoryLabel}</small>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                  <div key={row.year} className="china-trend-row">
+                    <span className="china-trend-year">
+                      {row.year} <i className="china-trend-level" data-level={row.level} aria-hidden="true" />
+                    </span>
+                    <span className="china-trend-bar" aria-hidden="true">
+                      {row.hospitals !== null && <i style={{ width: `${Math.round((row.hospitals / max) * 100)}%` }} />}
+                    </span>
+                    <span className="china-trend-value">
+                      {row.hospitals !== null ? `${row.hospitals.toLocaleString('zh-Hans')} 家` : '待官方值'}
+                      <small> · 医师 {fmtWan(row.physicians)} · 护士 {fmtWan(row.nurses)}{row.bedsMentalHospitals ? ` · 床位 ${(row.bedsMentalHospitals / 10000).toFixed(1)} 万` : ''}</small>
+                    </span>
+                    {row.note && <span className="china-trend-note">{row.note}</span>}
                   </div>
                 );
               })}
             </div>
+            <div className="china-service-2025">
+              <strong>2025 年服务建设结果（国家卫健委）</strong>
+              <ul>
+                {SERVICE_2025.items.map((item) => (
+                  <li key={item.label}><span>{item.label}</span>{item.value}</li>
+                ))}
+              </ul>
+              <p className="china-trend-source">{SERVICE_2025.source}</p>
+            </div>
+            <p className="china-trend-source">来源：{NATIONAL_TREND.source}。注意口径：此处为精神病医院专科口径；广义“精神卫生机构”（含综合医院精神科等）2020 年为 5,936 家。</p>
           </div>
-        </aside>
-      </div>
 
-      <div className="china-score-panel" aria-labelledby="china-score-title">
-        <div className="china-score-head">
-          <Database size={16} aria-hidden="true" />
-          <h3 id="china-score-title">综合评分模型（{SCORING_MODEL.version}）</h3>
-        </div>
-        <p className="china-score-formula">{SCORING_MODEL.formula}</p>
-        <div className="china-score-dims">
-          {SCORING_MODEL.dims.map((dim) => (
-            <article key={dim.id} className="china-score-dim">
-              <header>
-                <strong>{dim.label}</strong>
-                <span className="china-score-status" data-status={dim.status}>
-                  {dim.status === 'pending' ? '待数据接入' : '部分可用'}
-                </span>
-              </header>
-              <p>{dim.fields}</p>
-              <p className="china-score-note">{dim.note}</p>
-            </article>
-          ))}
-        </div>
-      </div>
-
-      <div className="china-social-note" role="note">
-        <ShieldCheck size={17} aria-hidden="true" />
-        <p>
-          <strong>口碑数据的来源与边界：</strong>{SOCIAL_CRAWL_STATUS.method}
-          {SOCIAL_REPUTATION_META.noteCount > 0
-            ? `当前已接入小红书首批公开讨论（更新于 ${SOCIAL_REPUTATION_META.updatedAt}，覆盖 ${SOCIAL_REPUTATION_META.noteCount} 篇笔记、${SOCIAL_REPUTATION_META.commentCount.toLocaleString('zh-Hans')} 条评论），微博/抖音批次待采集。口碑分=好评词命中占比（0–100），样本不足时不评分。`
-            : `当前状态：${SOCIAL_CRAWL_STATUS.note}`}
-        </p>
-      </div>
-
-      <div className="china-trend" aria-labelledby="china-trend-title">
-        <div className="china-score-head">
-          <Database size={16} aria-hidden="true" />
-          <h3 id="china-trend-title">全国口径趋势：精神病医院数量（{NATIONAL_TREND.unit}）</h3>
-        </div>
-        <div className="china-trend-bars">
-          {NATIONAL_TREND.rows.map((row) => {
-            const max = Math.max(...NATIONAL_TREND.rows.map((r) => r.hospitals ?? 0));
-            const fmtWan = (v) => v == null ? '—' : `${(v / 10000).toFixed(v >= 60000 ? 1 : 2)} 万`;
-            return (
-              <div key={row.year} className="china-trend-row">
-                <span className="china-trend-year">
-                  {row.year} <i className="china-trend-level" data-level={row.level} aria-hidden="true" />
-                </span>
-                <span className="china-trend-bar" aria-hidden="true">
-                  {row.hospitals !== null && <i style={{ width: `${Math.round((row.hospitals / max) * 100)}%` }} />}
-                </span>
-                <span className="china-trend-value">
-                  {row.hospitals !== null ? `${row.hospitals.toLocaleString('zh-Hans')} 家` : '待官方值'}
-                  <small> · 医师 {fmtWan(row.physicians)} · 护士 {fmtWan(row.nurses)}{row.bedsMentalHospitals ? ` · 床位 ${(row.bedsMentalHospitals / 10000).toFixed(1)} 万` : ''}</small>
-                </span>
-                {row.note && <span className="china-trend-note">{row.note}</span>}
-              </div>
-            );
-          })}
-        </div>
-        <div className="china-service-2025">
-          <strong>2025 年服务建设结果（国家卫健委）</strong>
-          <ul>
-            {SERVICE_2025.items.map((item) => (
-              <li key={item.label}><span>{item.label}</span>{item.value}</li>
+          <div className="china-facts" aria-label="理解中国精神卫生的四个事实">
+            {CHINA_FACTS.map((fact) => (
+              <article key={fact.id} className={`china-fact-card tone-${fact.tone}`}>
+                <h3>{fact.title}</h3>
+                <p>{fact.body}</p>
+                <small>来源：{fact.source}</small>
+              </article>
             ))}
-          </ul>
-          <p className="china-trend-source">{SERVICE_2025.source}</p>
+          </div>
         </div>
-        <p className="china-trend-source">来源：{NATIONAL_TREND.source}。注意口径：此处为精神病医院专科口径；广义“精神卫生机构”（含综合医院精神科等）2020 年为 5,936 家。</p>
-      </div>
-
-      <div className="china-facts" aria-label="理解中国精神卫生的四个事实">
-        {CHINA_FACTS.map((fact) => (
-          <article key={fact.id} className={`china-fact-card tone-${fact.tone}`}>
-            <h3>{fact.title}</h3>
-            <p>{fact.body}</p>
-            <small>来源：{fact.source}</small>
-          </article>
-        ))}
-      </div>
+      )}
     </section>
   );
 }

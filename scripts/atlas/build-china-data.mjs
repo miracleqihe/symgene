@@ -8,7 +8,8 @@ import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(SCRIPT_DIR, '..', '..');
 const RAW = join(ROOT, 'raw', 'atlas-public');
 const OUT = join(ROOT, 'src', 'atlas');
 const readJson = (f) => JSON.parse(readFileSync(join(RAW, f), 'utf-8'));
@@ -306,6 +307,31 @@ const geoOut = provinces.map((p) => ({
   polygons: p.polygons.map((ring) => roundRing(ring))
 }));
 
+// ---------- 4b. 南海诸岛（三沙市 460300：西沙/中沙/南沙，南至曾母暗沙） ----------
+// 中国地图合规要求：小比例尺地图须完整呈现南海诸岛，本文以右下角附图形式呈现。
+// 数据来源：阿里云 DataV GeoAtlas（公开）。九段/十段线界线数据该源已下架，
+// 为避免引入不可核查的国界画法，附图仅呈现三沙市岛礁边界，不自行描绘界线。
+// 三沙市边界放在脚本目录下而不是 raw/，因为 raw/ 已被 .gitignore 忽略：
+// 只有把它入库，别人 clone 后重跑本脚本才能复现同一份南海附图。
+// 该文件是公开行政边界数据（阿里云 DataV GeoAtlas），不含任何个人或私有信息。
+const SANS_SHA_FILE = join(SCRIPT_DIR, 'sources', 'china-sansha.json');
+let southChinaSea = null;
+if (existsSync(SANS_SHA_FILE)) {
+  const sansha = JSON.parse(readFileSync(SANS_SHA_FILE, 'utf-8'));
+  const seaPolygons = [];
+  for (const f of sansha.features ?? []) {
+    const geom = f.geometry;
+    if (!geom) continue;
+    const polys = geom.type === 'MultiPolygon' ? geom.coordinates : [geom.coordinates];
+    for (const poly of polys) {
+      if (poly[0]?.length >= 4) seaPolygons.push(roundRing(poly[0]));
+    }
+  }
+  if (seaPolygons.length) {
+    southChinaSea = { source: '阿里云 DataV GeoAtlas（三沙市 460300，公开）', polygons: seaPolygons };
+  }
+}
+
 // ---------- 5. 产物 ----------
 const banner = (note) => `// 由 scripts/atlas/build-china-data.mjs 生成，请勿手改。${note}\n`;
 
@@ -314,6 +340,13 @@ writeFileSync(
   banner('边界数据来源：阿里云 DataV GeoAtlas（公开）。') +
   `export const PROVINCE_GEO = ${JSON.stringify(geoOut)};\n`
 );
+if (southChinaSea) {
+  writeFileSync(
+    join(OUT, 'chinaSeaGeo.js'),
+    banner('南海诸岛（三沙市 460300）岛礁边界，来源：阿里云 DataV GeoAtlas（公开）。') +
+    `export const SOUTH_CHINA_SEA = ${JSON.stringify(southChinaSea)};\n`
+  );
+}
 writeFileSync(
   join(OUT, 'institutions.json'),
   `${JSON.stringify({
