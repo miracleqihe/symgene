@@ -212,7 +212,7 @@ const reachedNames = Object.entries(SOCIAL_REPUTATION)
                   return (
                     <path
                       key={province.adcode}
-                      d={pathFor(province.polygons)}
+                      d={pathFor(province.polygons, project, MAP_W, MAP_H)}
                       fill={dimmed ? 'rgba(48, 91, 96, 0.06)' : shade}
                       stroke={selected ? '#103842' : 'rgba(255, 253, 248, 0.85)'}
                       strokeWidth={selected ? 1.6 : 0.7}
@@ -484,6 +484,13 @@ const reachedNames = Object.entries(SOCIAL_REPUTATION)
                    ? `${reachedNames.join('、')} 已达样本门槛；未达门槛的机构不发布分数。`
                    : '当前三家目标机构均未达门槛，因此本页不展示任何分数。'}
                  无论是否达标，本页都不展示原帖链接、账号或原文。
+              </p>
+              <p className="china-panel-note-small">
+                <strong>覆盖面：</strong>本轮人工审阅只覆盖{' '}
+                {Object.keys(SOCIAL_REPUTATION).length} 家采集目标机构。
+                地图上其余 {INSTITUTIONS.length - Object.keys(SOCIAL_REPUTATION).length} 家
+                尚未采集到公开讨论证据，一律显示为“样本不足”，不做估算；
+                它们在地图概览里的收录信息与床位统计不受影响。
               </p>
               <ul className="china-rep-list">
                 {Object.entries(SOCIAL_REPUTATION).map(([name, agg]) => (
