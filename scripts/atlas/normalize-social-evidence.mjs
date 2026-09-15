@@ -19,20 +19,48 @@ const SRC_DIR = join(ROOT, 'raw', 'dataforweb');
 const OUT_DIR = join(ROOT, 'work');
 mkdirSync(OUT_DIR, { recursive: true });
 
-// ---------- 机构别名（仅目标机构；别名来自公开常用称呼，不做模糊外推） ----------
+// ---------- 机构别名（别名来自公开常用称呼，不做模糊外推） ----------
+// 2026-09 扩充：此前只列 3 家目标机构，导致数据里其他机构的记录全部落进
+// no_institution_match（11063 条里 9547 条），机构覆盖被白名单卡死在 3 家。
+// 这里把原始采集数据中实际出现、且能在 src/atlas/institutions.json 里对上的机构补进来。
+// 注意：补进来只意味着这些机构的记录能被归因与抽样，不代表样本量够评分 ——
+// 原始采集用的是泛化关键词（"精神卫生中心""精神病院"等 8 组），多数机构只有个位数提及。
+// 未纳入的泛称（"精神卫生中心""精神康复中心""睡眠医学中心""省精神病医院"）是名录里的
+// 不完整条目，作为别名会造成大范围误匹配，故排除。
 const INSTITUTION_ALIASES = {
   上海市精神卫生中心: [
     '上海市精神卫生中心', '上海精神卫生中心', '上海精卫中心', '上海市精卫中心',
+    '上海精卫', '上精卫',
     '宛平南路600号', '宛平南路 600 号', '宛平南路六百号', '600号', '六百号'
   ],
   武汉市精神卫生中心: [
     '武汉市精神卫生中心', '武汉精神卫生中心', '武汉精卫中心', '武汉市精卫中心',
-    '武汉市心理医院', '六角亭院区', '二七院区'
+    '武汉精卫', '六角亭', '六角亭院区', '二七院区'
   ],
   北京大学第六医院: [
     '北京大学第六医院', '北大六院', '北医六院', '北京六院',
     '北京大学精神卫生研究所', '北大六院精神科'
-  ]
+  ],
+  山东省精神卫生中心: [
+    '山东省精神卫生中心', '山东精神卫生中心', '山东省精卫中心', '山东精卫中心'
+  ],
+  西安市精神卫生中心: [
+    '西安市精神卫生中心', '西安精神卫生中心', '西安市精卫中心', '西安精卫中心'
+  ],
+  重庆市精神卫生中心: [
+    '重庆市精神卫生中心', '重庆精神卫生中心', '重庆市精卫中心', '重庆精卫中心'
+  ],
+  深圳市精神卫生中心: ['深圳市精神卫生中心', '深圳精神卫生中心'],
+  深圳市康宁医院: ['深圳市康宁医院', '深圳康宁医院', '深圳康宁'],
+  南京脑科医院: ['南京脑科医院', '南京脑科'],
+  北京回龙观医院: ['北京回龙观医院', '回龙观医院'],
+  北京安定医院: ['北京安定医院', '安定医院'],
+  广州白云心理医院: ['广州白云心理医院', '白云心理医院'],
+  中南大学湘雅二医院: ['中南大学湘雅二医院', '湘雅二医院'],
+  杭州市第七人民医院: ['杭州市第七人民医院', '杭州七院', '杭七院'],
+  合肥市第四人民医院: ['合肥市第四人民医院', '合肥四院'],
+  天门市精神卫生中心: ['天门市精神卫生中心'],
+  永川区精神卫生中心: ['永川区精神卫生中心']
 };
 
 // ---------- 红旗词表 ----------
@@ -93,14 +121,23 @@ const normText = (s) => String(s ?? '')
 
 const fingerprint = (s) => createHash('sha1').update(s).digest('hex').slice(0, 16);
 
-/** 机构归因：别名精确命中 = direct；否则交由父内容上下文（后处理） */
-function matchInstitution(text) {
+/** 机构归因：返回**全部**命中的机构，不取第一个。
+ *
+ * 为什么不能取第一个：别名表从 3 家扩到 17 家后，一条文本同时提到多家机构变得常见
+ * （榜单帖、跨院比较帖、"XX 和 YY 哪个好"）。此前写法是遍历到第一个命中就 return，
+ * 结果是先声明谁就归给谁——语序偶然决定归因，等于让机器猜。
+ * 规则见 REVIEW-RULES.md 第 1 节："不能确定时选 uncertain，不猜测"。
+ * 这里改为：唯一命中才归因；命中 ≥2 家时置 null 并打 `ambiguous_multi_institution` 旗，
+ * 交由人工裁定，且不参与父内容上下文归因（否则会被父帖重新劫持到其中一家）。
+ */
+function matchInstitutions(text) {
+  const hits = [];
   for (const [name, aliases] of Object.entries(INSTITUTION_ALIASES)) {
     for (const alias of aliases) {
-      if (text.includes(alias)) return { name, method: 'direct', evidence: alias };
+      if (text.includes(alias)) { hits.push({ name, method: 'direct', evidence: alias }); break; }
     }
   }
-  return null;
+  return hits;
 }
 
 const records = [];
@@ -124,6 +161,7 @@ for (const file of FILES) {
     seenText.set(dedupeKey, true);
 
     const recordId = fingerprint(`${platform}:${isContent ? row.aweme_id ?? row.note_id : row.comment_id ?? ''}:${text.slice(0, 30)}`);
+    const hits = matchInstitutions(`${isContent ? row.title ?? '' : ''}${text}`);
     const item = {
       recordId,
       platform,
@@ -135,7 +173,8 @@ for (const file of FILES) {
       createdAt: row.create_time ? new Date((String(row.create_time).length > 11 ? row.create_time : row.create_time * 1000)).toISOString().slice(0, 10) : null,
       likes: Number(row.like_count ?? row.liked_count ?? 0) || 0,
       authorRef: row.creator_hash ?? null, // 仅本地关联用，绝不发布
-      institution: matchInstitution(`${isContent ? row.title ?? '' : ''}${text}`),
+      institution: hits.length === 1 ? hits[0] : null,
+      institutionCandidates: hits.map((h) => h.name),
       serviceExperience: EXPERIENCE_PATTERNS.some((re) => re.test(text)),
       aspects: ASPECT_RULES.filter((a) => a.re.test(text)).map((a) => a.id),
       flags: [],
@@ -148,7 +187,8 @@ for (const file of FILES) {
     if (item.risk.identifiers.length) item.flags.push('possible_identifier');
     if (item.risk.medical.length) item.flags.push('possible_medical_content');
     if (item.risk.noise.length) item.flags.push('possible_ad_or_secondhand');
-    if (!item.institution) item.flags.push('no_institution_match');
+    if (!item.institution && hits.length === 0) item.flags.push('no_institution_match');
+    if (hits.length > 1) item.flags.push('ambiguous_multi_institution');
     if (!item.serviceExperience) item.flags.push('not_experience_signal');
 
     records.push(item);
@@ -164,6 +204,9 @@ for (const file of FILES) {
 let contextMatched = 0;
 for (const rec of records) {
   if (rec.institution || !rec.parentId) continue;
+  // 歧义记录不参与上下文归因：父帖恰好命中其中一家，会把它重新"洗"成单机构，
+  // 而用户在评论文本里本来就是在对比，归给任何一家都是猜。
+  if (rec.flags.includes('ambiguous_multi_institution')) continue;
   const parent = parentIndex.get(`${rec.platform}:${rec.parentId}`);
   if (parent?.institution) {
     rec.institution = { ...parent.institution, method: 'content_context' };
@@ -195,6 +238,7 @@ const report = {
   total: records.length,
   skipped,
   contextMatched,
+  ambiguousMultiInstitution: records.filter((r) => r.flags.includes('ambiguous_multi_institution')).length,
   byPlatform,
   byInstitution,
   byAspect,
@@ -207,7 +251,8 @@ writeFileSync(join(OUT_DIR, 'normalization-report.json'), JSON.stringify(report,
 
 console.log('归一化完成：', records.length, '条（跳过 空:', skipped.empty, ' 重复:', skipped.duplicate, '）');
 console.log('平台分布:', JSON.stringify(byPlatform));
-console.log('机构归因:', JSON.stringify(byInstitution), '| 上下文归因补充:', contextMatched);
+console.log('机构归因:', JSON.stringify(byInstitution), '| 上下文归因补充:', contextMatched,
+  '| 多机构歧义:', report.ambiguousMultiInstitution);
 console.log('维度预标:', JSON.stringify(byAspect));
 console.log('红旗统计:', JSON.stringify(byFlag));
 console.log('sha256:', sha256);
