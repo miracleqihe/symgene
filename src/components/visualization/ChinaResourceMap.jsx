@@ -98,12 +98,7 @@ export default function ChinaResourceMap() {
     [selectedInstId]
   );
   const selectedReputation = selectedInst ? getReputation(selectedInst.name) : null;
-
-// 已达发布门槛（≥ minSampleForScore）的机构名单，用于面板文案，避免把硬编码结论写死在 JSX 里
-const threshold = SOCIAL_REPUTATION_META.review?.minSampleForScore ?? 20;
-const reachedNames = Object.entries(SOCIAL_REPUTATION)
-  .filter(([, a]) => a.mentions >= threshold)
-  .map(([name]) => name);
+  const [expandedRepName, setExpandedRepName] = useState(null);
 
   const visibleProvinceNames = useMemo(
     () => new Set(filteredInstitutions.map((inst) => inst.province)),
@@ -292,12 +287,11 @@ const reachedNames = Object.entries(SOCIAL_REPUTATION)
                           </b>}
                       {selectedReputation && (
                         <small className="china-rep-note">
-                          经人工审阅的可用证据 {selectedReputation.mentions ?? 0} 条（发布阈值{' '}
-                          {SOCIAL_REPUTATION_META.review?.minSampleForScore ?? 20} 条）
+                          经人工核对的就医评论 {selectedReputation.mentions ?? 0} 条；不足 20 条时不生成统计，避免误导
                           {selectedReputation.mentions > 0 && (
                             <>
                               <br />
-                              {selectedReputation.attributionNote}
+                              其中 {selectedReputation.strict} 条为评论中直接提到机构，{selectedReputation.relaxed} 条依据发帖上下文判断
                             </>
                           )}
                         </small>
@@ -342,11 +336,11 @@ const reachedNames = Object.entries(SOCIAL_REPUTATION)
                   )}
 
                   <dl className="china-metadata">
-                    <dt>可用样本</dt>
+                    <dt>就医评论</dt>
                     <dd>
                       {selectedReputation
-                        ? `${selectedReputation.mentions ?? 0} 条通过人工审阅`
-                        : '暂无通过审阅的证据'}
+                        ? `${selectedReputation.mentions ?? 0} 条经人工核对${selectedReputation.mentions > 0 ? '（可在“评分与口碑”分层展开查看）' : ''}`
+                        : '暂无经核对的公开评论'}
                     </dd>
                     {selectedReputation?.byPlatform && Object.keys(selectedReputation.byPlatform).length > 0 && (
                       <>
@@ -360,9 +354,9 @@ const reachedNames = Object.entries(SOCIAL_REPUTATION)
                   </dl>
                   {selectedReputation && (
                     <p className="china-review-disclaimer">
-                      本页不展示任何原帖内容、链接、账号或作者信息。公开内容需先经人工逐条审阅
-                      （确认机构归因、本人或陪诊经历、非医学服务维度、无可识别信息），
-                      通过后才计入上方匿名计数。
+                      展示的评论内容均已隐去姓名、账号等隐私信息，不提供原帖链接。
+                      每条评论在收录前都经人工核对（确认就医经历真实、不含可识别信息），
+                      评论仅代表个人经历，不构成就医推荐。
                     </p>
                   )}
                   <button type="button" className="china-card-close" onClick={() => setSelectedInstId(null)}>收起详情</button>
@@ -462,62 +456,69 @@ const reachedNames = Object.entries(SOCIAL_REPUTATION)
             <div className="china-review-progress" aria-labelledby="china-review-progress-title">
               <div className="china-score-head">
                 <ShieldCheck size={16} aria-hidden="true" />
-                <h3 id="china-review-progress-title">人工审阅进展（队列 {SOCIAL_REPUTATION_META.review.queueId.slice(0, 12)}…）</h3>
+                <h3 id="china-review-progress-title">评论口碑（逐条核对后的匿名就医反馈）</h3>
               </div>
-              <ul className="china-review-stats">
-                <li><b>{SOCIAL_REPUTATION_META.review.total}</b><span>已裁定</span></li>
-                <li className="is-include"><b>{SOCIAL_REPUTATION_META.review.included}</b><span>纳入匿名聚合</span></li>
-                <li className="is-pending"><b>{SOCIAL_REPUTATION_META.review.pending}</b><span>待复核</span></li>
-                <li className="is-exclude"><b>{SOCIAL_REPUTATION_META.review.excluded}</b><span>排除</span></li>
-              </ul>
               <p className="china-panel-note-small">
-                每条公开内容都按五个维度人工裁定：机构归因是否正确、是否本人或陪诊经历、涉及哪些非医学服务维度、
-                是否残留人名/账号/联系方式/精确就诊轨迹、是否可保留为匿名聚合候选。
-                含医学诊断、处方、疗效或治疗建议，残留可识别信息，机构归因不明确，无法证明亲历，
-                或属广告、转述、新闻、一般讨论的一律排除；无法确定时记为“待复核”，不做猜测。
-              </p>
-              <p className="china-panel-note-small">
-                 评分门槛：单一机构需 ≥ {SOCIAL_REPUTATION_META.review.minSampleForScore} 条通过审阅的亲历证据、
-                 且至少 {SOCIAL_REPUTATION_META.scorePolicy?.minDimensionsForScore ?? 3} 个维度各自达到{' '}
-                 {SOCIAL_REPUTATION_META.scorePolicy?.minAspectSample ?? 3} 条，才会合成分数。
-                 {reachedNames.length
-                   ? `${reachedNames.join('、')} 已达样本门槛；未达门槛的机构不发布分数。`
-                   : '当前三家目标机构均未达门槛，因此本页不展示任何分数。'}
-                 无论是否达标，本页都不展示原帖链接、账号或原文。
-              </p>
-              <p className="china-panel-note-small">
-                <strong>覆盖面：</strong>本轮人工审阅只覆盖{' '}
-                {Object.keys(SOCIAL_REPUTATION).length} 家采集目标机构。
-                地图上其余 {INSTITUTIONS.length - Object.keys(SOCIAL_REPUTATION).length} 家
-                尚未采集到公开讨论证据，一律显示为“样本不足”，不做估算；
-                它们在地图概览里的收录信息与床位统计不受影响。
+                下面每条评论都先经人工逐条核对——确认是真实的就医经历、且不含姓名与联系方式等隐私，
+                才匿名展示。评论太少的机构只给数量、不出统计，以免少数几条声音被放大成整体印象。
               </p>
               <ul className="china-rep-list">
-                {Object.entries(SOCIAL_REPUTATION).map(([name, agg]) => (
-                  <li key={name} className="china-rep-row">
-                    <div className="china-rep-row-main">
-                      <span className="china-rep-row-name">{name}</span>
-                     <small className="china-rep-row-meta">
-                       通过审阅 {agg.mentions} 条 · {agg.scoreNote}
-                       {agg.serviceScore != null && (
-                         <>
-                           <br />
-                           {agg.serviceScoreNote}
-                         </>
-                       )}
-                     </small>
-                     </div>
-                     <div className="china-rep-row-dims" aria-hidden="true">
-                       {Object.entries(agg.aspects ?? {}).map(([aspect, n]) => (
-                         <span key={aspect} className="china-rep-dim-pill">{ASPECT_LABELS[aspect] ?? aspect} {n}</span>
-                       ))}
-                     </div>
-                     <b className="china-rep-score">
-                       {agg.serviceScore != null ? `${agg.serviceScore} 分` : (agg.mentions > 0 ? `${agg.mentions} 条` : '—')}
-                     </b>
-                     {agg.serviceScore != null && <span className="visually-hidden">{agg.serviceScore} / 100</span>}
-                  </li>
-                ))}
+                {Object.entries(SOCIAL_REPUTATION).map(([name, agg]) => {
+                  const open = expandedRepName === name;
+                  const snippets = agg.snippets ?? [];
+                  return (
+                    <li key={name} className="china-rep-row" data-open={open || undefined}>
+                      <button
+                        type="button"
+                        className="china-rep-row-toggle"
+                        aria-expanded={open}
+                        onClick={() => setExpandedRepName(open ? null : name)}
+                      >
+                        <span className="china-rep-row-name">{name}</span>
+                        <small className="china-rep-row-meta">
+                          {agg.mentions > 0
+                            ? `${agg.mentions} 条核对通过的评论，点击查看`
+                            : '暂无核对通过的公开评论'}
+                        </small>
+                        <span className="china-rep-row-dims" aria-hidden="true">
+                          {Object.entries(agg.aspects ?? {}).slice(0, 4).map(([aspect, n]) => (
+                            <span key={aspect} className="china-rep-dim-pill">{ASPECT_LABELS[aspect] ?? aspect} {n}</span>
+                          ))}
+                        </span>
+                        <b className="china-rep-score">
+                          {agg.serviceScore != null ? `${agg.serviceScore} 分` : (agg.mentions > 0 ? `${agg.mentions} 条` : '—')}
+                        </b>
+                        {agg.serviceScore != null && <span className="visually-hidden">{agg.serviceScore} / 100</span>}
+                      </button>
+                      {open && (
+                        <div className="china-rep-comments">
+                          {snippets.length === 0 && (
+                            <p className="china-rep-empty">
+                              暂无通过人工核对的公开评论。该机构在公开平台上的讨论量还很少，
+                              或现有内容含隐私信息、不构成可核对的就医经历，按规则不予展示。
+                            </p>
+                          )}
+                          {snippets.map((s, i) => (
+                            <blockquote key={i} className="china-rep-snippet" data-overall={s.overall}>
+                              <p>{s.text}</p>
+                              <footer>
+                                <span>{s.experience}</span>
+                                <span>{s.platform}</span>
+                                <span>{(s.aspects ?? []).map((a) => ASPECT_LABELS[a] ?? a).join(' · ')}</span>
+                              </footer>
+                            </blockquote>
+                          ))}
+                          {snippets.length > 0 && (
+                            <p className="china-rep-empty">
+                              以上内容已隐去姓名、账号等隐私信息，不提供原帖链接。
+                              评论为个人经历，不代表机构整体水平，不构成就医推荐。
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}
@@ -525,8 +526,8 @@ const reachedNames = Object.entries(SOCIAL_REPUTATION)
           <div className="china-social-note" role="note">
             <ShieldCheck size={17} aria-hidden="true" />
             <p>
-              <strong>口碑数据的来源与边界：</strong>{SOCIAL_CRAWL_STATUS.method}
-              {' '}当前发布口径：{SOCIAL_REPUTATION_META.statusNote}
+              <strong>评论数据的来源与边界：</strong>{SOCIAL_CRAWL_STATUS.method}
+              {' '}{SOCIAL_REPUTATION_META.statusNote}
             </p>
           </div>
         </div>
