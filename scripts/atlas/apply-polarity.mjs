@@ -50,7 +50,13 @@ const POLARITY = {
   b2_e83ece94c849bb01: { access_and_wait: 'negative', staff_interaction: 'negative' },
   b2_0408b7a6ee944658: { access_and_wait: 'neutral', process_and_information: 'neutral' },
   b2_2bfa17bfbc27c1e3: { staff_interaction: 'negative', process_and_information: 'negative' },
-  b2_aee027231a1e116d: { environment_and_facilities: 'neutral' }
+  b2_aee027231a1e116d: { environment_and_facilities: 'neutral' },
+  // batch3（扩别名表后新归因机构）
+  b3_d998bb16b4856c8e: { staff_interaction: 'positive', self_reported_outcome: 'positive' },
+  b3_41478b07d848b253: { staff_interaction: 'negative', process_and_information: 'neutral' },
+  b3_9d1f403a22886968: { process_and_information: 'neutral' },
+  b3_4c8efc60fe2a477d: { cost_and_billing: 'negative' },
+  b3_f0bb4f1366ade842: { access_and_wait: 'negative' }
 };
 
 const adj = JSON.parse(readFileSync(ADJ, 'utf-8'));

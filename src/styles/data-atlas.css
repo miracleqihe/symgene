@@ -1521,7 +1521,7 @@ span.atlas-loc-cell[tabindex="0"]:focus-visible {
   }
 }
 
-/* ---------- 人工审阅进展（评分与口碑层） ---------- */
+/* ---------- 评论口碑（评分与口碑层） ---------- */
 
 .china-review-progress {
   margin-top: 18px;
@@ -1564,6 +1564,85 @@ span.atlas-loc-cell[tabindex="0"]:focus-visible {
 .china-review-stats li.is-include b { color: #3e8271; }
 .china-review-stats li.is-pending b { color: #9b7647; }
 .china-review-stats li.is-exclude b { color: #c26d5a; }
+
+/* 可点击展开的机构行 */
+
+.china-rep-row-toggle {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) auto auto;
+  gap: 8px 14px;
+  align-items: center;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.china-rep-row-toggle:hover .china-rep-row-name { text-decoration: underline; text-underline-offset: 3px; }
+
+.china-rep-row[data-open] {
+  border-color: rgba(48, 91, 96, .3);
+  background: var(--paper);
+}
+
+.china-rep-comments {
+  grid-column: 1 / -1;
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(48, 91, 96, .18);
+  display: grid;
+  gap: 10px;
+}
+
+.china-rep-snippet {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 3px solid rgba(48, 91, 96, .35);
+  background: var(--surface-quiet, var(--brand-mint-soft));
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.china-rep-snippet[data-overall='positive'] { border-left-color: #3e8271; }
+.china-rep-snippet[data-overall='negative'] { border-left-color: #c26d5a; }
+.china-rep-snippet[data-overall='neutral'] { border-left-color: #9b7647; }
+
+.china-rep-snippet p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.china-rep-snippet footer {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10.5px;
+  color: var(--text-secondary, var(--ink));
+  opacity: .85;
+}
+
+.china-rep-empty {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-secondary, var(--ink));
+}
+
+@media (max-width: 720px) {
+  .china-rep-row-toggle { grid-template-columns: 1fr; }
+}
 
 
 .china-review-disclaimer {

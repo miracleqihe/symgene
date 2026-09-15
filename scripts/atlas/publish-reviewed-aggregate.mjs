@@ -18,8 +18,16 @@ const ADJUDICATION = join(ROOT, 'work', 'review-adjudication.json');
 const POLARITY = join(ROOT, 'work', 'polarity-adjudication.json');
 const OUT = join(ROOT, 'src', 'atlas', 'chinaSocialReputation.js');
 
-// 目标机构：即使无可用样本也列出，保持地图图层稳定
-const TARGETS = ['上海市精神卫生中心', '武汉市精神卫生中心', '北京大学第六医院'];
+// 目标机构：即使无可用样本也列出，保持地图图层稳定。
+// 2026-09 扩展：别名表从 3 家扩到 17 家后，"采集目标"随之扩展 —— 数据中出现过的
+// 机构一律列出并给出真实状态（多少条通过人工核对），而不是只列 3 家让其余凭空消失。
+const TARGETS = [
+  '上海市精神卫生中心', '武汉市精神卫生中心', '北京大学第六医院',
+  '山东省精神卫生中心', '西安市精神卫生中心', '重庆市精神卫生中心',
+  '深圳市精神卫生中心', '深圳市康宁医院', '南京脑科医院', '北京回龙观医院',
+  '北京安定医院', '广州白云心理医院', '中南大学湘雅二医院', '杭州市第七人民医院',
+  '合肥市第四人民医院', '天门市精神卫生中心', '永川区精神卫生中心'
+];
 
 // 样本量阈值：低于此值不发布任何维度分布与分数（沿用"高置信度需 ≥20 条"的口径）
 const MIN_SAMPLE_FOR_SCORE = 20;
@@ -54,6 +62,7 @@ const emptyAgg = () => ({
   mentions: 0, strict: 0, relaxed: 0, aspects: {}, byPlatform: {},
   experiences: { firsthand: 0, accompanied: 0 },
   polarity: { positive: 0, negative: 0, neutral: 0 },
+  snippets: [],
   dimensionScores: {}, serviceScore: null, serviceScoreNote: null,
   reputationScore: null, dimensions: null
 });
@@ -74,6 +83,16 @@ for (const rec of counted) {
   }
   const pol = polById.get(rec.reviewId);
   agg.polarity[pol.overall] += 1;
+  // 匿名评论文本：仅 privacyDecision=clear 的记录，只保留正文、维度与极性，
+  // 不含平台账号、链接、时间、点赞数、作者哈希等任何可识别或可溯源字段。
+  // 正文再过一道 URL 剥离（人工核对以隐私为准，链接可能绕过核对）。
+  agg.snippets.push({
+    text: String(rec.text ?? '').replace(/https?:\/\/\S+/g, '').replace(/\s{2,}/g, ' ').trim(),
+    platform: platformLabel[rec.platform] ?? rec.platform,
+    experience: rec.experienceDecision === 'accompanied' ? '家属陪诊' : '本人就诊',
+    aspects: rec.aspects ?? [],
+    overall: pol.overall
+  });
   for (const [aspect, v] of Object.entries(pol.polarity)) {
     agg.dimensionScores[aspect] ??= { positive: 0, negative: 0, neutral: 0, n: 0, score: null };
     const d = agg.dimensionScores[aspect];
@@ -167,13 +186,14 @@ const meta = {
     duplicates: adjudication.duplicates?.length ?? 0,
     minSampleForScore: MIN_SAMPLE_FOR_SCORE
   },
-  statusNote: '本页不展示任何原帖链接、账号或原文；仅展示经人工逐条审阅后的匿名计数。样本不足的机构一律不发布维度分布，也不计算综合评分。'
+  statusNote: '本页不展示原帖链接、账号或任何可溯源字段；仅展示经人工逐条核对后的匿名计数与通过隐私核对的匿名评论内容。样本不足的机构不发布维度分布，也不计算综合评分。'
 };
 
 const banner = '// 由 scripts/atlas/publish-reviewed-aggregate.mjs 生成，请勿手改。\n'
-  + '// 数据口径：仅包含通过人工审阅（aggregationDecision=include 且 privacyDecision=clear）的证据；\n'
-  + '// 不含原文、链接、平台 ID、昵称或任何可识别字段；样本不足不发布；不产出机构综合口碑分。\n'
-  + '// serviceScore 是「已审阅亲历叙述的正负面构成」，样本非随机，不代表机构总体服务水平。\n';
+  + '// 数据口径：仅包含通过人工核对（aggregationDecision=include 且 privacyDecision=clear）的证据；\n'
+  + '// snippets 仅在隐私核对通过后发布匿名评论文本，不含账号、链接、时间、点赞数、作者哈希等可溯源字段；\n'
+  + '// 样本不足不发布维度分布与评分；不产出机构综合口碑分。\n'
+  + '// serviceScore 是「已核对亲历叙述的正负面构成」，样本非随机，不代表机构总体服务水平。\n';
 
 writeFileSync(
   OUT,
