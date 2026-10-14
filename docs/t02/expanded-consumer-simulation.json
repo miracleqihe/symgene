@@ -1,0 +1,262 @@
+{
+  "reportVersion": 1,
+  "mode": "local_simulation_only",
+  "production": "legacy",
+  "identity": "not_configured",
+  "inputManifestSha256": "953fa24a361bd2fd489ed8d930599c9610b45fce43285deda41cd116d2fbbfa3",
+  "inputPackageDigest": "b0166fa70e0900b548ded179c5c54211366dc3e3f9ef818513abea63fe53b057",
+  "countPolicySha256": "70743aa0f416789e58c1b014c24d91c64fc98cd08af3cd7c27660a047b9c9a8b",
+  "population": {
+    "entities": 23,
+    "resources": 18,
+    "institutions": 9,
+    "sameNameCampuses": 8,
+    "distinctCampusProviderRefs": 8
+  },
+  "versions": [
+    {
+      "ordinal": 1,
+      "manifestSha256": "55807e4d94111b4e2f84f44aec1b68772511d249dca6c77c4884c5aa4f118c00",
+      "packageDigest": "06608f6a55b7578b4ed9f9ab7a11cc9d900e896f8eb3e26eee45924b173a8491",
+      "counts": {
+        "claims": 1,
+        "contentEntries": 2,
+        "entities": 23,
+        "redirects": 1,
+        "resources": 18,
+        "retractions": 0,
+        "reviews": 92,
+        "rights": 1,
+        "scenarios": 1,
+        "sources": 1
+      }
+    },
+    {
+      "ordinal": 2,
+      "manifestSha256": "97d53e0ac7d87ecd59fbd32321c4b4b426a1536e142169b26944f459d68fd08f",
+      "packageDigest": "754fae5c82f4630ce94e15fcf4ecfce4ab50f04d022ca66108f85d6ef3f68a06",
+      "counts": {
+        "claims": 1,
+        "contentEntries": 2,
+        "entities": 23,
+        "redirects": 3,
+        "resources": 18,
+        "retractions": 0,
+        "reviews": 92,
+        "rights": 1,
+        "scenarios": 1,
+        "sources": 1
+      }
+    },
+    {
+      "ordinal": 3,
+      "manifestSha256": "7f30c08d94a62b68d18175a260195d9af8fd94fdde12f08185166c29afe3d79f",
+      "packageDigest": "40d38c7c30e5855f69c2bf7d416e5d018aa4f425c699582a3cb5a7be7360efcd",
+      "counts": {
+        "claims": 1,
+        "contentEntries": 2,
+        "entities": 23,
+        "redirects": 4,
+        "resources": 18,
+        "retractions": 0,
+        "reviews": 92,
+        "rights": 1,
+        "scenarios": 1,
+        "sources": 1
+      }
+    }
+  ],
+  "replay": {
+    "archiveCount": 3,
+    "jsonRecoveries": 3,
+    "successfulAdoptions": 4,
+    "interruptedRetryCode": "ADOPTION_INJECTED_FAILURE",
+    "archiveIndexSha256": "c0116cac05dc77f0deb6c2e7802c32030f2335b84bb3f299c02b06ff55dc6ee1",
+    "safetyStateSha256": "afb02efb229a99be00db586a9184059b53c4b4353fd22994d4028c450d668e96"
+  },
+  "withdrawals": [
+    {
+      "kind": "source",
+      "sequence": 100,
+      "targetSha256": "23c438b7330dee8b72aebd3e8337c49eae045807efb312ea99982f37c3acc2f3",
+      "adopted": {
+        "counts": {
+          "drugs": 0,
+          "disorders": 0,
+          "cases": 0,
+          "resources": 0
+        },
+        "institutionCount": 0,
+        "deniedCount": 48
+      },
+      "rollbackAndBackup": {
+        "counts": {
+          "drugs": 0,
+          "disorders": 0,
+          "cases": 0,
+          "resources": 0
+        },
+        "institutionCount": 0,
+        "deniedCount": 48
+      },
+      "staleVisibleCount": 0,
+      "code": "WITHDRAWAL_ENFORCED"
+    },
+    {
+      "kind": "claim",
+      "sequence": 101,
+      "targetSha256": "d1e3f017c82ae9084a4d01116e630f31bfecf8c0aa8cdfbe014062e84768699e",
+      "adopted": {
+        "counts": {
+          "drugs": 0,
+          "disorders": 0,
+          "cases": 0,
+          "resources": 0
+        },
+        "institutionCount": 0,
+        "deniedCount": 47
+      },
+      "rollbackAndBackup": {
+        "counts": {
+          "drugs": 0,
+          "disorders": 0,
+          "cases": 0,
+          "resources": 0
+        },
+        "institutionCount": 0,
+        "deniedCount": 47
+      },
+      "staleVisibleCount": 0,
+      "code": "WITHDRAWAL_ENFORCED"
+    },
+    {
+      "kind": "rights",
+      "sequence": 102,
+      "targetSha256": "339d64114afb9cb5ad3dd0fdfd8edca26c1647100f1d79d1ca3e628d073929a4",
+      "adopted": {
+        "counts": {
+          "drugs": 0,
+          "disorders": 0,
+          "cases": 0,
+          "resources": 0
+        },
+        "institutionCount": 0,
+        "deniedCount": 49
+      },
+      "rollbackAndBackup": {
+        "counts": {
+          "drugs": 0,
+          "disorders": 0,
+          "cases": 0,
+          "resources": 0
+        },
+        "institutionCount": 0,
+        "deniedCount": 49
+      },
+      "staleVisibleCount": 0,
+      "code": "WITHDRAWAL_ENFORCED"
+    },
+    {
+      "kind": "review",
+      "sequence": 103,
+      "targetSha256": "926291c61cd9a4a0b018b073baf607e43961e1402f891db789f5c08225695440",
+      "adopted": {
+        "counts": {
+          "drugs": 1,
+          "disorders": 1,
+          "cases": 2,
+          "resources": 7
+        },
+        "institutionCount": 0,
+        "deniedCount": 25
+      },
+      "rollbackAndBackup": {
+        "counts": {
+          "drugs": 1,
+          "disorders": 1,
+          "cases": 2,
+          "resources": 7
+        },
+        "institutionCount": 0,
+        "deniedCount": 25
+      },
+      "staleVisibleCount": 0,
+      "code": "WITHDRAWAL_ENFORCED"
+    }
+  ],
+  "negatives": [
+    {
+      "kind": "provider",
+      "code": "PROVIDER_REF_CONFLICT"
+    },
+    {
+      "kind": "rights-evidence",
+      "code": "RIGHTS_EVIDENCE_MISSING"
+    },
+    {
+      "kind": "review-evidence",
+      "code": "REVIEW_EVIDENCE_MISSING"
+    },
+    {
+      "kind": "review-pending",
+      "code": "REVIEW_NOT_APPROVED"
+    },
+    {
+      "kind": "rights-expired",
+      "code": "RIGHTS_EXPIRED"
+    },
+    {
+      "kind": "review-expired",
+      "code": "REVIEW_EXPIRED"
+    },
+    {
+      "kind": "url",
+      "code": "DANGEROUS_URL"
+    },
+    {
+      "kind": "count-drop",
+      "code": "ADOPTION_COUNT_DROP"
+    },
+    {
+      "kind": "builder-version-reuse",
+      "code": "PACK_MANIFEST_HASH_MISMATCH"
+    },
+    {
+      "kind": "adoption-version-reuse",
+      "code": "ADOPTION_VERSION_CONFLICT"
+    },
+    {
+      "kind": "partial-pack",
+      "code": "PACK_FILE_SET_MISMATCH"
+    }
+  ],
+  "failurePhases": [
+    {
+      "phase": "built",
+      "code": "ADOPTION_INJECTED_FAILURE"
+    },
+    {
+      "phase": "verified",
+      "code": "ADOPTION_INJECTED_FAILURE"
+    },
+    {
+      "phase": "archived",
+      "code": "ADOPTION_INJECTED_FAILURE"
+    },
+    {
+      "phase": "website_reviewed",
+      "code": "ADOPTION_INJECTED_FAILURE"
+    },
+    {
+      "phase": "website_verified",
+      "code": "ADOPTION_INJECTED_FAILURE"
+    },
+    {
+      "phase": "adopted",
+      "code": "ADOPTION_INJECTED_FAILURE"
+    }
+  ],
+  "checks": 113,
+  "code": "EXPANDED_SIMULATION_PASS",
+  "reportSha256": "4eed077b22c43253f6f764740662bc3b776b29cc4686cb2d5388bdc4ad3350de"
+}
