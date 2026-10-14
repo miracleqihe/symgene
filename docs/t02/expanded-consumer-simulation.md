@@ -6,6 +6,8 @@
 
 三个版本依次采用。第二版为旧资源 ID 添加明确的两跳重定向，第三版再向新的永久 ID 前向重定向；legacy 存储 ID 保留。每一步运行真实 vendored `buildPack` / `verifyPack` 和现有 `validateData`。网站 count floor 原值保持不变，后续候选还必须满足当前 active 包计数。
 
+新构建包的 `codeDigest` / `pipelineCommit` 来自当前逐文件摘要校验通过的 vendor provenance，不沿用旧候选包记录的构建器摘要。旧包原字节保留。当前导出的 producer commit 标为 `uncommitted`，报告如实保留该状态；这是已有导出快照的声明，不伪造 pipeline commit 或身份认证。输入包摘要与新包的 producer 摘要分别记录。
+
 ## 实际执行的场景
 
 - 三个版本完整采用；采用中断后恢复 JSON 状态、重试第三版，再重放相同不可变第三版，档案仍为三个版本。

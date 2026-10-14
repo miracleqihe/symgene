@@ -6,6 +6,8 @@ import { buildPack, verifyPack } from '../../vendor/t02/src/pack.mjs';
 import { canonical, sha256, subjectDigest } from '../../vendor/t02/src/contract.mjs';
 import { adaptVerifiedBundle, projectVisibleInstitutions } from '../../src/content/adapter.js';
 import { ADOPTION_PHASES, createAdoptionState, loadLockedCandidate, readContentLock, simulateAdoption, simulateRollback, updateEmergencyState, projectAdoptedKnowledge } from './adoption.mjs';
+import { verifyVendorProvenance } from './check-content-pack.mjs';
+import { readLocalConfig } from './read-local-config.mjs';
 import { validateData } from '../../src/validation/dataValidation.js';
 import { createEnvelope } from '../../src/storage/migrations.js';
 import { upsertEntry, deleteEntry } from '../../src/storage/operations.js';
@@ -29,12 +31,14 @@ export async function runExpandedSimulation({ now = EXPANDED_NOW } = {}) {
   };
   check(Number.isFinite(now), 'EXPANDED_CLOCK_INVALID');
   const lock = readContentLock(ROOT);
+  verifyVendorProvenance(ROOT);
+  const producer = readLocalConfig(ROOT, 'vendor/t02/provenance.json');
   const { candidate } = await loadLockedCandidate(ROOT, { verifyPack, allowSimulation: true, now });
   const directory = mkdtempSync(join(tmpdir(), 'symgene-expanded-synthetic-'));
   const outputRoot = join(directory, 'packs');
   const buildOptions = {
     outputRoot, allowSimulation: true, now,
-    pipelineCommit: candidate.manifest.pipelineCommit, codeDigest: candidate.manifest.codeDigest
+    pipelineCommit: producer.pipelineCommit, codeDigest: producer.codeDigest
   };
   const exact = (pack) => verifyPack(pack.packDir, {
     contentVersion: pack.contentVersion ?? pack.bundle.contentVersion,
@@ -245,6 +249,7 @@ export async function runExpandedSimulation({ now = EXPANDED_NOW } = {}) {
     const report = {
       reportVersion: 1, mode: 'local_simulation_only', production: 'legacy', identity: 'not_configured',
       inputManifestSha256: candidate.manifestSha256, inputPackageDigest: candidate.packageDigest,
+      producerCodeDigest: producer.codeDigest, producerPipelineCommit: producer.pipelineCommit,
       countPolicySha256: sha256(canonical(lock.policy)),
       population: { entities: firstBundle.entities.length, resources: firstBundle.entities.filter((entity) => entity.type === 'resource').length, institutions: activeAdapter.institutions.length, sameNameCampuses: expandedCampus.length, distinctCampusProviderRefs: 8 },
       versions: packs.map((pack, index) => ({ ordinal: index + 1, manifestSha256: pack.manifestSha256, packageDigest: pack.packageDigest, counts: pack.manifest.counts })),

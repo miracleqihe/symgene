@@ -5,6 +5,8 @@
   "identity": "not_configured",
   "inputManifestSha256": "953fa24a361bd2fd489ed8d930599c9610b45fce43285deda41cd116d2fbbfa3",
   "inputPackageDigest": "b0166fa70e0900b548ded179c5c54211366dc3e3f9ef818513abea63fe53b057",
+  "producerCodeDigest": "c201d02ff724d47ca6368120d0edf0cdf92b1e9327d40f8cd5616a3e6acac70d",
+  "producerPipelineCommit": "uncommitted",
   "countPolicySha256": "70743aa0f416789e58c1b014c24d91c64fc98cd08af3cd7c27660a047b9c9a8b",
   "population": {
     "entities": 23,
@@ -16,8 +18,8 @@
   "versions": [
     {
       "ordinal": 1,
-      "manifestSha256": "55807e4d94111b4e2f84f44aec1b68772511d249dca6c77c4884c5aa4f118c00",
-      "packageDigest": "06608f6a55b7578b4ed9f9ab7a11cc9d900e896f8eb3e26eee45924b173a8491",
+      "manifestSha256": "8eb30978e440db1d8adf17e9444b980be30b9cbeeb84de9a3c9de83e607e6eb9",
+      "packageDigest": "9f7eee6d3cb09b264a5288ee1635288be27d0bd1c976f90adaf0a7d024159e4e",
       "counts": {
         "claims": 1,
         "contentEntries": 2,
@@ -33,8 +35,8 @@
     },
     {
       "ordinal": 2,
-      "manifestSha256": "97d53e0ac7d87ecd59fbd32321c4b4b426a1536e142169b26944f459d68fd08f",
-      "packageDigest": "754fae5c82f4630ce94e15fcf4ecfce4ab50f04d022ca66108f85d6ef3f68a06",
+      "manifestSha256": "d8dc65d36b371c7d8cdfcd82b4bad061b1fdc3eef3bd018c605b38844f92939c",
+      "packageDigest": "d33294222a035034427d562439490142683d9f7e0549070bac3e51d31721dede",
       "counts": {
         "claims": 1,
         "contentEntries": 2,
@@ -50,8 +52,8 @@
     },
     {
       "ordinal": 3,
-      "manifestSha256": "7f30c08d94a62b68d18175a260195d9af8fd94fdde12f08185166c29afe3d79f",
-      "packageDigest": "40d38c7c30e5855f69c2bf7d416e5d018aa4f425c699582a3cb5a7be7360efcd",
+      "manifestSha256": "25da7a8d3474cd7f6825ccd875860acc1bb4b66f12a6ad87979c3433b6279e07",
+      "packageDigest": "cf3d85e843fa355660fe25094bbf0481710990565ea7a1b913f3a3a910df0838",
       "counts": {
         "claims": 1,
         "contentEntries": 2,
@@ -71,7 +73,7 @@
     "jsonRecoveries": 3,
     "successfulAdoptions": 4,
     "interruptedRetryCode": "ADOPTION_INJECTED_FAILURE",
-    "archiveIndexSha256": "c0116cac05dc77f0deb6c2e7802c32030f2335b84bb3f299c02b06ff55dc6ee1",
+    "archiveIndexSha256": "44dacf6c7ede6d9f2a9a5cd94bc1cba4b920bc787ab8ce6957219ba55ecf11a0",
     "safetyStateSha256": "afb02efb229a99be00db586a9184059b53c4b4353fd22994d4028c450d668e96"
   },
   "withdrawals": [
@@ -258,5 +260,5 @@
   ],
   "checks": 113,
   "code": "EXPANDED_SIMULATION_PASS",
-  "reportSha256": "4eed077b22c43253f6f764740662bc3b776b29cc4686cb2d5388bdc4ad3350de"
+  "reportSha256": "3d53a266d4331bd3ff386588bba8a87070f869eb59fed5150df672dcbf011478"
 }

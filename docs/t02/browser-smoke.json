@@ -1,0 +1,333 @@
+{
+  "code": "BROWSER_SYNTHETIC_SMOKE_PASS",
+  "scope": "consumer_harness_only",
+  "production": "legacy",
+  "sourceCommit": "72fb9300aabf3bd3aa446322987bd030c5f0f504",
+  "driverSha256": "7bb3346f5b12623e1364a239bfd7573adbc76b01e1f5433374359504926a58c4",
+  "sourceArchiveSha256": "97c40c83bdc72802094ad3e6a9c19f01263ac212bd29b886e4a81e36d74f7c1f",
+  "sources": [
+    {
+      "path": "src/content/adapter.js",
+      "sha256": "97b47aaf4f90bf01bd2dda8740e97eb3ac9d618bab67066c27f14b75db7835b0"
+    },
+    {
+      "path": "src/storage/constants.js",
+      "sha256": "a7771bb52c2d7f34a6cb6d6eda0fdc37c46bf2c5e7dfe078b496586d5086820a"
+    },
+    {
+      "path": "src/storage/migrations.js",
+      "sha256": "f400c35bbeaf9718c772bbb2cb1ab1f16907959e7d7a82dc625b96553dc89ce7"
+    },
+    {
+      "path": "src/storage/operations.js",
+      "sha256": "979478c7e750b14367e1aa6c3c0e30891e8cef0fcf68f4186acb001208da6671"
+    },
+    {
+      "path": "src/storage/storage.js",
+      "sha256": "2d2837b8d45d5967fb979a9764540def30d05ca50c5c88ecede7c8456dc90198"
+    },
+    {
+      "path": "src/validation/dataValidation.js",
+      "sha256": "6ce0de115d27aade98b453908c215f096e7fbf238b4d30990a42afc41c84d002"
+    },
+    {
+      "path": "src/search.js",
+      "sha256": "3d1c8b589839fd569e87e2cf4684b86334695e9106475e6e695f681c6faa6853"
+    },
+    {
+      "path": "content-pack.lock",
+      "sha256": "d32000bcf1479ecd2198bf74f362e17ced9eebde98e22d9c86c487c54b9d84b0"
+    },
+    {
+      "path": "scripts/t02/adoption.mjs",
+      "sha256": "cd8b72572c845470f90dde61871e406beb47d7c0b6f26f5449e94fcd7014d3b8"
+    },
+    {
+      "path": "scripts/t02/read-local-config.mjs",
+      "sha256": "b941bcc99ac6aadb3fcfc6cb12dc2ac388d4d225e0c34e4ea506b4a7558b961f"
+    },
+    {
+      "path": "vendor/t02/provenance.json",
+      "sha256": "c20afbcc1d020133dda04f0ba5b11319b4fc120f210f7980be086615b1639ed3"
+    },
+    {
+      "path": "vendor/t02/src/contract.mjs",
+      "sha256": "e7ffa8fc0ccae397fcf29fbce5c4863a73c45410e373d338426025edc717126f"
+    },
+    {
+      "path": "vendor/t02/src/pack.mjs",
+      "sha256": "6167868cbf5bbc35f0138f635684473b521bcf91c2822e22936ea348beb30507"
+    },
+    {
+      "path": "vendor/t02/src/scanner.mjs",
+      "sha256": "8cf6693c29095bafbec37aae7ddedbec801be58c5e1c8bae8a24f5853a397616"
+    },
+    {
+      "path": "vendor/t02/schemas/content-v1.schema.json",
+      "sha256": "59036468857ecc34b06a756e96cad0fcba6291b01acb47008dff6a7040f7f6de"
+    }
+  ],
+  "runtime": {
+    "node": "v22.23.3",
+    "playwright": "1.62.1",
+    "chromium": "151.0.7922.34",
+    "platform": "darwin",
+    "arch": "arm64",
+    "release": "27.0.0",
+    "navigatorPlatform": "MacIntel",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36",
+    "headless": true,
+    "freshContext": true
+  },
+  "server": {
+    "host": "127.0.0.1",
+    "port": 60676,
+    "subpath": "/symgene/t02-smoke/",
+    "noStore": true,
+    "servedModuleCount": 7,
+    "deniedLegacyRoutes": 2
+  },
+  "network": {
+    "externalPageRequests": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "serviceWorkers": "blocked"
+  },
+  "inputs": {
+    "candidateManifestSha256": "953fa24a361bd2fd489ed8d930599c9610b45fce43285deda41cd116d2fbbfa3",
+    "candidatePackageDigest": "b0166fa70e0900b548ded179c5c54211366dc3e3f9ef818513abea63fe53b057",
+    "archiveManifestSha256": "b65319b2c6948a4ab26146516cdb7381fe9bbbac14877f70c3559fa53e7f105e",
+    "archivePackageDigest": "a28b68716b9fce01ee87b432ed1f4028d9e16029f001dc7c025429f81581ad7a",
+    "expiryManifestSha256": "02d8d8cedb699b3997f12d21feaa6204a07fbb0c4929f2a7d67664cbc086b522",
+    "expiryProducerCodeDigest": "c201d02ff724d47ca6368120d0edf0cdf92b1e9327d40f8cd5616a3e6acac70d",
+    "expiryProducerPipelineCommit": "uncommitted"
+  },
+  "nativeLocalStorage": true,
+  "storageMock": false,
+  "oldUntrackedSimulationsIncluded": false,
+  "checks": 48,
+  "results": [
+    {
+      "code": "NATIVE_STORAGE_INITIALIZED",
+      "selected": "candidate",
+      "nativeStorage": true,
+      "nativeKeyCount": 5,
+      "sequence": 1,
+      "fresh": true,
+      "contentFresh": true,
+      "counts": {
+        "drugs": 1,
+        "disorders": 1,
+        "cases": 2,
+        "resources": 0
+      },
+      "detailsHidden": false,
+      "searchHidden": false,
+      "rawDiseaseRetained": true,
+      "overrideRetained": true,
+      "customCaseRetained": true,
+      "tombstoneRetained": true,
+      "projectionPreservedStorage": true,
+      "storageSha256": "6f5f3da643f246ea8f07e5ae2128f5d6a8b782a8fcd3643019f47466baeaa703"
+    },
+    {
+      "code": "WITHDRAWAL_HIDDEN",
+      "selected": "candidate",
+      "nativeStorage": true,
+      "nativeKeyCount": 5,
+      "sequence": 10,
+      "fresh": true,
+      "contentFresh": true,
+      "counts": {
+        "drugs": 1,
+        "disorders": 0,
+        "cases": 0,
+        "resources": 0
+      },
+      "detailsHidden": true,
+      "searchHidden": true,
+      "rawDiseaseRetained": true,
+      "overrideRetained": true,
+      "customCaseRetained": true,
+      "tombstoneRetained": true,
+      "projectionPreservedStorage": true,
+      "storageSha256": "3ea2ec749e0bfba0ccb38ef1a5532dbf0ccdbd03e65afe45071d32fdd212a4a9"
+    },
+    {
+      "code": "RELOADED_STILL_HIDDEN",
+      "selected": "candidate",
+      "nativeStorage": true,
+      "nativeKeyCount": 5,
+      "sequence": 10,
+      "fresh": true,
+      "contentFresh": true,
+      "counts": {
+        "drugs": 1,
+        "disorders": 0,
+        "cases": 0,
+        "resources": 0
+      },
+      "detailsHidden": true,
+      "searchHidden": true,
+      "rawDiseaseRetained": true,
+      "overrideRetained": true,
+      "customCaseRetained": true,
+      "tombstoneRetained": true,
+      "projectionPreservedStorage": true,
+      "storageSha256": "3ea2ec749e0bfba0ccb38ef1a5532dbf0ccdbd03e65afe45071d32fdd212a4a9"
+    },
+    {
+      "code": "BACKUP_RESTORED_STILL_HIDDEN",
+      "selected": "candidate",
+      "nativeStorage": true,
+      "nativeKeyCount": 6,
+      "sequence": 10,
+      "fresh": true,
+      "contentFresh": true,
+      "counts": {
+        "drugs": 1,
+        "disorders": 0,
+        "cases": 0,
+        "resources": 0
+      },
+      "detailsHidden": true,
+      "searchHidden": true,
+      "rawDiseaseRetained": true,
+      "overrideRetained": true,
+      "customCaseRetained": true,
+      "tombstoneRetained": true,
+      "projectionPreservedStorage": true,
+      "storageSha256": "5880b2fddd1b6deeb415c417f47a55c20f8fc7c676d536cddf67cc944490c382",
+      "backupHadDisease": true,
+      "safetyPreserved": true
+    },
+    {
+      "code": "OLD_PACKAGE_STILL_HIDDEN",
+      "selected": "archive",
+      "nativeStorage": true,
+      "nativeKeyCount": 6,
+      "sequence": 10,
+      "fresh": true,
+      "contentFresh": true,
+      "counts": {
+        "drugs": 1,
+        "disorders": 0,
+        "cases": 0,
+        "resources": 0
+      },
+      "detailsHidden": true,
+      "searchHidden": true,
+      "rawDiseaseRetained": true,
+      "overrideRetained": true,
+      "customCaseRetained": true,
+      "tombstoneRetained": true,
+      "projectionPreservedStorage": true,
+      "storageSha256": "b9d25ceb9db44a9e789c2b48809af97c5249bae52b64b81259ca6306c815af01"
+    },
+    {
+      "code": "OLD_PACKAGE_RELOADED_STILL_HIDDEN",
+      "selected": "archive",
+      "nativeStorage": true,
+      "nativeKeyCount": 6,
+      "sequence": 10,
+      "fresh": true,
+      "contentFresh": true,
+      "counts": {
+        "drugs": 1,
+        "disorders": 0,
+        "cases": 0,
+        "resources": 0
+      },
+      "detailsHidden": true,
+      "searchHidden": true,
+      "rawDiseaseRetained": true,
+      "overrideRetained": true,
+      "customCaseRetained": true,
+      "tombstoneRetained": true,
+      "projectionPreservedStorage": true,
+      "storageSha256": "b9d25ceb9db44a9e789c2b48809af97c5249bae52b64b81259ca6306c815af01"
+    },
+    {
+      "code": "RIGHTS_EXPIRED_HIDDEN",
+      "selected": "expiry",
+      "nativeStorage": true,
+      "nativeKeyCount": 6,
+      "sequence": 10,
+      "fresh": false,
+      "contentFresh": false,
+      "counts": {
+        "drugs": 0,
+        "disorders": 0,
+        "cases": 0,
+        "resources": 0
+      },
+      "detailsHidden": true,
+      "searchHidden": true,
+      "rawDiseaseRetained": true,
+      "overrideRetained": true,
+      "customCaseRetained": true,
+      "tombstoneRetained": true,
+      "projectionPreservedStorage": true,
+      "storageSha256": "54ae8b39648800d890442f5189eee0433ab1b6024301824f624910e881af00fd"
+    },
+    {
+      "code": "STALE_EMERGENCY_HIDDEN",
+      "selected": "candidate",
+      "nativeStorage": true,
+      "nativeKeyCount": 6,
+      "sequence": 10,
+      "fresh": false,
+      "contentFresh": true,
+      "counts": {
+        "drugs": 0,
+        "disorders": 0,
+        "cases": 0,
+        "resources": 0
+      },
+      "detailsHidden": true,
+      "searchHidden": true,
+      "rawDiseaseRetained": true,
+      "overrideRetained": true,
+      "customCaseRetained": true,
+      "tombstoneRetained": true,
+      "projectionPreservedStorage": true,
+      "storageSha256": "5880b2fddd1b6deeb415c417f47a55c20f8fc7c676d536cddf67cc944490c382"
+    },
+    {
+      "code": "UNTRUSTED_STATE_HIDDEN",
+      "selected": "candidate",
+      "nativeStorage": true,
+      "nativeKeyCount": 6,
+      "sequence": 10,
+      "fresh": false,
+      "contentFresh": true,
+      "counts": {
+        "drugs": 0,
+        "disorders": 0,
+        "cases": 0,
+        "resources": 0
+      },
+      "detailsHidden": true,
+      "searchHidden": true,
+      "rawDiseaseRetained": true,
+      "overrideRetained": true,
+      "customCaseRetained": true,
+      "tombstoneRetained": true,
+      "projectionPreservedStorage": true,
+      "storageSha256": "a0fa3e429b5ea0ce784af93683e035ba547627e5ad1bc16649b393130c1f4bb5"
+    }
+  ],
+  "screenshot": {
+    "name": "rights-expiry.png",
+    "sha256": "8d3f084422f42e9bf161ba901273e5ec36f21d96310c2517ae5378591de7dc76"
+  },
+  "limits": [
+    "synthetic_only",
+    "no_personal_profile",
+    "controlled_trust_injection",
+    "fixed_test_clock",
+    "no_production_ui_acceptance",
+    "no_authenticated_production_retraction_channel",
+    "reload_is_same_origin_not_a_durable_trusted_store"
+  ]
+}
