@@ -376,7 +376,8 @@ export function validateBundle(bundle, {
     contentVersion: bundle.contentVersion,
     mode: bundle.mode,
     reviewSetId: bundle.reviewSetId,
-    earliestExpiry: expiryValues.sort()[0] ?? null,
+    earliestExpiry: expiryValues.sort((left, right) => Date.parse(left) - Date.parse(right)
+      || (left < right ? -1 : left > right ? 1 : 0))[0] ?? null,
     counts: {
       entities: entities.size,
       sources: byType('source'), claims: byType('claim'), contentEntries: byType('contentEntry'),

@@ -73,7 +73,7 @@ function payloads(bundle) {
 function checkedSummary(bundle, options) {
   const summary = validateBundle(bundle, {
     allowSimulation: options.allowSimulation === true,
-    ...(options.now ? { now: options.now } : {}),
+    ...(options.now !== undefined ? { now: options.now } : {}),
     ...(options.verifyReviewAuthority ? { verifyReviewAuthority: options.verifyReviewAuthority } : {}),
     ...(options.effectiveDenylist ? { effectiveDenylist: options.effectiveDenylist } : {}),
   });
@@ -116,7 +116,7 @@ export function buildPack(bundle, options = {}) {
     publisherIdentity: { status: 'not_configured', authenticated: false },
     determinism: { encoding: 'utf-8', newline: 'LF', serialization: 'canonical-json+lf' },
   };
-  validateManifest(manifest, { allowSimulation: options.allowSimulation === true, ...(options.now ? { now: options.now } : {}) });
+  validateManifest(manifest, { allowSimulation: options.allowSimulation === true, ...(options.now !== undefined ? { now: options.now } : {}) });
   const manifestBytes = bytes(manifest);
   const manifestSha256 = sha256(manifestBytes);
   const packageDigest = sha256(canonical(manifest));
@@ -210,6 +210,6 @@ export function verifyPack(packDir, options = {}) {
     retractionSequence: Math.max(0, ...bundle.retractions.map(item => item.sequence)),
   };
   for (const [key, value] of Object.entries(metadata)) if (!same(value, manifest[key])) fail('PACK_METADATA_MISMATCH');
-  validateManifest(manifest, { allowSimulation: options.allowSimulation === true, ...(options.now ? { now: options.now } : {}) });
+  validateManifest(manifest, { allowSimulation: options.allowSimulation === true, ...(options.now !== undefined ? { now: options.now } : {}) });
   return { packDir: path.resolve(packDir), bundle, manifest, manifestSha256, packageDigest, contentVersion: manifest.contentVersion, identityAuthenticated: false };
 }
