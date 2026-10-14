@@ -17,8 +17,23 @@ function requireValue(condition, code, message) {
   if (!condition) throw new ContentAdapterError(code, message);
 }
 
+// Keep the reference vocabulary aligned with the normative contract's
+// legacyDependencies(). Local overrides need the same checks after merging.
+function payloadReferences(payload) {
+  const refs = [];
+  for (const field of ['disorderId', 'diseaseId']) {
+    if (payload[field] !== undefined) refs.push(['disorders', payload[field]]);
+  }
+  for (const field of ['relatedDrugIds', 'drugIds']) {
+    if (payload[field] === undefined) continue;
+    requireValue(Array.isArray(payload[field]), 'ADAPTER_REFERENCE_INVALID', 'Legacy reference lists must be arrays.');
+    for (const id of payload[field]) refs.push(['drugs', id]);
+  }
+  return refs;
+}
+
 export function adaptVerifiedBundle(bundle, { allowSimulation = false } = {}) {
-  requireValue(bundle.mode === 'public' || (bundle.mode === 'simulation' && allowSimulation),
+  requireValue(bundle.mode === 'public' || (bundle.mode === 'simulation' && allowSimulation === true),
     'ADAPTER_MODE_REJECTED', 'Simulation content requires explicit local opt-in.');
   const seedData = Object.fromEntries(COLLECTIONS.map((type) => [type, []]));
   const rows = Object.fromEntries(MAPPED_COLLECTIONS.map((type) => [type, []]));
@@ -50,6 +65,9 @@ export function adaptVerifiedBundle(bundle, { allowSimulation = false } = {}) {
     seedData[collection] = rows[collection].sort((a, b) => a.order - b.order).map((row) => row.value);
   }
   const canonicalByLegacy = new Map(identities.map((identity) => [key(identity.collection, identity.legacyId), identity.canonicalId]));
+  const expiries = [...(bundle.rights ?? []), ...(bundle.reviews ?? [])]
+    .map((item) => item.expiresAt).filter((value) => value !== null && value !== undefined);
+  const validUntil = expiries.length ? Math.min(...expiries.map((value) => Date.parse(value))) : null;
   return {
     seedData,
     institutions: rows.institutions.sort((a, b) => a.order - b.order).map((row) => row.value),
@@ -61,16 +79,18 @@ export function adaptVerifiedBundle(bundle, { allowSimulation = false } = {}) {
         ...(entity.sourceIds ?? []), ...(entity.claimIds ?? []), ...(entity.parentId ? [entity.parentId] : []),
         ...(entity.rightsId ? [entity.rightsId] : []), ...(bundle.reviewSetId ? [bundle.reviewSetId] : []),
         ...(bundle.reviews ?? []).filter((review) => review.subjectId === entity.id).map((review) => review.id),
-        ...(entity.legacy?.collection === 'cases'
-          ? [canonicalByLegacy.get(key('disorders', entity.payload.disorderId))].filter(Boolean) : []),
-        ...(entity.legacy?.collection === 'disorders'
-          ? (entity.payload.relatedDrugIds ?? []).map((id) => canonicalByLegacy.get(key('drugs', id))).filter(Boolean) : [])
+        ...payloadReferences(entity.payload).map(([collection, id]) => {
+          const canonical = canonicalByLegacy.get(key(collection, id));
+          requireValue(canonical, 'ADAPTER_REFERENCE_MISSING', 'A legacy dependency is missing from the complete package.');
+          return canonical;
+        })
       ]
     })),
     redirects: clone(bundle.redirects),
     retractions: clone(bundle.retractions),
     contentVersion: bundle.contentVersion,
-    mode: bundle.mode
+    mode: bundle.mode,
+    validUntil
   };
 }
 
@@ -86,7 +106,7 @@ export function acceptEmergencyRetractions(previous, event, {
   now = Date.now(),
   maxAgeMs = 60 * 60 * 1000
 } = {}) {
-  requireValue(trusted, 'RETRACTION_UNTRUSTED', 'Emergency retraction provenance is not trusted.');
+  requireValue(trusted === true, 'RETRACTION_UNTRUSTED', 'Emergency retraction provenance is not trusted.');
   requireValue(Number.isSafeInteger(event?.sequence) && event.sequence > 0,
     'RETRACTION_SEQUENCE_INVALID', 'Emergency retraction sequence must be positive.');
   requireValue(event.sequence >= previous.sequence, 'RETRACTION_DOWNGRADE', 'Emergency retraction state cannot move backwards.');
@@ -149,9 +169,10 @@ export function effectiveRetractions(adapter, ledger, {
   }
   const issuedAt = Date.parse(ledger.issuedAt);
   const expiresAt = Date.parse(ledger.expiresAt);
-  const fresh = ledger.trusted === true && ledger.sequence > 0
+  const contentFresh = adapter.validUntil === null || (Number.isFinite(adapter.validUntil) && now < adapter.validUntil);
+  const fresh = contentFresh && ledger.trusted === true && ledger.sequence > 0
     && issuedAt <= now && expiresAt > now && now - issuedAt <= maxAgeMs;
-  return { denied: [...denied].sort(), fresh, sequence: ledger.sequence };
+  return { denied: [...denied].sort(), fresh, contentFresh, sequence: ledger.sequence };
 }
 
 // Call AFTER storage v4 has replayed local overrides and dependency retention,
@@ -176,20 +197,19 @@ export function projectVisibleKnowledge(data, adapter, ledger, options = {}) {
   // entity intact rather than silently editing its medical relationships.
   let changed = true;
   while (changed) {
-    const before = visible.disorders.length + visible.cases.length;
-    const visibleDrugs = new Set(visible.drugs.map((item) => item.id));
-    visible.disorders = visible.disorders.filter((item) => {
-      if (!Array.isArray(item.relatedDrugIds) || item.relatedDrugIds.every((id) => visibleDrugs.has(id))) return true;
-      hidden.disorders.push(item.id);
-      return false;
-    });
-    const visibleDisorders = new Set(visible.disorders.map((item) => item.id));
-    visible.cases = visible.cases.filter((item) => {
-      if (visibleDisorders.has(item.disorderId)) return true;
-      hidden.cases.push(item.id);
-      return false;
-    });
-    changed = before !== visible.disorders.length + visible.cases.length;
+    changed = false;
+    const ids = Object.fromEntries(COLLECTIONS.map((collection) => [collection, new Set(visible[collection].map((item) => item.id))]));
+    for (const collection of COLLECTIONS) {
+      visible[collection] = visible[collection].filter((item) => {
+        let valid;
+        try { valid = payloadReferences(item).every(([target, id]) => ids[target].has(id)); }
+        catch { valid = false; }
+        if (valid) return true;
+        hidden[collection].push(item.id);
+        changed = true;
+        return false;
+      });
+    }
   }
   return { data: visible, hidden, ...status };
 }

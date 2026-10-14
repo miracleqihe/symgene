@@ -1,11 +1,12 @@
 import { createHash } from 'node:crypto';
-import { readFileSync, realpathSync } from 'node:fs';
-import { isAbsolute, relative, resolve, sep } from 'node:path';
+import { readFileSync, lstatSync } from 'node:fs';
+import { isAbsolute, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateData } from '../../src/validation/dataValidation.js';
 import { PROVINCE_GEO } from '../../src/atlas/chinaGeo.js';
 import { adaptVerifiedBundle } from '../../src/content/adapter.js';
 import { loadLockedCandidate, readContentLock } from './adoption.mjs';
+import { readLocalConfig, requireLocalPath } from './read-local-config.mjs';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
@@ -14,8 +15,7 @@ const REQUIRED_VENDOR_FILES = Object.freeze([
 ]);
 
 export function verifyVendorProvenance(root = ROOT) {
-  const vendor = resolve(root, 'vendor/t02');
-  const provenance = JSON.parse(readFileSync(resolve(vendor, 'provenance.json'), 'utf8'));
+  const provenance = readLocalConfig(root, 'vendor/t02/provenance.json', 'VENDOR_UNSAFE_PATH');
   if (!Array.isArray(provenance.files) || provenance.files.length !== REQUIRED_VENDOR_FILES.length) {
     throw Object.assign(new Error('Vendor file provenance is missing.'), { code: 'VENDOR_PROVENANCE_INVALID' });
   }
@@ -28,10 +28,11 @@ export function verifyVendorProvenance(root = ROOT) {
       throw Object.assign(new Error('Unsafe or duplicate vendor provenance path.'), { code: 'VENDOR_PROVENANCE_INVALID' });
     }
     seen.add(entry.path);
-    const path = realpathSync(resolve(vendor, entry.path));
-    const rel = relative(realpathSync(vendor), path);
-    if (rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel)
-      || sha256(readFileSync(path)) !== entry.sha256) {
+    const path = requireLocalPath(root, `vendor/t02/${entry.path}`, 'VENDOR_UNSAFE_PATH');
+    if (!lstatSync(path).isFile()) {
+      throw Object.assign(new Error('Vendor input must be a regular file.'), { code: 'VENDOR_UNSAFE_PATH' });
+    }
+    if (sha256(readFileSync(path)) !== entry.sha256) {
       throw Object.assign(new Error('Vendored consumer code differs from its recorded source digest.'), { code: 'VENDOR_HASH_MISMATCH' });
     }
   }

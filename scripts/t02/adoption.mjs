@@ -1,9 +1,10 @@
-import { readFileSync, realpathSync, lstatSync } from 'node:fs';
-import { isAbsolute, relative, resolve, sep } from 'node:path';
+import { realpathSync } from 'node:fs';
+import { isAbsolute, relative, sep } from 'node:path';
 import {
   ContentAdapterError, adaptVerifiedBundle, createRetractionLedger,
   acceptEmergencyRetractions, projectVisibleKnowledge
 } from '../../src/content/adapter.js';
+import { readLocalConfig, requireLocalPath } from './read-local-config.mjs';
 
 export const ADOPTION_PHASES = ['built', 'verified', 'archived', 'website_reviewed', 'website_verified', 'adopted'];
 const COUNT_KEYS = ['entities', 'sources', 'claims', 'contentEntries', 'scenarios', 'resources', 'rights', 'reviews', 'redirects', 'retractions'];
@@ -12,7 +13,7 @@ const clone = (value) => JSON.parse(JSON.stringify(value));
 const fail = (code, message) => { throw new ContentAdapterError(code, message); };
 
 export function readContentLock(websiteRoot) {
-  const lock = JSON.parse(readFileSync(resolve(websiteRoot, 'content-pack.lock'), 'utf8'));
+  const lock = readLocalConfig(websiteRoot, 'content-pack.lock', 'LOCK_FILE_UNSAFE');
   if (lock.lockVersion !== 1 || lock.adoption !== 'legacy' || lock.scope !== 'local_simulation_only') {
     fail('LOCK_ADOPTION_REJECTED', 'This rollout permits only legacy production and local simulation.');
   }
@@ -50,10 +51,9 @@ export function resolveLockedDirectory(websiteRoot, candidate) {
     || candidate.path.split('/').some((part) => !part || part === '.' || part === '..')) {
     fail('LOCK_PATH_INVALID', 'The exact immutable candidate must be inside content-packs.');
   }
-  const artifactRoot = resolve(websiteRoot, 'content-packs');
-  if (lstatSync(artifactRoot).isSymbolicLink()) fail('LOCK_PATH_ESCAPE', 'Artifact roots must not redirect outside the checkout.');
+  const artifactRoot = requireLocalPath(websiteRoot, 'content-packs', 'LOCK_PATH_ESCAPE');
   const root = realpathSync(artifactRoot);
-  const directory = realpathSync(resolve(websiteRoot, candidate.path));
+  const directory = realpathSync(requireLocalPath(websiteRoot, candidate.path, 'LOCK_PATH_ESCAPE'));
   const rel = relative(root, directory);
   if (!rel || rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel)) {
     fail('LOCK_PATH_ESCAPE', 'The locked candidate escaped the artifact directory.');
@@ -95,7 +95,79 @@ export function createAdoptionState() {
 }
 
 export function updateEmergencyState(state, event, options) {
+  requireSimulationState(state);
   return { ...clone(state), emergency: acceptEmergencyRetractions(state.emergency, event, options) };
+}
+
+function requireSimulationState(state) {
+  if (state?.scope !== 'local_simulation_only' || state?.production !== 'legacy') {
+    fail('ADOPTION_SCOPE_REJECTED', 'The state must retain local simulation scope and legacy production.');
+  }
+}
+
+function requireIdentityContinuity(state, pack) {
+  const history = Object.values(state.archives).map((archived) => archived.bundle);
+  if (state.active) history.push(state.active.bundle);
+  const entities = new Map(pack.bundle.entities.map((entity) => [entity.id, entity]));
+  const redirects = new Map(pack.bundle.redirects.map((item) => [item.from, item.to]));
+  const terminal = (id) => {
+    const seen = new Set();
+    while (redirects.has(id)) {
+      if (seen.has(id)) fail('ADOPTION_REDIRECT_CONFLICT', 'Historical redirect continuity is ambiguous.');
+      seen.add(id);
+      id = redirects.get(id);
+    }
+    return id;
+  };
+  const sameLegacy = (left, right) => left?.collection === right?.collection
+    && typeof left?.id === typeof right?.id && left?.id === right?.id;
+  const identities = [...state.retainedIdentities];
+  const historicalRedirects = [...state.retainedRedirects];
+  const providers = new Map();
+  for (const bundle of history) {
+    historicalRedirects.push(...bundle.redirects);
+    for (const previous of bundle.entities) {
+      const current = entities.get(previous.id);
+      if (current && current.type !== previous.type) fail('ADOPTION_ID_TYPE_REUSE', 'A permanent application ID cannot change entity type.');
+      if (previous.legacy) {
+        identities.push({ canonicalId: previous.id, collection: previous.legacy.collection, legacyId: previous.legacy.id });
+        if (current && !sameLegacy(previous.legacy, current.legacy)) {
+          fail('ADOPTION_CANONICAL_REMAP', 'A permanent canonical ID cannot change its storage identity.');
+        }
+      }
+      for (const ref of previous.providerRefs ?? []) {
+        const key = JSON.stringify([ref.provider, ref.namespace, ref.externalId]);
+        const ids = providers.get(key) ?? new Set();
+        ids.add(previous.id);
+        providers.set(key, ids);
+      }
+    }
+  }
+  for (const current of pack.bundle.entities) {
+    if (current.legacy) {
+      for (const previous of identities) {
+        if (previous.collection === current.legacy.collection
+          && typeof previous.legacyId === typeof current.legacy.id && previous.legacyId === current.legacy.id
+          && previous.canonicalId !== current.id && terminal(previous.canonicalId) !== current.id) {
+          fail('ADOPTION_LEGACY_ID_REUSE', 'A storage identity can move only through an explicit old-ID redirect.');
+        }
+      }
+    }
+    for (const ref of current.providerRefs ?? []) {
+      for (const previous of providers.get(JSON.stringify([ref.provider, ref.namespace, ref.externalId])) ?? []) {
+        if (previous !== current.id && terminal(previous) !== current.id) {
+          fail('ADOPTION_PROVIDER_ID_REUSE', 'A provider identity cannot silently move to an unrelated entity.');
+        }
+      }
+    }
+  }
+  for (const previous of historicalRedirects) {
+    if (entities.has(previous.from)) fail('ADOPTION_REDIRECT_SOURCE_REUSED', 'A retired redirect source cannot become a new active entity.');
+    // Updating A→B to A→C is safe only if B explicitly redirects to C too.
+    if (terminal(previous.from) !== terminal(previous.to)) {
+      fail('ADOPTION_REDIRECT_CONFLICT', 'An established redirect cannot be dropped or retargeted.');
+    }
+  }
 }
 
 function retainPackRetractions(state, pack) {
@@ -141,6 +213,7 @@ export async function simulateAdoption(previousState, candidate, {
   const completed = [];
   let pack;
   try {
+    requireSimulationState(state);
     for (const phase of ADOPTION_PHASES) {
       if (phase === failureAt) fail('ADOPTION_INJECTED_FAILURE', `Controlled failure at ${phase}.`);
       if (phase === 'verified') {
@@ -155,6 +228,7 @@ export async function simulateAdoption(previousState, candidate, {
           enforceFloors(pack.manifest.counts, state.active.manifest.counts, 'ADOPTION_COUNT_DROP');
           enforceFloors(legacyCounts(pack.bundle), legacyCounts(state.active.bundle), 'ADOPTION_LEGACY_COUNT_DROP');
         }
+        requireIdentityContinuity(state, pack);
       }
       if (phase === 'archived') {
         const existing = state.archives[pack.contentVersion ?? pack.bundle.contentVersion];
@@ -162,12 +236,12 @@ export async function simulateAdoption(previousState, candidate, {
           fail('ADOPTION_VERSION_CONFLICT', 'An immutable content version cannot be replaced.');
         }
       }
-      if (phase === 'website_reviewed' && !websiteReviewApproved) {
+      if (phase === 'website_reviewed' && websiteReviewApproved !== true) {
         fail('ADOPTION_REVIEW_REQUIRED', 'A separate website review decision is required.');
       }
       if (phase === 'website_verified') {
         if (typeof verifyWebsite !== 'function') fail('ADOPTION_WEBSITE_VERIFIER_REQUIRED', 'An explicit website verification gate must be supplied.');
-        if (!(await verifyWebsite(pack))) fail('ADOPTION_WEBSITE_FAILED', 'The website verification gate failed.');
+        if ((await verifyWebsite(pack)) !== true) fail('ADOPTION_WEBSITE_FAILED', 'The website verification gate failed.');
       }
       completed.push(phase);
     }
@@ -196,17 +270,19 @@ export async function simulateRollback(previousState, contentVersion, {
   websiteReviewApproved = false,
   verifyWebsite
 } = {}) {
-  const archived = previousState.archives[contentVersion];
-  if (!archived) return { ok: false, state: clone(previousState), code: 'ROLLBACK_NOT_ARCHIVED' };
-  if (!websiteReviewApproved) return { ok: false, state: clone(previousState), code: 'ROLLBACK_REVIEW_REQUIRED' };
   try {
+    requireSimulationState(previousState);
+    const archived = previousState.archives[contentVersion];
+    if (!archived) return { ok: false, state: clone(previousState), code: 'ROLLBACK_NOT_ARCHIVED' };
+    if (websiteReviewApproved !== true) return { ok: false, state: clone(previousState), code: 'ROLLBACK_REVIEW_REQUIRED' };
     if (typeof verifyArchived !== 'function') fail('ROLLBACK_PACKAGE_VERIFIER_REQUIRED', 'Rollback must reverify its archived package.');
     if (typeof verifyWebsite !== 'function') fail('ROLLBACK_WEBSITE_VERIFIER_REQUIRED', 'Rollback requires an explicit website verification gate.');
     const verified = await verifyArchived(archived);
+    if (verified.bundle.mode !== 'simulation') fail('ROLLBACK_PUBLIC_DISABLED', 'Rollback is limited to synthetic local packages.');
     if (verified.packageDigest !== archived.packageDigest || verified.bundle.contentVersion !== contentVersion) {
       fail('ROLLBACK_HASH_MISMATCH', 'Rollback must reverify the exact archived package.');
     }
-    if (!(await verifyWebsite(verified))) fail('ROLLBACK_WEBSITE_FAILED', 'Rollback website verification failed.');
+    if ((await verifyWebsite(verified)) !== true) fail('ROLLBACK_WEBSITE_FAILED', 'Rollback website verification failed.');
     const state = clone(previousState);
     state.previous = state.active;
     state.active = clone(verified);
@@ -220,7 +296,11 @@ export async function simulateRollback(previousState, contentVersion, {
 }
 
 export function projectAdoptedKnowledge(state, mergedKnowledge, options = {}) {
+  requireSimulationState(state);
   if (!state.active) fail('ADOPTION_NOT_ACTIVE', 'No simulated package has been adopted.');
+  if (state.active.bundle?.mode !== 'simulation') {
+    fail('ADOPTION_ACTIVE_MODE_REJECTED', 'Restored active content must retain explicit simulation mode.');
+  }
   const adapter = adaptVerifiedBundle(state.active.bundle, { allowSimulation: true });
   adapter.identities = [...adapter.identities, ...state.retainedIdentities];
   adapter.redirects = [...adapter.redirects, ...state.retainedRedirects];
