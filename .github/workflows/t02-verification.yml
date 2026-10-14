@@ -1,0 +1,33 @@
+name: T02 verification
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [codex/t02-content-contract]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: t02-verification-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  t02-engineering:
+    if: github.event_name != 'pull_request' || github.head_ref == 'codex/t02-content-contract'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run verify
+      - run: git diff --check
+      - run: node scripts/t02/check-repository.mjs
