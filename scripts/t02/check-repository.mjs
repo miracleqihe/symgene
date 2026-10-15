@@ -13,6 +13,10 @@ export const T02_BASE = '20ec83d9b0bed138299010da6d2cf9c4418f1cfc';
 const LIMIT = 20 * 1024 * 1024;
 const PACK_FILES = '(?:bundle|manifest|redirects|retractions|reviews|rights|sources)\\.json|content-v1\\.schema\\.json';
 const EXACT_PATHS = new Set([
+  'README.md', 'CONTRIBUTING.md', 'AGENTS.md',
+  'src/dev/t02-consumer.jsx', 'src/dev/t02-consumer.css',
+  'src/dev/t02-session.js', 'src/dev/t02-storage.js',
+  'tests/ui/t02-consumer.test.jsx',
   '.nvmrc', 'package.json', 'package-lock.json', 'content-pack.lock',
   'scripts/t02-golden.mjs', 'src/content/adapter.js',
   '.github/workflows/t02-verification.yml',

@@ -101,6 +101,11 @@ test('dependency roots and exact direct versions cannot drift independently', ()
 test('only scoped T02 paths are eligible, including when old simulations become tracked', () => {
   assert.equal(assertT02Path('scripts/t02/check-repository.mjs'), true);
   assert.equal(assertT02Path('content-packs/sim-4/manifest.json'), true);
+  for (const relative of ['src/dev/t02-consumer.jsx', 'src/dev/t02-consumer.css',
+    'src/dev/t02-session.js', 'src/dev/t02-storage.js', 'tests/ui/t02-consumer.test.jsx'])
+    assert.equal(assertT02Path(relative), true);
+  for (const relative of ['src/dev/unrelated.jsx', 'src/storage/storage.js', 'src/search.js'])
+    rejects(() => assertT02Path(relative), 'REPOSITORY_PATH_OUTSIDE_T02');
   for (const relative of ['src/main.jsx', '.github/workflows/deploy-pages.yml', 'raw/input.json',
     'work/input.json', '.env', '../outside.json', 'content-packs/sim-1/manifest.json',
     'content-packs/sim-2/manifest.json']) rejects(() => assertT02Path(relative), 'REPOSITORY_PATH_OUTSIDE_T02');

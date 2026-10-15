@@ -246,3 +246,16 @@ https://github.com/miracleqihe/symgene/compare/main...dev?expand=1&template=prom
 ## 报告问题与功能建议
 
 Bug 报告请包含复现步骤、预期行为、实际行为、浏览器与系统版本，以及必要的截图或错误信息。功能建议请说明使用场景、受益对象、替代方案和潜在的医学或隐私边界；重大变化应先讨论再实现。
+
+## T02 双仓开发演练
+
+独立数据仓维护唯一 schema 和版本化包，网站只采用精确 vendor、lock 和
+经验证完整包。生产默认保持 legacy。Node22 下先完成 npm ci、npm run verify
+和 npm run check:content；另执行 node scripts/t02/check-repository.mjs。
+
+`node scripts/t02/dev-consumer.mjs --enable-synthetic` 启动独立 loopback React
+开发入口。它有显著虚构标记，使用隔离存储命名空间，保留正式 storage v4
+校验/备份接口。它不是生产 main 页面或正式认证服务，不把备份/模拟审批
+升级为真实内容批准。浏览器演练见 scripts/t02/dev-consumer-browser.mjs 的
+参数说明；用独立临时浏览器配置，不使用个人浏览器数据。普通功能 PR 仍
+面向 dev；CI 和模拟演练不自动上传内容或部署。

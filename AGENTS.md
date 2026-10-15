@@ -81,3 +81,14 @@ Visual changes also require the real-browser and viewport checks documented in
 
 Before staging, review the complete diff and add only intended paths. Do not
 commit generated `dist/`, logs, screenshots, local backups, or temporary files.
+
+## T02 explicit development consumer
+
+The Extended T02 task authorizes the separate opt-in React synthetic consumer,
+not production adoption. Keep the default main application, medical/search/map
+behavior, storage v4 user keys and backups unchanged. The local launcher must
+require --enable-synthetic and loopback; namespace all synthetic storage through
+the existing storage API. Do not present test-only retraction injection as a
+production authenticated publisher. Verify the production build excludes this
+entry, its switch and synthetic UI, and use real Chromium for the development
+entry. The original sim-1/sim-2 untracked files remain outside all commits.
