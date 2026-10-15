@@ -23,6 +23,9 @@ export function codeFingerprint() {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const files = [];
   function collect(relative) {
+    // Compatibility code and held assets are outside the core producer inputs.
+    // Exclude their canonical subtree before any metadata or content access.
+    if (relative === 'src/legacy' || relative.startsWith('src/legacy/')) return;
     const target = path.join(root, relative);
     const stat = fs.lstatSync(target);
     if (stat.isSymbolicLink()) fail('PACK_CODE_SYMLINK');

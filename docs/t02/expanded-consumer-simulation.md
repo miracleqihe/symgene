@@ -51,3 +51,5 @@ node scripts/t02/expanded-simulation.mjs > docs/t02/expanded-consumer-simulation
 ```
 
 这是一轮扩大规模的合成网站消费演练，不替代两批合法真实输入双跑、T01.2 签收、人工四维审核、真实身份与可信撤稿通道、持久存储或生产验收。生产保持 legacy；未授予 public 权限、未创建人工审核身份、未发布三个临时内容包。
+
+2026-10-15 Extended：producer核心指纹现排除legacy资产，精确vendor重导出后，当前聚合JSON已按新producerCodeDigest重新生成并重跑113项。原sim3/4包与lock字节保持，旧聚合版本仍在Git历史；派生归档摘要因producer provenance变化而变化，未删除断言或豁免摘要。

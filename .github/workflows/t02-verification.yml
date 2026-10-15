@@ -18,6 +18,7 @@ jobs:
   t02-engineering:
     if: github.event_name != 'pull_request' || github.head_ref == 'codex/t02-content-contract'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
