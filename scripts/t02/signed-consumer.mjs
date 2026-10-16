@@ -32,7 +32,7 @@ export async function startSignedConsumer({ enabled = false, root = ROOT, port =
         if (url.pathname === `${SIGNED_PATH}configuration`) { response.end(JSON.stringify(configuration)); return; }
         if (url.pathname === `${SIGNED_PATH}snapshot`) {
           const version = url.searchParams.get('version'); const action = url.searchParams.get('action');
-          if (!versions.includes(version) || !['adopt', 'rollback'].includes(action)
+          if (!versions.includes(version) || !['read', 'adopt', 'rollback'].includes(action)
             || [...url.searchParams.keys()].sort().join('|') !== 'action|version') { response.statusCode = 400; response.end('{}'); return; }
           try {
             const target = new URL('/snapshot', gateway); target.search = new URLSearchParams({ version, action }).toString();

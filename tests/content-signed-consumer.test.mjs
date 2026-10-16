@@ -199,3 +199,21 @@ test('actual production build excludes signed development UI, routes and namespa
     assert.doesNotMatch(asset.fileName, /t02-signed/);
   }
 });
+
+test('frequent session refreshes only read; adopting and rolling back are explicit operations', async () => {
+  const actions = [];
+  const session = createSignedSession(configuration, createSignedStorage(native()), { clock: () => NOW,
+    fetchImpl: async (url) => {
+      const query = new URL(url, 'http://example.org').searchParams;
+      actions.push(query.get('action'));
+      const value = structuredClone(snapshot()); value.bundle.contentVersion = query.get('version');
+      return new Response(JSON.stringify(value), { headers: { 'Cache-Control': 'no-store' } });
+    } });
+  for (let poll = 0; poll < 40; poll++) assert.equal(await session.refresh(), true);
+  assert.deepEqual(actions, Array(40).fill('read'));
+  assert.equal(await session.adopt(configuration.candidateVersion), true);
+  assert.equal(actions.at(-1), 'adopt');
+  assert.equal(await session.adopt(configuration.versions[0]), true);
+  assert.equal(actions.at(-1), 'rollback');
+  assert.equal(await session.refresh(), true); assert.equal(actions.at(-1), 'read');
+});
