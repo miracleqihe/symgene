@@ -20,7 +20,9 @@ export function T02SignedDevelopmentApp() {
     const refresh = async () => {
       if (!current || polling) return;
       polling = true;
-      try { await current.refresh(); redraw(); } finally { polling = false; }
+      try { await current.refresh(); redraw(); }
+      catch { current.invalidate('SIGNED_OPERATION_FAILED'); redraw(); }
+      finally { polling = false; }
     };
     const offline = () => { current?.invalidate('SIGNED_NETWORK_OFFLINE'); redraw(); };
     const visibility = () => { if (!document.hidden) { current?.invalidate(); redraw(); void refresh(); } };
@@ -40,7 +42,18 @@ export function T02SignedDevelopmentApp() {
     return () => { live = false; clearInterval(timer); clearInterval(expiryTimer); current?.invalidate(); window.removeEventListener('offline', offline);
       window.removeEventListener('online', refresh); document.removeEventListener('visibilitychange', visibility); };
   }, []);
-  const action = (operation) => { try { operation(); setView(session.snapshot()); setError(''); } catch (cause) { session.invalidate(cause.code); setView(session.snapshot()); setError(cause.code ?? 'SIGNED_OPERATION_FAILED'); } };
+  const failClosed = (cause) => {
+    const code = /^[A-Z0-9_]+$/.test(cause?.code ?? '') ? cause.code : 'SIGNED_OPERATION_FAILED';
+    session?.invalidate(code); setError(code);
+    try { setView(session?.snapshot() ?? null); } catch { setView(null); }
+  };
+  const action = (operation) => { try { operation(); setView(session.snapshot()); setError(''); } catch (cause) { failClosed(cause); } };
+  const refresh = async (version) => {
+    try {
+      session.invalidate('SIGNED_REFRESH_PENDING'); setView(session.snapshot());
+      await session.refresh(version); setView(session.snapshot()); setError('');
+    } catch (cause) { failClosed(cause); }
+  };
   const matches = matchKnowledge(query, view?.data ?? { drugs: [], disorders: [], cases: [], resources: [] });
   const detail = selected ? view?.data[selected.type].find((item) => item.id === selected.id) : null;
   const summary = view && { marker: view.marker, scope: view.scope, production: view.production, selected: view.selected,
@@ -55,10 +68,9 @@ export function T02SignedDevelopmentApp() {
       <p>生产主界面仍使用 legacy。请勿输入真实患者资料。</p></header>
     <section aria-label="签名发布状态"><h2>当前发布状态</h2>
       <p role="status">{view?.fresh ? '签名与最新检查点有效' : '当前状态无法确认，内容已隐藏'}</p>
-      {view && <><label>已配置测试版本<select aria-label="已配置测试版本" value={view.selected} onChange={async (event) => {
-        session.invalidate('SIGNED_SELECTION_PENDING'); setView(session.snapshot()); await session.refresh(event.target.value); setView(session.snapshot());
-      }}>{view.versions.map((version) => <option key={version}>{version}</option>)}</select></label>
-        <button onClick={async () => { session.invalidate('SIGNED_REFRESH_PENDING'); setView(session.snapshot()); await session.refresh(); setView(session.snapshot()); }}>重新核验当前状态</button>
+      {view && <><label>已配置测试版本<select aria-label="已配置测试版本" value={view.selected} onChange={(event) => { void refresh(event.target.value); }}>
+        {view.versions.map((version) => <option key={version}>{version}</option>)}</select></label>
+        <button onClick={() => { void refresh(view.selected); }}>重新核验当前状态</button>
         <p>撤稿序号 {view.sequence}。离线缓存只保留拒绝历史，不能授权展示内容。</p></>}
       {(error || view?.error) && <p role="alert">{error || view.error}</p>}
     </section>

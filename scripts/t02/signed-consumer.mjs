@@ -51,7 +51,16 @@ export async function startSignedConsumer({ enabled = false, root = ROOT, port =
       });
     }
   }] });
-  await app.listen();
+  try {
+    // Vite's listen(0) substitutes its default port. Let the OS reserve an
+    // ephemeral socket atomically through the public HTTP server instead.
+    if (port === 0) await new Promise((ready, reject) => {
+      const failed = (error) => reject(error);
+      app.httpServer.once('error', failed);
+      app.httpServer.listen(0, '127.0.0.1', () => { app.httpServer.off('error', failed); ready(); });
+    });
+    else await app.listen();
+  } catch (cause) { await app.close(); throw cause; }
   return { app, url: `http://127.0.0.1:${app.httpServer.address().port}${SIGNED_PATH}` };
 }
 

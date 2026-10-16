@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { build } from 'vite';
 import { fileURLToPath } from 'node:url';
-import { loadDevelopmentBootstrap } from '../scripts/t02/dev-consumer.mjs';
+import { loadDevelopmentBootstrap, startDevelopmentConsumer } from '../scripts/t02/dev-consumer.mjs';
 import { startSignedConsumer } from '../scripts/t02/signed-consumer.mjs';
-import { createSignedSession, createSignedStorage, SIGNED_MARKER, SIGNED_SAFETY_KEY, SIGNED_STORAGE_PREFIX } from '../src/dev/t02-signed-session.js';
+import { createSignedSession, createSignedStorage, SIGNED_MARKER, SIGNED_SAFETY_KEY, SIGNED_SELECTION_KEY, SIGNED_STORAGE_PREFIX } from '../src/dev/t02-signed-session.js';
+import { adaptVerifiedBundle } from '../src/content/adapter.js';
 import { STORAGE_KEY, BACKUP_KEY_PREFIX } from '../src/storage/constants.js';
 import { MemoryStorage } from './helpers/storage-fixtures.mjs';
 
@@ -37,6 +38,25 @@ test('signed launcher preserves every producer-valid version spelling without re
     const response = await fetch(`${server.url}configuration`);
     assert.deepEqual((await response.json()).versions, versions);
   } finally { await server.app.close(); }
+});
+
+test('both opt-in launchers atomically reserve different ephemeral ports and close after a bind failure', async () => {
+  const servers = [];
+  const signedOptions = { enabled: true, gatewayURL: 'http://127.0.0.1:12345', versions: configuration.versions, candidateVersion: configuration.candidateVersion };
+  const start = async (factory, options) => { const server = await factory(options); servers.push(server); return server; };
+  try {
+    const started = await Promise.all([start(startSignedConsumer, signedOptions), start(startSignedConsumer, signedOptions),
+      start(startDevelopmentConsumer, { enabled: true }), start(startDevelopmentConsumer, { enabled: true })]);
+    assert.equal(new Set(started.map((server) => new URL(server.url).port)).size, 4);
+    for (let index = 0; index < started.length; index++) {
+      const response = await fetch(`${started[index].url}${index < 2 ? 'configuration' : 'bootstrap'}`);
+      assert.equal(response.status, 200); assert.equal((await response.json()).production, 'legacy');
+    }
+    const occupied = Number(new URL(started[0].url).port);
+    await assert.rejects(startSignedConsumer({ ...signedOptions, port: occupied }));
+    await assert.rejects(startDevelopmentConsumer({ enabled: true, port: occupied }));
+    const response = await fetch(`${started[0].url}configuration`); assert.equal(response.status, 200); await response.json();
+  } finally { await Promise.all(servers.map((server) => server.app.close())); }
 });
 
 test('signed projection requires an online response and never reads persisted fresh/trusted booleans', async () => {
@@ -99,6 +119,55 @@ test('a late successful gateway read cannot reopen a session invalidated by netw
   assert.ok(Object.values(session.snapshot().counts).every((count) => count === 0));
 });
 
+test('disjoint legacy IDs reject a switch before adopting or writing and keep failed snapshots safely hidden', async () => {
+  const disjoint = structuredClone(candidate.bundle);
+  disjoint.contentVersion = configuration.versions[0];
+  const remap = new Map(disjoint.entities.filter((item) => item.legacy).map((item) => [`${item.legacy.collection}:${item.legacy.id}`, `fictional-old-${item.legacy.id}`]));
+  for (const item of disjoint.entities) {
+    if (!item.legacy) continue;
+    item.legacy.id = remap.get(`${item.legacy.collection}:${item.legacy.id}`); item.payload.id = item.legacy.id;
+    if (item.payload.disorderId) item.payload.disorderId = remap.get(`disorders:${item.payload.disorderId}`);
+    for (const field of ['relatedDrugIds', 'drugIds']) if (item.payload[field]) item.payload[field] = item.payload[field].map((id) => remap.get(`drugs:${id}`));
+  }
+  assert.deepEqual(adaptVerifiedBundle(disjoint, { allowSimulation: true }).seedData.disorders[0].relatedDrugIds,
+    [adaptVerifiedBundle(disjoint, { allowSimulation: true }).seedData.drugs[0].id]);
+  const original = native(); const storage = createSignedStorage(original);
+  const session = createSignedSession(configuration, storage, { clock: () => NOW,
+    fetchImpl: async (url) => {
+      const next = snapshot(); if (new URL(url, 'http://example.org').searchParams.get('version') === disjoint.contentVersion) next.bundle = disjoint;
+      return new Response(JSON.stringify(next), { headers: { 'Cache-Control': 'no-store' } });
+    } });
+  assert.equal(await session.refresh(), true); session.createFictionalEdits(); session.backup();
+  const before = [...original.values.entries()];
+  assert.equal(await session.refresh(disjoint.contentVersion), false);
+  assert.deepEqual([...original.values.entries()], before);
+  assert.equal(storage.getItem(SIGNED_SELECTION_KEY), configuration.candidateVersion);
+  let failed; assert.doesNotThrow(() => { failed = session.snapshot(); });
+  assert.equal(failed.fresh, false); assert.equal(failed.selected, configuration.candidateVersion);
+  assert.ok(Object.values(failed.counts).every((count) => count === 0));
+  assert.equal(failed.envelope.data.cases.length, 2);
+  assert.equal(failed.envelope.deletedIds.resources.length, 1);
+  assert.ok(Object.keys(failed.envelope.localOverrides.disorders).length > 0);
+  assert.deepEqual([...original.values.entries()], before);
+  assert.equal(await session.refresh(configuration.candidateVersion), true);
+  assert.equal(session.snapshot().counts.disorders, 1);
+});
+
+test('corrupted signed storage returns a stable hidden snapshot without changing user bytes or backups', async () => {
+  const original = native(); const storage = createSignedStorage(original);
+  const session = createSignedSession(configuration, storage, { clock: () => NOW,
+    fetchImpl: async () => new Response(JSON.stringify(snapshot()), { headers: { 'Cache-Control': 'no-store' } }) });
+  assert.equal(await session.refresh(), true); session.backup();
+  storage.setItem(STORAGE_KEY, '{fictional-invalid');
+  const before = [...original.values.entries()];
+  for (let index = 0; index < 3; index++) {
+    let failed; assert.doesNotThrow(() => { failed = session.snapshot(); });
+    assert.equal(failed.fresh, false); assert.equal(failed.proof, null);
+    assert.ok(Object.values(failed.counts).every((count) => count === 0));
+  }
+  assert.deepEqual([...original.values.entries()], before);
+});
+
 test('same-origin proxy fetches authority on every read and refuses offline cached content', async () => {
   let requests = 0; let available = true;
   const upstream = createServer((request, response) => {
@@ -112,12 +181,13 @@ test('same-origin proxy fetches authority on every read and refuses offline cach
     const target = `${server.url}snapshot?version=${candidate.contentVersion}&action=adopt`;
     for (let index = 0; index < 2; index++) {
       const response = await fetch(target); assert.equal(response.status, 200); assert.equal(response.headers.get('cache-control'), 'no-store');
+      await response.json();
     }
     assert.equal(requests, 2);
     available = false;
     const response = await fetch(target); assert.equal(response.status, 503); assert.equal((await response.json()).available, false);
     assert.equal(response.headers.get('cache-control'), 'no-store');
-    assert.equal((await fetch(`${target}&source=http://example.org`)).status, 400);
+    const rejected = await fetch(`${target}&source=http://example.org`); assert.equal(rejected.status, 400); await rejected.text();
   } finally { await server.app.close(); await new Promise((resolve) => upstream.close(resolve)); }
 });
 

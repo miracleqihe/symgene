@@ -64,7 +64,14 @@ export async function startDevelopmentConsumer({ enabled = false, root = ROOT, p
       });
     }
   }] });
-  await app.listen();
+  try {
+    if (port === 0) await new Promise((ready, reject) => {
+      const failed = (error) => reject(error);
+      app.httpServer.once('error', failed);
+      app.httpServer.listen(0, '127.0.0.1', () => { app.httpServer.off('error', failed); ready(); });
+    });
+    else await app.listen();
+  } catch (cause) { await app.close(); throw cause; }
   return { app, url: `http://127.0.0.1:${app.httpServer.address().port}${DEVELOPMENT_PATH}` };
 }
 

@@ -2,6 +2,7 @@ import { adaptVerifiedBundle, createRetractionLedger, projectVisibleKnowledge } 
 import { readKnowledge, writeKnowledge, createBackup, listBackups, restoreBackup } from '../storage/storage.js';
 import { upsertEntry, deleteEntry } from '../storage/operations.js';
 import { STORAGE_KEY, BACKUP_KEY_PREFIX } from '../storage/constants.js';
+import { migrateKnowledge } from '../storage/migrations.js';
 import { validateData } from '../validation/dataValidation.js';
 
 export const SIGNED_MARKER = 'T02_SIGNED_TEST_CONSUMER';
@@ -66,9 +67,16 @@ export function createSignedSession(configuration, storage, { fetchImpl = global
   const invalidate = (code = 'SIGNED_GATEWAY_UNAVAILABLE') => {
     requestSequence++; abort?.abort(); pendingVersion = null; available = false; leaseUntil = 0; error = code;
   };
-  const envelope = () => {
-    if (!adapter) return null;
-    const read = readKnowledge(storage, adapter.seedData, { now: new Date(now()) });
+  const preflight = (nextAdapter) => {
+    const raw = storage.getItem(STORAGE_KEY);
+    // A release may carry different legacy IDs. Never guess their mapping or
+    // invoke the writing migration path until the complete merge is valid.
+    if (raw !== null && !migrateKnowledge(raw, nextAdapter.seedData, { now: new Date(now()) }).ok) fail('SIGNED_STORAGE_COMPATIBILITY_REJECTED');
+  };
+  const envelope = (nextAdapter = adapter) => {
+    if (!nextAdapter) return null;
+    preflight(nextAdapter);
+    const read = readKnowledge(storage, nextAdapter.seedData, { now: new Date(now()) });
     if (read.error) fail('SIGNED_STORAGE_READ_FAILED');
     return read.envelope;
   };
@@ -109,17 +117,20 @@ export function createSignedSession(configuration, storage, { fetchImpl = global
         if (nextEvent.sequence === history.sequence && nextProof.headDigest !== history.headDigest) fail('SIGNED_SEQUENCE_EQUIVOCATION');
         const nextAdapter = adaptVerifiedBundle(snapshot.bundle, { allowSimulation: true });
         if (validateData(nextAdapter.seedData, { requireDrugSideEffects: true }).length) fail('SIGNED_WEBSITE_DATA_REJECTED');
+        preflight(nextAdapter);
         const graph = Object.fromEntries(GRAPH.map((field) => [field, [...new Map(
           [...history.graph[field], ...nextAdapter[field]].map((item) => [JSON.stringify(item), item])).values()]]));
         const nextHistory = { scope: 'denial-only-no-offline-authority', sequence: nextEvent.sequence,
           targetIds: [...new Set([...history.targetIds, ...nextEvent.targetIds])].sort(), headDigest: nextProof.headDigest,
           trustRevision: nextProof.trustRevision, graph };
+        // Complete the existing v4 merge before publishing a new active adapter.
+        // An incompatible switch has performed only reads above this point.
+        envelope(nextAdapter);
         // Persist only monotonic rejection history, never a fresh/trusted lease.
         storage.setItem(SIGNED_SAFETY_KEY, JSON.stringify(nextHistory));
         storage.setItem(SIGNED_SELECTION_KEY, version);
         history = nextHistory; selected = version; adapter = nextAdapter;
         event = clone(nextEvent); proof = clone(nextProof);
-        envelope();
         available = true; leaseUntil = Math.min(now() + 2000, Date.parse(nextEvent.expiresAt), Date.parse(nextProof.validUntil)); error = '';
         return true;
       } catch (cause) {
@@ -128,19 +139,27 @@ export function createSignedSession(configuration, storage, { fetchImpl = global
       } finally { clearTimeout(timeout); if (request === requestSequence) pendingVersion = null; }
     },
     snapshot() {
-      const current = envelope();
-      const live = available && now() < leaseUntil;
+      let current = null;
+      let status = null;
+      let backups = [];
       // The Node gateway verifies the signatures and independent latest checkpoint
       // on every read. The boolean here is process-local projection state only;
       // it is never loaded from artifacts or persisted browser data.
-      const ledger = live ? { ...createRetractionLedger(), ...event, targetIds: history.targetIds, trusted: true }
-        : { ...createRetractionLedger(), sequence: history.sequence, targetIds: history.targetIds };
-      const status = current ? projectVisibleKnowledge(current.data, { ...adapter, ...history.graph }, ledger, { now: now() }) : null;
+      try {
+        current = envelope(); backups = listBackups(storage);
+        const ledger = available && now() < leaseUntil ? { ...createRetractionLedger(), ...event, targetIds: history.targetIds, trusted: true }
+          : { ...createRetractionLedger(), sequence: history.sequence, targetIds: history.targetIds };
+        status = current ? projectVisibleKnowledge(current.data, { ...adapter, ...history.graph }, ledger, { now: now() }) : null;
+      } catch (cause) {
+        invalidate(/^[A-Z0-9_]+$/.test(cause.code ?? '') ? cause.code : 'SIGNED_STORAGE_READ_FAILED');
+        current = null; status = null;
+      }
+      const live = available && now() < leaseUntil;
       const data = status?.data ?? Object.fromEntries(['drugs', 'disorders', 'cases', 'resources'].map((field) => [field, []]));
       return { marker: SIGNED_MARKER, scope: 'local-test-only', production: 'legacy', selected, versions: configuration.versions,
         fresh: live && status?.fresh === true, sequence: history.sequence, data, envelope: current,
         counts: Object.fromEntries(Object.entries(data).map(([field, rows]) => [field, rows.length])),
-        backups: listBackups(storage), error: live ? error : error || 'SIGNED_CURRENT_STATE_REQUIRED', proof: live ? proof : null,
+        backups, error: live ? error : error || 'SIGNED_CURRENT_STATE_REQUIRED', proof: live ? proof : null,
         storageNamespace: SIGNED_STORAGE_PREFIX };
     },
     createFictionalEdits() {
