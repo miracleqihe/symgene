@@ -48,10 +48,12 @@ export function T02SignedDevelopmentApp() {
     try { setView(session?.snapshot() ?? null); } catch { setView(null); }
   };
   const action = (operation) => { try { operation(); setView(session.snapshot()); setError(''); } catch (cause) { failClosed(cause); } };
-  const refresh = async (version) => {
+  const refresh = async (version, decide = false) => {
     try {
       session.invalidate('SIGNED_REFRESH_PENDING'); setView(session.snapshot());
-      await session.refresh(version); setView(session.snapshot()); setError('');
+      if (decide) await session.adopt(version);
+      else await session.refresh(version);
+      setView(session.snapshot()); setError('');
     } catch (cause) { failClosed(cause); }
   };
   const matches = matchKnowledge(query, view?.data ?? { drugs: [], disorders: [], cases: [], resources: [] });
@@ -68,9 +70,10 @@ export function T02SignedDevelopmentApp() {
       <p>生产主界面仍使用 legacy。请勿输入真实患者资料。</p></header>
     <section aria-label="签名发布状态"><h2>当前发布状态</h2>
       <p role="status">{view?.fresh ? '签名与最新检查点有效' : '当前状态无法确认，内容已隐藏'}</p>
-      {view && <><label>已配置测试版本<select aria-label="已配置测试版本" value={view.selected} onChange={(event) => { void refresh(event.target.value); }}>
+      {view && <><label>已配置测试版本<select aria-label="已配置测试版本" value={view.selected} onChange={(event) => { void refresh(event.target.value, true); }}>
         {view.versions.map((version) => <option key={version}>{version}</option>)}</select></label>
         <button onClick={() => { void refresh(view.selected); }}>重新核验当前状态</button>
+        <button onClick={() => { void refresh(view.selected, true); }}>签名采用所选测试版本</button>
         <p>撤稿序号 {view.sequence}。离线缓存只保留拒绝历史，不能授权展示内容。</p></>}
       {(error || view?.error) && <p role="alert">{error || view.error}</p>}
     </section>

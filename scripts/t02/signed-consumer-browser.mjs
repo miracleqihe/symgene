@@ -31,6 +31,7 @@ export async function runSignedBrowser({ producerRoot = resolve(ROOT, '../symgen
   }
   const { createReleaseTestFixture } = await import(pathToFileURL(join(producerRoot, 'src/release-test-fixture.mjs')));
   const { startReleaseGateway } = await import(pathToFileURL(join(producerRoot, 'src/release-gateway.mjs')));
+  const { verifyPack } = await import(pathToFileURL(join(producerRoot, 'src/pack.mjs')));
   const fixture = await createReleaseTestFixture({ ...fixtureOptions, root: mkdtempSync(join(target, 'runtime-')) });
   const runtime = { snapshot: (request) => fixture.runtime.snapshot(request) };
   let gateway = await startReleaseGateway({ runtime });
@@ -44,7 +45,7 @@ export async function runSignedBrowser({ producerRoot = resolve(ROOT, '../symgen
   const check = (value, code) => { if (!value) fail(code); checks++; };
   const drill = (scenario, initial, action, expected, observed, recovery) => drills.push({ scenario, initial, action, expected, observed, recovery });
   try {
-    const initial = await runtime.snapshot({ version: fixture.candidateVersion, action: 'adopt' });
+    const initial = verifyPack(fixture.packages.get(fixture.candidateVersion).packDir, { allowSimulation: true });
     const seed = adaptVerifiedBundle(initial.bundle, { allowSimulation: true }).seedData;
     let protectedEnvelope = createEnvelope(seed);
     protectedEnvelope = upsertEntry(protectedEnvelope, 'disorders', { ...seed.disorders[0], summary: '完全虚构的原应用受保护覆盖' }, { seedData: seed });
@@ -66,7 +67,7 @@ export async function runSignedBrowser({ producerRoot = resolve(ROOT, '../symgen
     page.on('pageerror', () => pageErrors++);
     page.on('response', (response) => {
       if (response.url().includes('/t02-signed/snapshot?')) responses.push({ path: new URL(response.url()).pathname,
-        version: new URL(response.url()).searchParams.get('version'), status: response.status(), cacheControl: response.headers()['cache-control'] });
+        version: new URL(response.url()).searchParams.get('version'), action: new URL(response.url()).searchParams.get('action'), status: response.status(), cacheControl: response.headers()['cache-control'] });
     });
     const state = async () => JSON.parse(await page.getByTestId('signed-consumer-state').textContent());
     const waitState = async (predicate) => {
@@ -79,12 +80,26 @@ export async function runSignedBrowser({ producerRoot = resolve(ROOT, '../symgen
     });
     const unchanged = () => page.evaluate(({ original, prefix }) => Object.entries(original).every(([key, value]) => localStorage.getItem(key) === value)
       && Object.keys(localStorage).filter((key) => !key.startsWith(prefix)).length === Object.keys(original).length + 1, { original, prefix: SIGNED_STORAGE_PREFIX });
-    await page.goto(server.url, { waitUntil: 'networkidle' });
+    // This application continuously polls. Wait for the asserted React state,
+    // rather than requiring an unrelated period of network silence.
+    await page.goto(server.url, { waitUntil: 'domcontentloaded' });
+    await hidden();
+    check(fixture.controls.adoptionRequestCount() === 0 && JSON.parse(readFileSync(join(fixture.paths.auditDirectory, 'operations.json'))).entries.length === 0,
+      'SIGNED_BROWSER_STARTUP_CREATED_ADOPTION');
+    await page.getByRole('button', { name: '签名采用所选测试版本', exact: true }).click();
     await fresh();
     check(await page.getByRole('heading', { name: '签名发布消费演练', exact: true }).count() === 1, 'SIGNED_BROWSER_REACT_MISSING');
     check(await page.getByRole('button', { name: /注入虚构可信状态|撤回虚构疾病|模拟撤稿状态过期/ }).count() === 0, 'SIGNED_BROWSER_SYNTHETIC_TRUST_CONTROL');
     check(await page.evaluate(() => localStorage instanceof Storage && Object.getPrototypeOf(localStorage) === Storage.prototype), 'SIGNED_BROWSER_NATIVE_STORAGE_MISSING');
     check((await state()).proof.publisherKeyId !== (await state()).proof.adopterKeyId, 'SIGNED_BROWSER_INDEPENDENT_ADOPTER_MISSING');
+    const auditFile = join(fixture.paths.auditDirectory, 'operations.json');
+    const auditBeforePolling = readFileSync(auditFile);
+    for (let poll = 0; poll < 3; poll++) await page.waitForResponse(response => response.url().includes('/t02-signed/snapshot?')
+      && new URL(response.url()).searchParams.get('action') === 'read' && response.status() === 200);
+    check(readFileSync(auditFile).equals(auditBeforePolling) && fixture.controls.adoptionRequestCount() === 1, 'SIGNED_BROWSER_POLLING_CREATED_ADOPTION');
+    await page.getByRole('button', { name: '签名采用所选测试版本', exact: true }).click();
+    await waitState(() => JSON.parse(document.querySelector('[data-testid=signed-consumer-state]').textContent).proof?.audit.sequence === 2);
+    check(fixture.controls.adoptionRequestCount() === 2, 'SIGNED_BROWSER_EXPLICIT_ADOPTION_MISSING');
     await page.getByLabel('搜索虚构条目', { exact: true }).fill(seed.disorders[0].name);
     await page.getByTestId('signed-search-results').getByRole('button', { name: seed.disorders[0].name, exact: true }).click();
     check((await state()).detailVisible && (await state()).searchDisorders === 1, 'SIGNED_BROWSER_SEARCH_DETAILS_MISSING');
@@ -120,7 +135,7 @@ export async function runSignedBrowser({ producerRoot = resolve(ROOT, '../symgen
     check(rolledBack.selected === oldVersion && rolledBack.sequence === withdrawn.sequence && rolledBack.counts.disorders === 0 && rolledBack.counts.cases === 0, 'SIGNED_BROWSER_ROLLBACK_REVIVED');
     await page.getByRole('button', { name: '恢复最新隔离备份', exact: true }).click();
     check((await state()).counts.disorders === 0 && (await state()).sequence === withdrawn.sequence, 'SIGNED_BROWSER_BACKUP_RESTORE_REVIVED');
-    await page.reload({ waitUntil: 'networkidle' }); await fresh();
+    await page.reload({ waitUntil: 'domcontentloaded' }); await fresh();
     check((await state()).selected === oldVersion && (await state()).counts.cases === 0 && (await state()).sequence === withdrawn.sequence, 'SIGNED_BROWSER_REFRESH_REVIVED');
     drill('signed-retraction-dependency-and-rollback', 'Disease, dependent seed and custom cases displayed before signed retraction', 'Retraction operator signs next event and independent checkpoint; website rolls back archive and restores backup', 'Disease/dependencies/search/detail remain hidden; user overrides/tombstone/backups retained', { withdrawn: { sequence: withdrawn.sequence, counts: withdrawn.counts, rawCounts: withdrawn.rawCounts }, rollback: { version: rolledBack.selected, counts: rolledBack.counts, sequence: rolledBack.sequence } }, 'Refresh verifies the latest ledger and retains rejection history across the configured archive versions');
 
@@ -133,7 +148,7 @@ export async function runSignedBrowser({ producerRoot = resolve(ROOT, '../symgen
     gateway = await startReleaseGateway({ runtime, port: gatewayPort }); await fresh();
     check((await state()).sequence === withdrawn.sequence && (await state()).counts.disorders === 0, 'SIGNED_BROWSER_SERVICE_RESTART_REVIVED');
     await fixture.controls.restartCheckpointService(); await fresh();
-    await page.reload({ waitUntil: 'networkidle' }); await fresh();
+    await page.reload({ waitUntil: 'domcontentloaded' }); await fresh();
     check((await state()).sequence === withdrawn.sequence && (await state()).counts.cases === 0, 'SIGNED_BROWSER_RESTART_REFRESH_REVIVED');
     drill('service-restart-and-durable-recovery', 'Withdrawn content hidden after rollback', 'Stop gateway, recreate runtime from same ledger/archive/audit directories, restart gateway and independent checkpoint service', 'Failure hides content; recovery retains highest retraction and hidden dependencies', { unavailable: stopped.fresh, recoveredSequence: (await state()).sequence, recoveredCounts: (await state()).counts }, 'Browser refresh reconfirms persisted state');
 
@@ -158,6 +173,7 @@ export async function runSignedBrowser({ producerRoot = resolve(ROOT, '../symgen
     check(responses.some((response) => response.status === 200) && responses.some((response) => response.status === 503)
       && responses.every((response) => response.cacheControl === 'no-store'), 'SIGNED_BROWSER_NETWORK_CACHE_PROOF_MISSING');
     check(await page.evaluate(() => caches.keys().then((keys) => keys.length === 0)), 'SIGNED_BROWSER_CACHE_STORAGE_POPULATED');
+    check(JSON.parse(readFileSync(auditFile)).entries.length === 3 && fixture.controls.adoptionRequestCount() === 3, 'SIGNED_BROWSER_AUDIT_GREW_WITH_READS');
     const report = { status: 'SIGNED_REACT_BROWSER_LOCAL_PASS', formalAdoption: 'BLOCKED', production: 'legacy',
       identities: 'local-test-only', reviews: 'simulation-only', checks, browser: await browser.version(),
       playwrightVersion: JSON.parse(readFileSync(join(dirname(modulePath), 'package.json'))).version,

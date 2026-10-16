@@ -80,19 +80,20 @@ export function createSignedSession(configuration, storage, { fetchImpl = global
     if (read.error) fail('SIGNED_STORAGE_READ_FAILED');
     return read.envelope;
   };
-  return Object.freeze({
+  const session = {
     invalidate,
-    async refresh(version = desired) {
+    async refresh(version = desired, operation = 'read') {
+      if (!['read', 'decide'].includes(operation)) fail('SIGNED_OPERATION_REJECTED');
       if (!configuration.versions.includes(version)) fail('SIGNED_SELECTION_REJECTED');
       desired = version;
-      if (pendingVersion === version) return false;
+      if (pendingVersion === version && operation === 'read') return false;
       const request = ++requestSequence;
       abort?.abort(); const controller = new AbortController(); abort = controller; pendingVersion = version;
       const timeout = setTimeout(() => controller.abort(), 1500);
       try {
         // This path is fixed by the opt-in launcher. No URL, artifact boolean, or
         // browser storage value can choose the authority for this request.
-        const action = version === configuration.candidateVersion ? 'adopt' : 'rollback';
+        const action = operation === 'read' ? 'read' : version === configuration.candidateVersion ? 'adopt' : 'rollback';
         const response = await fetchImpl(`${SIGNED_PATH}snapshot?${new URLSearchParams({ version, action })}`, {
           method: 'GET', cache: 'no-store', credentials: 'omit', redirect: 'error', signal: controller.signal
         });
@@ -138,6 +139,7 @@ export function createSignedSession(configuration, storage, { fetchImpl = global
         return false;
       } finally { clearTimeout(timeout); if (request === requestSequence) pendingVersion = null; }
     },
+    async adopt(version = desired) { return session.refresh(version, 'decide'); },
     snapshot() {
       let current = null;
       let status = null;
@@ -173,5 +175,6 @@ export function createSignedSession(configuration, storage, { fetchImpl = global
     },
     backup() { return createBackup(storage, storage.getItem(STORAGE_KEY), { now: new Date(now()) }); },
     restore(key) { if (!adapter) fail('SIGNED_CURRENT_STATE_REQUIRED'); return restoreBackup(storage, key, adapter.seedData, { now: new Date(now()) }); }
-  });
+  };
+  return Object.freeze(session);
 }
