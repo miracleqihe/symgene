@@ -102,7 +102,10 @@ test('only scoped T02 paths are eligible, including when old simulations become 
   assert.equal(assertT02Path('scripts/t02/check-repository.mjs'), true);
   assert.equal(assertT02Path('content-packs/sim-4/manifest.json'), true);
   for (const relative of ['src/dev/t02-consumer.jsx', 'src/dev/t02-consumer.css',
-    'src/dev/t02-session.js', 'src/dev/t02-storage.js', 'tests/ui/t02-consumer.test.jsx'])
+    'src/dev/t02-session.js', 'src/dev/t02-storage.js', 'tests/ui/t02-consumer.test.jsx',
+    'src/dev/t02-signed-consumer.jsx', 'src/dev/t02-signed-session.js',
+    'scripts/t02/signed-consumer.mjs', 'scripts/t02/signed-consumer-browser.mjs',
+    'tests/content-signed-consumer.test.mjs'])
     assert.equal(assertT02Path(relative), true);
   for (const relative of ['src/dev/unrelated.jsx', 'src/storage/storage.js', 'src/search.js'])
     rejects(() => assertT02Path(relative), 'REPOSITORY_PATH_OUTSIDE_T02');

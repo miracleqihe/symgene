@@ -16,6 +16,7 @@ const EXACT_PATHS = new Set([
   'README.md', 'CONTRIBUTING.md', 'AGENTS.md',
   'src/dev/t02-consumer.jsx', 'src/dev/t02-consumer.css',
   'src/dev/t02-session.js', 'src/dev/t02-storage.js',
+  'src/dev/t02-signed-consumer.jsx', 'src/dev/t02-signed-session.js',
   'tests/ui/t02-consumer.test.jsx',
   '.nvmrc', 'package.json', 'package-lock.json', 'content-pack.lock',
   'scripts/t02-golden.mjs', 'src/content/adapter.js',

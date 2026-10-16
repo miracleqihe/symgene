@@ -86,6 +86,16 @@ node scripts/t02/dev-consumer.mjs --enable-synthetic
 
 开发应用只使用 `symgene-t02-development:` 存储命名空间。原用户 schema v4 主键、字段覆盖、删除记录和备份不被替换。页面支持虚构编辑、合成包切换、备份导出/导入与恢复；导入先检查 5 MiB 字节上限和严格 UTF-8，再经正式迁移/验证/备份接口并显示摘要确认。撤稿与过期控制是明确标注的合成信任注入，未配置真人签字、生产发布者认证或持续可信撤稿通道；每秒重验新鲜度，无新鲜状态时先隐藏内容。不要录入或导入真实患者或私有资料。
 
+T02 M4/M5 另有独立签名测试入口 `/symgene/t02-signed/`。先在独立数据仓配置本地测试网关，再运行：
+
+```bash
+node scripts/t02/signed-consumer.mjs --enable-signed-test http://127.0.0.1:PORT VERSION_A,VERSION_B VERSION_B
+```
+
+网关地址和允许版本只能由 Node 启动参数固定。每次读取都重新核验发布者、不可变制品、独立采用者、持久撤稿链与独立最新检查点；同源代理只转发通过的结果，失败返回 `503`、`Cache-Control: no-store`。签名页面没有旧入口的可信状态注入按钮。它使用 `symgene-t02-signed-test:` 命名空间和原 storage v4 接口；缓存只累积撤稿拒绝历史，不保存展示授权。离线、过期、检查点不可达或回退时，搜索和详情一起隐藏。紧急关闭在重启后仍有效；v1 不提供解除关闭的捷径。
+
+在两个候选工作树相邻且已安装开发依赖的环境中，`node scripts/t02/signed-consumer-browser.mjs` 会启动本地测试身份服务、独立 HTTP 检查点、网关和实际 React 应用，用真实 Chromium 演练撤稿、回滚、网络故障、过期及恢复。运行证据写入 Git 外的 `.t02-evidence`。这些测试身份与模拟审核只证明本地工程行为，不代表真人签字、生产身份或正式采用。
+
 ## 开发交接
 
 完整的视觉迭代记录、已撤回方案、待办事项和后续 AI 协作规范见
