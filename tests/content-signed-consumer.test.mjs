@@ -29,6 +29,16 @@ test('signed launcher requires explicit opt-in and fixed loopback authority befo
   }
 });
 
+test('signed launcher preserves every producer-valid version spelling without rewriting it', async () => {
+  const versions = ['Release_2026.10', 'v'.repeat(80)];
+  const server = await startSignedConsumer({ enabled: true, gatewayURL: 'http://127.0.0.1:12345', versions,
+    candidateVersion: versions[1] });
+  try {
+    const response = await fetch(`${server.url}configuration`);
+    assert.deepEqual((await response.json()).versions, versions);
+  } finally { await server.app.close(); }
+});
+
 test('signed projection requires an online response and never reads persisted fresh/trusted booleans', async () => {
   const original = native(); const storage = createSignedStorage(original);
   let value = snapshot(); let online = true; let clock = NOW;
