@@ -14,3 +14,12 @@ tmp/
 
 # Local coding-agent plans and session artifacts.
 .zcode/
+
+# Generated public materials and local content transport
+public/teaching/
+public/agent/
+public/llms.txt
+*.epub
+*.sqlite*
+
+public/skills/

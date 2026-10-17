@@ -1560,21 +1560,7 @@
   background: rgba(139, 102, 24, .28);
 }
 
-.source-line {
-  width: min(100%, 1160px);
-  padding-top: 29px;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  color: #617778;
-  font-size: 13px;
-  line-height: 1.75;
-}
 
-.source-line svg {
-  flex: none;
-  margin-top: 1px;
-}
 
 .empty-detail {
   position: relative;
@@ -2654,3 +2640,31 @@
     justify-content: center;
   }
 }
+
+/* 案例分类索引（与药物/疾病词条页同构） */
+.case-index-panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.case-index { margin-top: 14px; min-height: 0; overflow-y: auto; padding-right: 4px; flex: 1 1 auto; }
+.case-index-group { border-bottom: 1px solid var(--line); }
+.case-index-category {
+  width: 100%; display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  padding: 13px 10px; background: none; border: 0; cursor: pointer; text-align: left;
+  color: var(--navy); font: inherit;
+}
+.case-index-category:hover { background: rgba(87, 125, 118, .08); }
+.case-index-name { font-weight: 700; font-size: 15px; letter-spacing: .02em; }
+.case-index-count strong { font-size: 17px; margin-right: 3px; }
+.case-index-count small { color: var(--muted); }
+.case-index-list { padding: 2px 6px 12px 10px; }
+.case-index-disorder { margin-top: 8px; }
+.case-index-disorder-name {
+  font-size: 12px; letter-spacing: .08em; color: var(--muted);
+  padding: 4px 8px 6px; border-bottom: 1px dashed var(--line); margin-bottom: 4px;
+}
+.case-index-item {
+  display: block; width: 100%; text-align: left; background: none; border: 0;
+  border-left: 3px solid transparent; padding: 9px 8px; cursor: pointer; font: inherit; color: inherit;
+}
+.case-index-item:hover { background: rgba(87, 125, 118, .08); }
+.case-index-item.selected { border-left-color: var(--navy); background: rgba(38, 62, 84, .07); }
+.case-index-item strong { display: block; font-size: 14px; color: var(--ink); }
+.case-index-item span { font-size: 12px; color: var(--muted); }

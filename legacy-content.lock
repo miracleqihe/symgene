@@ -1,0 +1,118 @@
+{
+  "format": "symgene-local-legacy-snapshot/1",
+  "version": "local-6364be49d7151c3bb2b2",
+  "digest": "6364be49d7151c3bb2b28e77fc44e0598f6ff986cffbf1910423953e4210bd96",
+  "publication": "local_migration_unreviewed",
+  "medicalApproval": "not_asserted",
+  "rightsApproval": "not_asserted",
+  "counts": {
+    "drugs": 114,
+    "disorders": 122,
+    "cases": 122,
+    "resources": 4,
+    "drugProfiles": 114,
+    "disorderProfiles": 122,
+    "caseProfiles": 122
+  },
+  "seedSha256": "6e7a8a7ff715bf6191143b536db4567464674fee67a47aed2710776a707de98f",
+  "orderedIdsSha256": "feae13a44b899bfc5434d709af3355da9df4b6b56a066e1c71b08ca15e874aa4",
+  "files": [
+    {
+      "path": "scripts/build-teaching-materials.mjs",
+      "bytes": 6867,
+      "sha256": "f294f9eba2b7b796671c5148d51d612d220104a56b866a7115bf9244d927c396"
+    },
+    {
+      "path": "src/content/agentGuide.js",
+      "bytes": 9707,
+      "sha256": "0fe0b011180f5e18a5f5724b885a6c57bb8935f2a5bfac036edf66089aa4ac29"
+    },
+    {
+      "path": "src/content/caseProfiles.json",
+      "bytes": 1762862,
+      "sha256": "c6ae57c441723a0db7b566bb9a4dd2ebc9a289925d03cfa1c06bc851e5adc894"
+    },
+    {
+      "path": "src/content/cases.js",
+      "bytes": 1150,
+      "sha256": "9e10e5ffb0fe8e28e9abd3c9cfdd0884412ab520264fc6200b0329406c0d5fe6"
+    },
+    {
+      "path": "src/content/communication.js",
+      "bytes": 2366,
+      "sha256": "8cba195dc2de52320d0b55ddce69dfa707fff92c1ab53a83e4d5e95b05595ced"
+    },
+    {
+      "path": "src/content/disorderProfiles.json",
+      "bytes": 2887743,
+      "sha256": "e702ad477ced17beee8cf7c16622bc780c3d75e2cc1ef6b64ba4a2594cc10229"
+    },
+    {
+      "path": "src/content/disorders.js",
+      "bytes": 1158,
+      "sha256": "07fcdcfb5a841e97401d9af27de666af3f8588dfd85f5ac3574446386de87d05"
+    },
+    {
+      "path": "src/content/drugProfiles.json",
+      "bytes": 2751453,
+      "sha256": "6122f0c1fcd3dd9ee6c0ba5e1c410fc084adc1c71fa22fcb733ded001c7b4939"
+    },
+    {
+      "path": "src/content/knowledge.json",
+      "bytes": 604719,
+      "sha256": "8c0a9f4138d33e0276c7058c82c57535c0295233d58d6ad7c956f93c9be9da4a"
+    },
+    {
+      "path": "src/content/medicalText.js",
+      "bytes": 198,
+      "sha256": "63d647ff0a6c75b4ea52a442019529beec22b7072a8286c86d188a6877c6857c"
+    },
+    {
+      "path": "src/content/professional.js",
+      "bytes": 1212,
+      "sha256": "c7e3c9df1d0e8d37a9210774c0ff54c2a033bea1066b2eb1a3b070dd00fa82ce"
+    },
+    {
+      "path": "src/content/profileAmendments.js",
+      "bytes": 4837,
+      "sha256": "edec823d88be9bcdd20330018b55452efa6e57e979e4487e22b82562669f0b74"
+    },
+    {
+      "path": "src/content/profileAudit.js",
+      "bytes": 3674,
+      "sha256": "1c9012079e24abb1e3374b83cf6b0b33377639d54d1bfd50649712d81a1fc04f"
+    },
+    {
+      "path": "src/content/profileOverlay.js",
+      "bytes": 2095,
+      "sha256": "c5055099a59d31aa50141226a3716e20ed75be1b73ece752336d53bbf4c2a22f"
+    },
+    {
+      "path": "src/content/reading.js",
+      "bytes": 11869,
+      "sha256": "c9bf71a13d513063a8b1e7295d6e42945070123e99cb28860acf87b86a77fe3f"
+    },
+    {
+      "path": "src/content/readingProfileAudit.js",
+      "bytes": 5673,
+      "sha256": "294f7baa356148fa1ad4d1bd2cba2bc10c014f18fca434767470e21dc26c2720"
+    },
+    {
+      "path": "src/content/regionalAudit.js",
+      "bytes": 3572,
+      "sha256": "c14ef7a9fbb726c585cc4621f9003bb7d211eca53bbbad8e6db3e9345b067736"
+    },
+    {
+      "path": "src/content/regions.js",
+      "bytes": 3374,
+      "sha256": "04475b8e9c791e38caa4c62eb71b1c1e5793ebab7dd5b7c150649a402d05f56a"
+    },
+    {
+      "path": "src/content/sourceLinks.js",
+      "bytes": 1330,
+      "sha256": "bb48e59c77438378d3181c26ee7c4341151e7e47b35ede6deea14683cde8ac2b"
+    }
+  ],
+  "manifestSha256": "e1298953b1bc3fb235e71423d5d68d42884161212479706692a615829d56df2f",
+  "verifierSha256": "e4c2db8f8337b4f25d8df4f8887b4f8c97a2d8af3daa3a1e6dae6991b4ccadc4"
+}

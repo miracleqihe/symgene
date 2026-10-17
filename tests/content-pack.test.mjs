@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createHash } from 'node:crypto';
@@ -276,7 +277,7 @@ test('rollback cannot revive emergency or previously adopted package retractions
 });
 
 test('lock keeps production legacy and rejects traversal before looking up a package', () => {
-  const root = new URL('../', import.meta.url).pathname;
+  const root = fileURLToPath(new URL('../', import.meta.url));
   assert.equal(readContentLock(root).adoption, 'legacy');
   for (const path of ['../outside', join(tmpdir(), 'synthetic-package'), 'content-packs/../outside', 'content-packs\\outside']) {
     assert.throws(() => resolveLockedDirectory(root, { path }), { code: 'LOCK_PATH_INVALID' });
@@ -304,7 +305,7 @@ test('locked synthetic package: real full-package verifier and existing website 
 });
 
 test('real institution package fields remain exact and resolve through the existing map consumer', async () => {
-  const root = new URL('../', import.meta.url).pathname;
+  const root = fileURLToPath(new URL('../', import.meta.url));
   const { verifyPack } = await import('../vendor/t02/src/pack.mjs');
   const { validateBundle } = await import('../vendor/t02/src/contract.mjs');
   const { verifyInstitutionConsumer } = await import('../scripts/t02/check-content-pack.mjs');
@@ -373,7 +374,7 @@ test('persistent legacy identity registry covers all 1788 typed public IDs in or
 });
 
 test('real locked package → adapter → storage v4 → emergency projection → search/details; backup cannot revive', async () => {
-  const root = new URL('../', import.meta.url).pathname;
+  const root = fileURLToPath(new URL('../', import.meta.url));
   const { verifyPack } = await import('../vendor/t02/src/pack.mjs');
   const lock = readContentLock(root);
   const loaded = await loadLockedCandidate(root, { verifyPack, allowSimulation: true });
@@ -410,7 +411,7 @@ test('real locked package → adapter → storage v4 → emergency projection �
 });
 
 test('real locked bytes: tampered replacement cannot replace the last verified simulation', async () => {
-  const root = new URL('../', import.meta.url).pathname;
+  const root = fileURLToPath(new URL('../', import.meta.url));
   const { verifyPack } = await import('../vendor/t02/src/pack.mjs');
   const lock = readContentLock(root);
   const loaded = await loadLockedCandidate(root, { verifyPack, allowSimulation: true });
@@ -433,7 +434,7 @@ test('real locked bytes: tampered replacement cannot replace the last verified s
 
 test('vendor provenance cannot omit the scanner dependency while replacing it with an always-allow scanner', async () => {
   const { verifyVendorProvenance } = await import('../scripts/t02/check-content-pack.mjs');
-  const root = new URL('../', import.meta.url).pathname;
+  const root = fileURLToPath(new URL('../', import.meta.url));
   const directory = mkdtempSync(join(tmpdir(), 'symgene-vendor-test-'));
   try {
     cpSync(join(root, 'vendor'), join(directory, 'vendor'), { recursive: true });
@@ -449,7 +450,7 @@ test('vendor provenance cannot omit the scanner dependency while replacing it wi
 });
 
 test('real canonical rename packages: withdrawal survives old-package rollback and JSON state recovery', async () => {
-  const root = new URL('../', import.meta.url).pathname;
+  const root = fileURLToPath(new URL('../', import.meta.url));
   const { buildPack, verifyPack } = await import('../vendor/t02/src/pack.mjs');
   const { subjectDigest } = await import('../vendor/t02/src/contract.mjs');
   const locked = await loadLockedCandidate(root, { verifyPack, allowSimulation: true });
@@ -521,7 +522,7 @@ test('real canonical rename packages: withdrawal survives old-package rollback a
 });
 
 test('real count policy: source-only and unmapped legacy packages cannot pass the locked consumer or replace an active package', async () => {
-  const root = new URL('../', import.meta.url).pathname;
+  const root = fileURLToPath(new URL('../', import.meta.url));
   const { buildPack, verifyPack } = await import('../vendor/t02/src/pack.mjs');
   const { subjectDigest } = await import('../vendor/t02/src/contract.mjs');
   const { checkContentPack } = await import('../scripts/t02/check-content-pack.mjs');
