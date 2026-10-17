@@ -23,11 +23,11 @@ A1同意，A2等全文，用户负责范围、数据批准与保管；独立复�
 
 | 待补项 | 接续位置 | 条件 |
 | --- | --- | --- |
-| 正式数据仓历史 | 当前数据暂存目录 | 取得clone/bundle后逐文件接入，不覆盖历史 |
+| 正式数据仓历史 | 正式数据仓主题分支 | 已取得dev历史并逐文件接入，不覆盖历史 |
 | B01–B09全文和A2 | 数据侧docs/acceptance/owner-decisions.md | 提供全文与版本后由用户签收 |
 | 目录质量试点 | 数据侧docs/acceptance/reports/g2-directory-quality.md | 具体来源、使用条件和输入批准绑定 |
 | 旧功能同输入双跑 | 数据侧docs/acceptance/reports/g2-legacy-compatibility.md | 合法可比输入与两路径可用 |
 | 正文与公众表达逐条复核 | 数据侧work/content-review/continuation-register.json | 逐条填实际审读人、日期、结论，不覆盖人工正文 |
 | 独立复核、四维审核和目标环境 | 数据侧docs/acceptance/g3-g4-handoff.md | 人员、环境及相应授权落实 |
 
-后续内容从数据侧源文件更新、审读、导出再导入网站。原content v1/schema 1.0.0、搜索、存储及正式发布门禁不变。push、PR、部署和生产采用仍暂不执行。
+后续内容从数据侧源文件更新、审读、导出再导入网站。原content v1/schema 1.0.0、搜索、存储及正式发布门禁不变。本轮GitHub主题分支与Draft PR同步已获用户授权，见[双仓GitHub更新](local-github-sync.md)；部署、合并及生产采用仍不执行。

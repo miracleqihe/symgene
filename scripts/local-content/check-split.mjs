@@ -46,8 +46,8 @@ export async function checkSplit() {
   const dependencies=verifyDependencyLock(JSON.parse(readFileSync(resolve(ROOT,'package.json'))),JSON.parse(readFileSync(resolve(ROOT,'package-lock.json'))));
   return {status:'LOCAL_ENGINEERING_PASS',base:BASE,changedPaths:paths.length,scannedFiles:files,findings:[],
     content:checkLegacy(),t02:await checkContentPack(),protectedFilesUnchanged:protectedFiles.length,
-    dependencyDeclarations:dependencies,pushReady:false,pushStatus:'PUSH_BLOCKED_USER_INSTRUCTION_AND_RIGHTS_REVIEW',
-    dataHistory:'UNBORN_LOCAL_STAGING_NO_ORIGIN',scope:'local migration; no medical, rights or production acceptance'};
+    dependencyDeclarations:dependencies,pushReady:false,pushStatus:'CONTENT_PUBLICATION_REVIEW_NOT_ASSERTED',engineeringBranchPush:'USER_AUTHORIZED_2026_10_16',
+    dataHistory:'UPSTREAM_DEV_384fd9bfd8bb083d958858a7ef397933eb02f2d1_PRESERVED',scope:'local migration; no medical, rights or production acceptance'};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   try{const r=await checkSplit();console.log(JSON.stringify(r,null,2));if(r.status==='REJECTED')process.exitCode=1;}
