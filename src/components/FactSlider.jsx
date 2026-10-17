@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import MedicalPoints from './MedicalPoints';
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -143,7 +144,7 @@ export default function FactSlider({ items, label = '核心信息' }) {
             aria-hidden="true"
             inert
           >
-            <p>{outgoing.item.text || '待补充'}</p>
+            <MedicalPoints text={outgoing.item.text} />
           </div>
         )}
         <div
@@ -154,7 +155,7 @@ export default function FactSlider({ items, label = '核心信息' }) {
           tabIndex="0"
           aria-labelledby={`fact-tab-${activeIndex}`}
         >
-          <p>{activeItem.text || '待补充'}</p>
+          <MedicalPoints text={activeItem.text} />
         </div>
       </div>
     </section>

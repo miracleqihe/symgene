@@ -9,6 +9,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import KineticTitle from './KineticTitle';
+import AgentGuideEntry from './AgentGuideEntry';
 import reviewData from '../frontierReviews.json';
 
 const CONFIDENCE_LABELS = {
@@ -59,6 +60,7 @@ export default function FrontierReviewsPage({ focusOnMount, onPageFocused }) {
         </div>
         <div className="page-actions">
           <span className="count-label">{reviewData.menus.length} 个主题 · {countReferences(reviewData.menus)} 篇核心文献</span>
+          <AgentGuideEntry moduleId="reviews" />
         </div>
       </header>
 

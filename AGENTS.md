@@ -92,3 +92,7 @@ the existing storage API. Do not present test-only retraction injection as a
 production authenticated publisher. Verify the production build excludes this
 entry, its switch and synthetic UI, and use real Chromium for the development
 entry. The original sim-1/sim-2 untracked files remain outside all commits.
+
+## Local content split
+
+Content text and shared Prompt rules are produced by the separate data workspace. Files pinned in legacy-content.lock are vendored artifacts; edit their producer and re-import, never hand-edit the copies. Keep the authenticated T02 content-pack.lock and its legacy adoption unchanged. A local snapshot, integrity hash or structural audit is not rights clearance or medical approval. Existing manual text, IDs, search weights, overrides and explicit blank fields must survive.

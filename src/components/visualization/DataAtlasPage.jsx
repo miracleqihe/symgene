@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Play, Pause, Layers3, ShieldCheck, Globe2, MapPin } from 'lucide-react';
 import KineticTitle from '../KineticTitle';
+import AgentGuideEntry from '../AgentGuideEntry';
 import PrevalenceMatrix from './PrevalenceMatrix';
 import CorrelationScatter from './CorrelationScatter';
 import EthnicityPanel from './EthnicityPanel';
@@ -52,6 +53,7 @@ export default function DataAtlasPage({ focusOnMount, onPageFocused }) {
         </div>
         <div className="page-actions">
           <span className="count-label">204 个国家/地区 · 2016–2023 · 12 个疾病条目</span>
+          <AgentGuideEntry moduleId="atlas" />
         </div>
       </header>
 
