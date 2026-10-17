@@ -20,6 +20,13 @@ Sym Gen 是一个面向公众的精神与心理健康公益知识库。项目以
 - 4 项公开网络资源
 - 「信息可视化」栏目：204 个国家/地区 × 2016–2023 的 12 类精神障碍患病率时空矩阵、关联分析散点图与美国族裔对比视图
 
+## 网站与数据分仓
+
+- [symgene](https://github.com/miracleqihe/symgene)：维护页面、交互、搜索、存储和内容消费。
+- [symgene-data-pipeline](https://github.com/y4ho0/symgene-data-pipeline)：维护三库内容源、共用 Prompt、本机取材工具及 T02 数据处理核心。当前内容更新见数据仓 PR #4、网站 PR #34，均为面向 dev 的草稿。
+
+修改正文或 Prompt 时先改数据仓，再导出并核对完整摘要，导入网站固定副本；网站可以独立构建。详见[双仓接续](docs/t02/local-github-sync.md)。未指定的审读与运维职责保留接口，代码同步不代替医学审校或生产采用。
+
 ## 信息可视化的数据来源
 
 「信息可视化」栏目（`src/atlas/`）的流行病学数据全部来自公开权威数据库，页面底部附完整来源与使用条款：
@@ -31,13 +38,7 @@ Sym Gen 是一个面向公众的精神与心理健康公益知识库。项目以
 - 美国族裔患病率与治疗可及性：KFF 对 SAMHSA NSDUH 2024 与 CDC 死因数据的整理（全国快照）
 - 中国资源地图：机构点位来自 OpenStreetMap（ODbL）+ 人工核校知名专科机构名录；分省资源统计来自《中国精神卫生资源状况分析》（中国卫生政策研究 2019，截至 2015 年底）；患病率事实卡来自中国精神卫生调查 CMHS（Lancet Psychiatry 2019）；数据字典与评分模型见 [docs/china-atlas-data-dictionary.md](docs/china-atlas-data-dictionary.md)
 
-数据由一次性构建脚本归一生成：
-
-```bash
-node scripts/atlas/build-atlas-data.mjs
-```
-
-脚本读取本地缓存的原始下载文件（不入库），产出 `src/atlas/*.js` 数据模块（入库）。`src/atlas/geo.js`、`prevalence.js`、`context.js`、`ethnicity.js` 为生成文件，请勿手改；`spectrum.js`、`sources.js`、`display.js`、`index.js` 为手写维护文件。修改数据口径时先更新构建脚本再重新生成，`tests/atlas-data.test.mjs` 会校验记录完整性、数值范围与谱系引用一致性。
+本仓保留当前 `src/atlas/` 展示数据及其回归测试。原 `scripts/atlas/` 生产脚本已移出网站，在本机作为待核权属与输入的 HOLD 材料保存；本分支不再提供原构建命令，也不自动重新采集。`src/atlas/geo.js`、`prevalence.js`、`context.js`、`ethnicity.js` 是既有生成文件，不能直接手改数据口径；数据生产工具须完成相应复核后再接入数据仓。
 
 ## 核心原则
 

@@ -10,7 +10,7 @@ const ROOT=fileURLToPath(new URL('../../',import.meta.url));
 const BASE='42c4b5968e5423a8de22d4308b05660ae15e95fe';
 const git=(...args)=>execFileSync('git',['-C',ROOT,...args],{encoding:'utf8',maxBuffer:24*1024*1024,stdio:['ignore','pipe','pipe']});
 const nul=s=>s.split('\0').filter(Boolean);
-const allowed=p=>['.gitignore','AGENTS.md','index.html','package.json','legacy-content.lock','src/main.jsx','src/data.js','src/styles.css',
+const allowed=p=>['.gitignore','README.md','AGENTS.md','index.html','package.json','legacy-content.lock','src/main.jsx','src/data.js','src/styles.css',
   'src/styles/components.css','src/styles/editorial.css','tests/storage.test.mjs','tests/content-pack.test.mjs','tests/content-pack-overnight.test.mjs',
   'src/components/FactSlider.jsx','src/components/FrontierReviewsPage.jsx','src/components/visualization/DataAtlasPage.jsx',
   'src/components/AgentGuideEntry.jsx','src/components/KnowledgeReading.jsx','src/components/MedicalPoints.jsx',
