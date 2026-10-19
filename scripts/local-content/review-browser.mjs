@@ -49,8 +49,14 @@ try {
     // installed fallback. Require a font that actually covers U+4E2D (中).
     const family = execFileSync('fc-match', ['-f', '%{family}', ':charset=4e2d'], { encoding: 'utf8' });
     report.chineseFontCandidate = family;
-    assert.match(family, /CJK|Chinese|WenQuanYi|Noto/i, `A Chinese glyph font must be installed before evidence capture; matched ${family}`);
+    const charset = execFileSync('fc-match', ['-f', '%{charset}', ':charset=4e2d'], { encoding: 'utf8' });
+    const hasChineseGlyph = charset.trim().split(/\s+/).some(range => {
+      const [start, end = start] = range.split('-').map(value => Number.parseInt(value, 16));
+      return start <= 0x4e2d && end >= 0x4e2d;
+    });
+    assert.ok(hasChineseGlyph, `A font covering U+4E2D must be installed before evidence capture; matched ${family}`);
     report.chineseFont = family;
+    report.verifiedChineseGlyph = 'U+4E2D';
   } else report.chineseFont = 'Windows system Chinese fallback; visually inspect captured pages';
   server = await preview({ root: ROOT, preview: { host: '127.0.0.1', port: 4188, strictPort: true } });
   browser = await chromium.launch({ headless: true,
