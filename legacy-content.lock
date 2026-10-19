@@ -1,7 +1,7 @@
 {
   "format": "symgene-local-legacy-snapshot/1",
-  "version": "local-6364be49d7151c3bb2b2",
-  "digest": "6364be49d7151c3bb2b28e77fc44e0598f6ff986cffbf1910423953e4210bd96",
+  "version": "local-e2c3a7dc114ec2ae063b",
+  "digest": "e2c3a7dc114ec2ae063b32bc7a811d23c19840291db5c4ae4521bc7cc8090489",
   "publication": "local_migration_unreviewed",
   "medicalApproval": "not_asserted",
   "rightsApproval": "not_asserted",
@@ -19,8 +19,8 @@
   "files": [
     {
       "path": "scripts/build-teaching-materials.mjs",
-      "bytes": 6867,
-      "sha256": "f294f9eba2b7b796671c5148d51d612d220104a56b866a7115bf9244d927c396"
+      "bytes": 7321,
+      "sha256": "b4988d0ff937b2ddb9bdd85f3fe31241df9c355d12b114aca658af3e32a7a6b9"
     },
     {
       "path": "src/content/agentGuide.js",
@@ -69,8 +69,8 @@
     },
     {
       "path": "src/content/professional.js",
-      "bytes": 1212,
-      "sha256": "c7e3c9df1d0e8d37a9210774c0ff54c2a033bea1066b2eb1a3b070dd00fa82ce"
+      "bytes": 1765,
+      "sha256": "6811a89115606ed92a351cf6314f188703b35c8315adb80c7662937e258da8a0"
     },
     {
       "path": "src/content/profileAmendments.js",
@@ -113,6 +113,6 @@
       "sha256": "bb48e59c77438378d3181c26ee7c4341151e7e47b35ede6deea14683cde8ac2b"
     }
   ],
-  "manifestSha256": "e1298953b1bc3fb235e71423d5d68d42884161212479706692a615829d56df2f",
+  "manifestSha256": "4d8bf5950fa81659cbb6a5e4646161c193f175170ace4e0bed4b93f9553de34a",
   "verifierSha256": "e4c2db8f8337b4f25d8df4f8887b4f8c97a2d8af3daa3a1e6dae6991b4ccadc4"
 }

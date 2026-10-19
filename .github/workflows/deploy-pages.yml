@@ -26,6 +26,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Refuse unreviewed legacy pages, Markdown and Prompts
+        run: npm run check:publication
       - run: npm run verify
       - uses: actions/upload-artifact@v4
         with:

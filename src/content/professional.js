@@ -23,6 +23,14 @@ export function professionalFor(item) {
   return overlayProfile(item, originalDrugs.get(item.id), profiles[item.id]);
 }
 
+// A partial amendment sources only its matched semantic point, never the field.
+export function pointPublicReferences(display, field, pointIndex) {
+  const evidence = display.fieldEvidence?.[field] || display.fieldAmendments?.[field]?.mappedEvidence || [];
+  const references = evidence.filter(point => point.pointIndex === pointIndex)
+    .flatMap(point => point.sources || []).filter(source => source.url?.startsWith('https://'));
+  return [...new Map(references.map(source => [`${source.id}|${source.locator}|${source.url}`, source])).values()];
+}
+
 export function professionalLinks(item) {
   return attributedSourceLinks(profiles[item.id], professionalFor(item));
 }

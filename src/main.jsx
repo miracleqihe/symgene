@@ -638,6 +638,9 @@ function CasesPage({ data, selected, onSelect, onOpen, onOpenDisorder, onEdit, o
 
   function closeCase() {
     const returnFocusTo = indexPanelRef.current?.querySelector('.case-index button.selected');
+    // Related links can open a category that was expanded only by selection.
+    // Keep it open before clearing selection so its return target stays mounted.
+    if (selected) setOpenCategory(disorderById.get(selected.disorderId)?.category ?? openCategory);
     onSelect(null);
     if (scrollFrameRef.current !== null) window.cancelAnimationFrame(scrollFrameRef.current);
     scrollFrameRef.current = window.requestAnimationFrame(() => {

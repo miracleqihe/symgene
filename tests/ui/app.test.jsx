@@ -382,6 +382,26 @@ describe('editor dialog keyboard and focus', () => {
 });
 
 describe('mobile detail focus', () => {
+  test('从其他页面打开非默认分类案例后关闭，原案例仍可见且恢复焦点', async () => {
+    const disease = { ...fixture.data.disorders[0], id: 'example-other-disorder', name: '示例其他疾病', category: '示例非默认分类' };
+    const exampleCase = { ...fixture.data.cases[0], id: 'example-other-case', disorderId: disease.id, title: '非默认分类虚构案例' };
+    fixture.data.disorders.push(disease); fixture.data.cases.push(exampleCase);
+    try {
+      const { user } = await renderApp({ mobile: true });
+      await openFromHome(user, '精神药物');
+      await user.click(await screen.findByRole('button', { name: /测试药物/ }));
+      await user.click(await screen.findByRole('button', { name: /非默认分类虚构案例/ }));
+      const back = await screen.findByRole('button', { name: '返回案例列表' });
+      await waitFor(() => expect(back).toHaveFocus());
+      await user.click(back);
+      const target = await screen.findByRole('button', { name: /非默认分类虚构案例/ });
+      await waitFor(() => expect(target).toHaveFocus());
+      expect(target).toBeVisible();
+      expect(target.closest('.case-index-group')).toHaveClass('open');
+    } finally {
+      fixture.data.disorders.pop(); fixture.data.cases.pop();
+    }
+  });
   test('进入药物详情后聚焦返回按钮，返回后恢复原词条', async () => {
     const { user } = await renderApp({ mobile: true });
     await openFromHome(user, '精神药物');

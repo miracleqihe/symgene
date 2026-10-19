@@ -23,7 +23,11 @@
     "audit:knowledge-coverage": "node scripts/audit-knowledge-coverage.mjs",
     "pretest": "npm run build:teaching",
     "check:legacy-content": "node scripts/local-content/check-legacy.mjs",
-    "check:split": "node scripts/local-content/check-split.mjs"
+    "check:split": "node scripts/local-content/check-split.mjs",
+    "check:publication": "node scripts/local-content/check-publication.mjs",
+    "build:release": "npm run check:publication && npm run build",
+    "review:browser": "node scripts/local-content/review-browser.mjs",
+    "review:recovery": "node scripts/local-content/recovery-drill.mjs"
   },
   "dependencies": {
     "@remotion/player": "4.0.502",
@@ -42,6 +46,7 @@
     "ajv-formats": "3.0.1",
     "axe-core": "4.12.1",
     "jsdom": "27.4.0",
+    "playwright": "1.62.1",
     "vitest": "4.1.11"
   }
 }

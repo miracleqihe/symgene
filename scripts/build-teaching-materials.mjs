@@ -2,7 +2,7 @@ import { mkdir, writeFile, readFile, unlink } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { readingFor, teachingPrompt, readingVersion } from '../src/content/reading.js';
 
-import { professionalFields, professionalFor } from '../src/content/professional.js';
+import { professionalFields, professionalFor, pointPublicReferences } from '../src/content/professional.js';
 import { medicalPoints } from '../src/content/medicalText.js';
 import { caseFields, caseFor } from '../src/content/cases.js';
 import { disorderFields, disorderFor } from '../src/content/disorders.js';
@@ -40,6 +40,16 @@ const fields = {
   disorders: disorderFields,
   cases: caseFields,
 };
+function fieldMarkdown(type, display, field) {
+  const text = Array.isArray(display[field]) ? display[field].join('\n') : display[field];
+  if (type === 'drugs') return medicalPoints(text).flatMap((point, index) => [
+    `- ${point}`,
+    ...pointPublicReferences(display, field, index).map(source =>
+      `  - 公开参考（仅对应本点）：[${source.title}](${source.url})；${source.region || ''}；${source.locator}`),
+  ]).join('\n') || '本篇未展开此项。';
+  return type === 'disorders' ? medicalPoints(text).map(point => `- ${point}`).join('\n') || '本篇未展开此项。'
+    : Array.isArray(display[field]) ? display[field].map(point => `- ${point}`).join('\n') : text || '本篇未展开此项。';
+}
 const materialsRoot = new URL('../public/teaching/', import.meta.url);
 let previous = { entries: [] };
 try { previous = JSON.parse(await readFile(new URL('manifest.json', materialsRoot), 'utf8')); }
@@ -52,7 +62,7 @@ for (const type of Object.keys(fields)) {
     const title = item.name || item.title;
     const body = [
       `# ${title}`, '', `版本：${readingVersion}`, '', reading.intro, '',
-      ...fields[type].filter(([field]) => type === 'disorders' || professional[field]).flatMap(([field,label]) => [`## ${label}`, '', type === 'drugs' || type === 'disorders' ? medicalPoints(Array.isArray(professional[field]) ? professional[field].join('\n') : professional[field]).map(text => `- ${text}`).join('\n') || '本篇未展开此项。' : Array.isArray(professional[field]) ? professional[field].map(text => `- ${text}`).join('\n') : professional[field] || '本篇未展开此项。', '', ...(professional.fieldSources?.[field] || []).filter(source => source.url?.startsWith('https://')).map(source => `参考：[${source.title}](${source.url})`), '']),
+      ...fields[type].filter(([field]) => type === 'disorders' || professional[field]).flatMap(([field,label]) => [`## ${label}`, '', fieldMarkdown(type, professional, field), '', ...(type === 'drugs' ? [] : professional.fieldSources?.[field] || []).filter(source => source.url?.startsWith('https://')).map(source => `参考：[${source.title}](${source.url})`), '']),
       '## 常见疑问', '', ...reading.questions.flatMap(([q,a]) => [`### ${q}`, '', a, '']),
       ...(reading.scenario ? ['## 虚构教学情景', '', reading.scenario.text, '', reading.scenario.discussion, ''] : []),
       '## 延伸阅读', '', ...reading.links.map(link => `- [${link.title}](${link.url})（${link.region}）：${link.note}`), '',
