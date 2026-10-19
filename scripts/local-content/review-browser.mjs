@@ -45,8 +45,11 @@ let browser, server;
 const errors = [];
 try {
   if (process.platform === 'linux') {
-    const family = execFileSync('fc-match', ['-f', '%{family}', ':lang=zh'], { encoding: 'utf8' });
-    assert.match(family, /CJK|Chinese|WenQuanYi|Noto/i, 'A Chinese font must be installed before evidence capture');
+    // A generic language preference can pick a Latin default despite an
+    // installed fallback. Require a font that actually covers U+4E2D (中).
+    const family = execFileSync('fc-match', ['-f', '%{family}', ':charset=4e2d'], { encoding: 'utf8' });
+    report.chineseFontCandidate = family;
+    assert.match(family, /CJK|Chinese|WenQuanYi|Noto/i, `A Chinese glyph font must be installed before evidence capture; matched ${family}`);
     report.chineseFont = family;
   } else report.chineseFont = 'Windows system Chinese fallback; visually inspect captured pages';
   server = await preview({ root: ROOT, preview: { host: '127.0.0.1', port: 4188, strictPort: true } });
