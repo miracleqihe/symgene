@@ -20,6 +20,13 @@ Sym Gen 是一个面向公众的精神与心理健康公益知识库。项目以
 - 4 项公开网络资源
 - 「信息可视化」栏目：204 个国家/地区 × 2016–2023 的 12 类精神障碍患病率时空矩阵、关联分析散点图与美国族裔对比视图
 
+## 网站与数据分仓
+
+- [symgene](https://github.com/miracleqihe/symgene)：维护页面、交互、搜索、存储和内容消费。
+- [symgene-data-pipeline](https://github.com/y4ho0/symgene-data-pipeline)：维护三库内容源、共用 Prompt、本机取材工具及 T02 数据处理核心。2026-10-23 复核：数据仓 [PR #3](https://github.com/y4ho0/symgene-data-pipeline/pull/3)、[PR #4](https://github.com/y4ho0/symgene-data-pipeline/pull/4) 已合入 `dev`，当前集成点为 `c8e9c57e120515d7846dff90d2127896ec6e2c20`；网站 [PR #34](https://github.com/miracleqihe/symgene/pull/34) 面向 `dev`、等待独立最终 Review。
+
+修改正文或 Prompt 时先改数据仓，再导出并核对完整摘要，导入网站固定副本；网站可以独立构建。当前 19 文件与已合入数据仓 `dev` 逐字节一致，详见[双仓接续](docs/t02/local-github-sync.md)和[配对核验](docs/t02/local-data-handoff.md)。未指定的审读与运维职责保留接口，工程合并不代替医学、公众表达、来源权利审批或生产采用。
+
 ## 信息可视化的数据来源
 
 「信息可视化」栏目（`src/atlas/`）的流行病学数据全部来自公开权威数据库，页面底部附完整来源与使用条款：
@@ -31,13 +38,7 @@ Sym Gen 是一个面向公众的精神与心理健康公益知识库。项目以
 - 美国族裔患病率与治疗可及性：KFF 对 SAMHSA NSDUH 2024 与 CDC 死因数据的整理（全国快照）
 - 中国资源地图：机构点位来自 OpenStreetMap（ODbL）+ 人工核校知名专科机构名录；分省资源统计来自《中国精神卫生资源状况分析》（中国卫生政策研究 2019，截至 2015 年底）；患病率事实卡来自中国精神卫生调查 CMHS（Lancet Psychiatry 2019）；数据字典与评分模型见 [docs/china-atlas-data-dictionary.md](docs/china-atlas-data-dictionary.md)
 
-数据由一次性构建脚本归一生成：
-
-```bash
-node scripts/atlas/build-atlas-data.mjs
-```
-
-脚本读取本地缓存的原始下载文件（不入库），产出 `src/atlas/*.js` 数据模块（入库）。`src/atlas/geo.js`、`prevalence.js`、`context.js`、`ethnicity.js` 为生成文件，请勿手改；`spectrum.js`、`sources.js`、`display.js`、`index.js` 为手写维护文件。修改数据口径时先更新构建脚本再重新生成，`tests/atlas-data.test.mjs` 会校验记录完整性、数值范围与谱系引用一致性。
+本仓保留当前 `src/atlas/` 展示数据及其回归测试。原 `scripts/atlas/` 生产脚本已移出网站，在本机作为待核权属与输入的 HOLD 材料保存；本分支不再提供原构建命令，也不自动重新采集。`src/atlas/geo.js`、`prevalence.js`、`context.js`、`ethnicity.js` 是既有生成文件，不能直接手改数据口径；数据生产工具须完成相应复核后再接入数据仓。
 
 ## 核心原则
 
@@ -75,6 +76,26 @@ npm run verify
 npm run test:unit
 npm run test:ui
 ```
+
+### T02 虚构内容包开发入口
+
+```bash
+node scripts/t02/dev-consumer.mjs --enable-synthetic
+```
+
+仅 Node.js 22 可启动；默认不带开关会拒绝，显式启用后仅监听 loopback，并输出 `/symgene/t02-dev/` 地址。这是独立的真实 React 开发应用，不是生产主界面。启动及加载时实读精确内容锁、vendor 来源和完整合成包，全部通过才交给浏览器 adapter，再经原存储 API 合并、撤稿投影、现有搜索和详情展示。生产入口仍使用 legacy，生产构建不包含该开发应用或启用开关；自动测试会实际构建验证此边界。
+
+开发应用只使用 `symgene-t02-development:` 存储命名空间。原用户 schema v4 主键、字段覆盖、删除记录和备份不被替换。页面支持虚构编辑、合成包切换、备份导出/导入与恢复；导入先检查 5 MiB 字节上限和严格 UTF-8，再经正式迁移/验证/备份接口并显示摘要确认。撤稿与过期控制是明确标注的合成信任注入，未配置真人签字、生产发布者认证或持续可信撤稿通道；每秒重验新鲜度，无新鲜状态时先隐藏内容。不要录入或导入真实患者或私有资料。
+
+T02 M4/M5 另有独立签名测试入口 `/symgene/t02-signed/`。先在独立数据仓配置本地测试网关，再运行：
+
+```bash
+node scripts/t02/signed-consumer.mjs --enable-signed-test http://127.0.0.1:PORT VERSION_A,VERSION_B VERSION_B
+```
+
+网关地址和允许版本只能由 Node 启动参数固定。每次读取都重新核验发布者、不可变制品、独立采用者、持久撤稿链与独立最新检查点；同源代理只转发通过的结果，失败返回 `503`、`Cache-Control: no-store`。签名页面没有旧入口的可信状态注入按钮。它使用 `symgene-t02-signed-test:` 命名空间和原 storage v4 接口；缓存只累积撤稿拒绝历史，不保存展示授权。离线、过期、检查点不可达或回退时，搜索和详情一起隐藏。紧急关闭在重启后仍有效；v1 不提供解除关闭的捷径。
+
+在两个候选工作树相邻且已安装开发依赖的环境中，`node scripts/t02/signed-consumer-browser.mjs` 会启动本地测试身份服务、独立 HTTP 检查点、网关和实际 React 应用，用真实 Chromium 演练撤稿、回滚、网络故障、过期及恢复。运行证据写入 Git 外的 `.t02-evidence`。这些测试身份与模拟审核只证明本地工程行为，不代表真人签字、生产身份或正式采用。
 
 ## 开发交接
 

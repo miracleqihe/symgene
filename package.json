@@ -5,16 +5,29 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build --base=./",
+    "build": "npm run check:content && npm run check:legacy-content && npm run build:teaching && vite build --base=./",
     "preview": "vite preview",
     "check:data": "node scripts/validate-data.mjs",
+    "check:content": "node scripts/t02/check-content-pack.mjs",
     "check:links": "node scripts/check-links.mjs",
     "check:links:remote": "node scripts/check-links-remote.mjs",
     "test:unit": "node --test tests/*.test.mjs",
     "test:ui": "vitest run",
     "test": "npm run test:unit && npm run test:ui",
     "check:build": "node scripts/check-build.mjs",
-    "verify": "npm run check:data && npm run check:links && npm test && npm run build && npm run check:build"
+    "verify": "npm run check:data && npm run check:links && npm test && npm run build && npm run check:build",
+    "simulate:content": "node scripts/t02/simulate-adoption.mjs",
+    "predev": "npm run check:legacy-content && npm run build:teaching",
+    "build:teaching": "node scripts/build-teaching-materials.mjs",
+    "audit:drug-coverage": "node scripts/audit-drug-coverage.mjs",
+    "audit:knowledge-coverage": "node scripts/audit-knowledge-coverage.mjs",
+    "pretest": "npm run build:teaching",
+    "check:legacy-content": "node scripts/local-content/check-legacy.mjs",
+    "check:split": "node scripts/local-content/check-split.mjs",
+    "check:publication": "node scripts/local-content/check-publication.mjs",
+    "build:release": "npm run check:publication && npm run build",
+    "review:browser": "node scripts/local-content/review-browser.mjs",
+    "review:recovery": "node scripts/local-content/recovery-drill.mjs"
   },
   "dependencies": {
     "@remotion/player": "4.0.502",
@@ -23,14 +36,17 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "remotion": "4.0.502",
-    "vite": "8.1.5"
+    "vite": "8.1.6"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "7.0.0",
     "@testing-library/react": "16.3.2",
     "@testing-library/user-event": "14.6.1",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
     "axe-core": "4.12.1",
     "jsdom": "27.4.0",
-    "vitest": "4.1.10"
+    "playwright": "1.62.1",
+    "vitest": "4.1.12"
   }
 }

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { cloneSeed as cloneProjectSeed } from '../src/data.js';
-import { drugSideEffectsById } from '../src/drugSideEffects.js';
+import { drugSideEffectsById } from './fixtures/legacy-drug-side-effects.js';
 import {
   BACKUP_KEY_PREFIX,
   BACKUP_RETENTION_LIMIT,
@@ -1325,7 +1325,7 @@ test('47 含私有目录路径的导入被拒绝', () => {
 
 test('48 含 file URL 的导入被拒绝', () => {
   const exported = createKnowledgeExport(createEnvelope(makeSeed()), { now: NOW });
-  exported.data.resources[0].url = 'file:///Users/example/private.json';
+  exported.data.resources[0].url = 'file:///example/private.json';
   assert.throws(
     () => parseKnowledgeImport(JSON.stringify(exported), { seedData: makeSeed() }),
     { code: 'validation-failed' }

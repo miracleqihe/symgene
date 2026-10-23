@@ -16,7 +16,9 @@
 
 ## 数据模块
 
-正式种子由 `src/data.js` 汇总药物、疾病、案例和资源模块。`cloneSeed()` 为运行时和验证脚本提供隔离副本。数据验证器位于 `src/validation/dataValidation.js`，命令行入口为 `scripts/validate-data.mjs`。
+正式种子由 `src/data.js` 读取统一的 `src/content/knowledge.json`，涵盖药物、疾病、案例和资源。`cloneSeed()` 为运行时和验证脚本提供隔离副本。原先五个组装模块已收敛，迁移测试所需历史文本留在测试夹具中。数据验证器位于 `src/validation/dataValidation.js`，命令行入口为 `scripts/validate-data.mjs`。
+
+`src/content/drugProfiles.json` 保存有逐字段来源的专业补充，由 `professionalFor()` 用于药物详情和静态教学材料；实际本地修改优先。该阅读补充层不改变搜索输入、权重、排序、种子内容及存储协议。内容与参考资料的边界见 [知识内容与教学材料](content-pipeline.md)。
 
 疾病、药物、案例、风险词、搜索扩展与评分属于医学或医学相关内容。修改这些内容时必须进行单独的内容审核，不能把工程重构当作内容变更的授权。
 

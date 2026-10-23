@@ -797,15 +797,6 @@ body {
   left: 23px;
 }
 
-.source-line {
-  margin-top: 18px;
-  padding: 13px 0;
-  border: 0;
-  border-top: 1px solid var(--line);
-  color: #6c7d78;
-  background: transparent;
-  font-size: 13px;
-}
 
 .empty-detail::after {
   opacity: .35;

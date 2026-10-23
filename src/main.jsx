@@ -1,7 +1,7 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
-  ArrowLeft, ArrowUpRight, BarChart3, BookOpen, Brain, ChevronDown, ChevronRight, CircleHelp, Edit3, ExternalLink,
+  ArrowLeft, ArrowUpRight, BarChart3, Brain, ChevronDown, ChevronRight, CircleHelp, Edit3, ExternalLink,
   FileText, FlaskConical, HeartPulse, Home, Library, Menu, Plus, Search, ShieldCheck,
   Sparkles, Telescope, Trash2, X
 } from 'lucide-react';
@@ -14,6 +14,12 @@ import FrontierReviewsPage from './components/FrontierReviewsPage';
 import HeroLightField from './components/HeroLightField';
 import KineticTitle from './components/KineticTitle';
 import KnowledgeIndexGraphic from './components/KnowledgeIndexGraphic';
+import KnowledgeReading from './components/KnowledgeReading';
+import AgentGuideEntry from './components/AgentGuideEntry';
+import { professionalFor } from './content/professional.js';
+import { disorderFor } from './content/disorders.js';
+import { caseFor } from './content/cases.js';
+import MedicalPoints from './components/MedicalPoints';
 import PaperPlaneLetter from './components/PaperPlaneLetter';
 import { useLocalKnowledge } from './hooks/useLocalKnowledge';
 import symGenMark from './assets/sym-gen-heart-mark.png';
@@ -339,9 +345,9 @@ export function App({ canEdit = CAN_EDIT } = {}) {
             resolveDirection={resolvePageDirection}
           >
             {activePage === 'home' && <HomePage counts={counts} onNavigate={go} onOpen={openItem} query={query} setQuery={setQuery} searchResults={searchResults} searchInputRef={searchInputRef} searchFocusRequest={searchFocusRequest} onLetterOpenChange={setHomeLetterOpen} />}
-            {activePage === 'drugs' && <ListPage type="drugs" data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} mainContentRef={mainContentRef} canEdit={canEdit} focusOnMount={pageFocusRequest?.page === 'drugs'} onPageFocused={() => setPageFocusRequest(null)} focusSelected={detailFocusRequest?.type === 'drugs' && detailFocusRequest.id === selected?.id} onSelectedFocused={() => setDetailFocusRequest(null)} />}
-            {activePage === 'disorders' && <ListPage type="disorders" data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} mainContentRef={mainContentRef} canEdit={canEdit} focusOnMount={pageFocusRequest?.page === 'disorders'} onPageFocused={() => setPageFocusRequest(null)} focusSelected={detailFocusRequest?.type === 'disorders' && detailFocusRequest.id === selected?.id} onSelectedFocused={() => setDetailFocusRequest(null)} />}
-            {activePage === 'cases' && <CasesPage data={data} selected={selected} onSelect={setSelected} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} onOpenDisorder={(disorder) => openItem('disorders', disorder)} mainContentRef={mainContentRef} canEdit={canEdit} focusOnMount={pageFocusRequest?.page === 'cases'} onPageFocused={() => setPageFocusRequest(null)} focusSelected={detailFocusRequest?.type === 'cases' && detailFocusRequest.id === selected?.id} onSelectedFocused={() => setDetailFocusRequest(null)} />}
+            {activePage === 'drugs' && <ListPage type="drugs" data={data} selected={selected} onSelect={setSelected} onOpen={openItem} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} mainContentRef={mainContentRef} canEdit={canEdit} focusOnMount={pageFocusRequest?.page === 'drugs'} onPageFocused={() => setPageFocusRequest(null)} focusSelected={detailFocusRequest?.type === 'drugs' && detailFocusRequest.id === selected?.id} onSelectedFocused={() => setDetailFocusRequest(null)} />}
+            {activePage === 'disorders' && <ListPage type="disorders" data={data} selected={selected} onSelect={setSelected} onOpen={openItem} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} mainContentRef={mainContentRef} canEdit={canEdit} focusOnMount={pageFocusRequest?.page === 'disorders'} onPageFocused={() => setPageFocusRequest(null)} focusSelected={detailFocusRequest?.type === 'disorders' && detailFocusRequest.id === selected?.id} onSelectedFocused={() => setDetailFocusRequest(null)} />}
+            {activePage === 'cases' && <CasesPage data={data} selected={selected} onSelect={setSelected} onOpen={openItem} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} onOpenDisorder={(disorder) => openItem('disorders', disorder)} mainContentRef={mainContentRef} canEdit={canEdit} focusOnMount={pageFocusRequest?.page === 'cases'} onPageFocused={() => setPageFocusRequest(null)} focusSelected={detailFocusRequest?.type === 'cases' && detailFocusRequest.id === selected?.id} onSelectedFocused={() => setDetailFocusRequest(null)} />}
             {activePage === 'resources' && <ResourcesPage data={data} onEdit={startEdit} onDelete={deleteItem} onAdd={startEdit} canEdit={canEdit} focusOnMount={pageFocusRequest?.page === 'resources'} onPageFocused={() => setPageFocusRequest(null)} />}
             {activePage === 'reviews' && <FrontierReviewsPage focusOnMount={pageFocusRequest?.page === 'reviews'} onPageFocused={() => setPageFocusRequest(null)} />}
             {activePage === 'atlas' && (
@@ -419,6 +425,7 @@ function HomePage({ onNavigate, onOpen, query, setQuery, searchResults, searchIn
           </div>
           <PaperPlaneLetter onOpenChange={onLetterOpenChange} />
           <DescriptionSearch query={query} setQuery={setQuery} results={searchResults} onOpen={onOpen} searchInputRef={searchInputRef} />
+          <AgentGuideEntry />
         </div>
       </div>
       <button className="home-scroll-cue" type="button" onClick={() => onNavigate('drugs', 'wheel')} aria-label="向下浏览药物页面">
@@ -456,7 +463,7 @@ function SearchResult({ type, item, hits, onOpen }) {
   return <button className="search-result" onClick={() => onOpen(type, item)}><span className={'result-type ' + type}>{typeLabels[type]}</span><span className="result-copy"><strong>{title}</strong><small>{subtitle}</small>{hits?.length > 0 && <em>命中：{hits.join('、')}</em>}</span><ArrowUpRight size={17} /></button>;
 }
 
-function ListPage({ type, data, selected, onSelect, onEdit, onDelete, onAdd, mainContentRef, canEdit, focusOnMount, onPageFocused, focusSelected, onSelectedFocused }) {
+function ListPage({ type, data, selected, onSelect, onOpen, onEdit, onDelete, onAdd, mainContentRef, canEdit, focusOnMount, onPageFocused, focusSelected, onSelectedFocused }) {
   const detailRef = useRef(null);
   const indexPanelRef = useRef(null);
   const mobileListScrollRef = useRef(0);
@@ -512,7 +519,7 @@ function ListPage({ type, data, selected, onSelect, onEdit, onDelete, onAdd, mai
   }, []);
 
   return <div className="page library-page page-enter">
-    <PageHeader page={type} eyebrow={type === 'drugs' ? 'MEDICATIONS' : 'DISORDERS'} title={label} description={type === 'drugs' ? '按《精神药物手册》的章节与药理学分类整理常见精神科药物。' : '症状、病程与功能分类的精神疾病词条。'} count={items.length + ' 个词条'} onAdd={() => onAdd(type)} addLabel="新增词条" canEdit={canEdit} focusOnMount={focusOnMount} onFocused={onPageFocused} />
+    <PageHeader page={type} eyebrow={type === 'drugs' ? 'MEDICATIONS' : 'DISORDERS'} title={label} description={type === 'drugs' ? '了解药物的用途、可能的不适，以及怎样与医生讨论治疗。' : '症状、病程与功能分类的精神疾病词条。'} count={items.length + ' 个词条'} onAdd={() => onAdd(type)} addLabel="新增词条" canEdit={canEdit} focusOnMount={focusOnMount} onFocused={onPageFocused} />
     <div className="workspace-grid">
       <section className={'index-panel ' + (type === 'drugs' ? 'drug-index-panel' : 'disorder-index-panel')} ref={indexPanelRef}>
         <div className="panel-label">
@@ -532,7 +539,7 @@ function ListPage({ type, data, selected, onSelect, onEdit, onDelete, onAdd, mai
           resolveDirection={resolveDetailDirection}
         >
           {selected
-            ? <Detail type={type} item={selected} onBack={closeDetail} onEdit={() => onEdit(type, selected)} onDelete={() => onDelete(type, selected)} canEdit={canEdit} />
+            ? <Detail type={type} item={selected} data={data} onOpen={onOpen} onBack={closeDetail} onEdit={() => onEdit(type, selected)} onDelete={() => onDelete(type, selected)} canEdit={canEdit} />
             : <EmptyDetail type={type} onChoose={() => items[0] && selectItem(items[0])} />}
         </AnimatedPresence>
       </section>
@@ -578,14 +585,15 @@ function DrugIndex({ items, selected, onSelect }) {
   return <div className="drug-index">{sections.map((section, sectionIndex) => <section className="drug-section" style={{ '--group-index': Math.min(sectionIndex, 7) }} key={section.name}><div className="drug-section-head"><span className="group-number">{String(sectionIndex + 1).padStart(2, '0')}</span><strong>{section.name}</strong><span>{section.categories.reduce((total, category) => total + category.items.length, 0)} 个词条</span></div>{section.categories.map((category) => <div className="drug-category" key={category.name}><div className="drug-category-head"><div><strong>{category.name}</strong>{category.description && category.description !== category.name && <span>{category.description}</span>}</div><small>{category.items.length}</small></div><div className="index-list">{category.items.map((item) => <button key={item.id} className={selected?.id === item.id ? 'selected' : ''} onClick={(event) => onSelect(item, event)}><span>{item.name}</span><small>{item.aliases}</small><ChevronRight size={15} /></button>)}</div></div>)}</section>)}</div>;
 }
 
-function Detail({ type, item, onBack, onEdit, onDelete, canEdit }) {
+function Detail({ type, item, data, onOpen, onBack, onEdit, onDelete, canEdit }) {
   const isDrug = type === 'drugs';
+  const professional = isDrug ? professionalFor(item) : disorderFor(item);
   const drugFacts = isDrug ? [
-    { label: '适用情境', text: item.indication, tone: 'sky' },
-    { label: '药物作用', text: item.action, tone: 'sand' },
-    { label: '药物动力学', text: item.kinetics, tone: 'mint' },
-    { label: '药物联用', text: item.interactions, tone: 'blend' },
-    { label: '副作用', text: item.sideEffects, tone: 'clay' }
+    { label: '适用情境', text: professional.indication, tone: 'sky' },
+    { label: '药物作用', text: professional.action, tone: 'sand' },
+    { label: '药物动力学', text: professional.kinetics, tone: 'mint' },
+    { label: '药物联用', text: professional.interactions, tone: 'blend' },
+    { label: '副作用', text: professional.sideEffects, tone: 'clay' }
   ] : [];
   return <article className="detail-article">
     <div className="detail-toolbar">
@@ -595,58 +603,63 @@ function Detail({ type, item, onBack, onEdit, onDelete, canEdit }) {
     <div className="detail-top">
       <div><span className="eyebrow">{isDrug ? (item.categoryLabel || item.className) : item.category}</span><h2>{item.name}</h2><p className="aliases">{isDrug ? item.aliases : item.aliases?.join(' · ') || '疾病词条 · 公共阅读版'}</p>{isDrug && item.className && item.className !== item.categoryLabel && <p className="detail-class">{item.className}</p>}</div>
     </div>
-    {isDrug ? <><Fact label="禁忌与警示" text={item.contraindications} warning priority /><FactSlider items={drugFacts} label={`${item.name}核心信息`} /></> : <DiseaseFacts item={item} />}
-    <SourceLine text={item.source} />
+    <KnowledgeReading type={type} item={item} data={data} onOpen={onOpen} position="before" />
+    {isDrug ? <><Fact label="禁忌与警示" text={professional.contraindications} points warning priority /><FactSlider items={drugFacts} label={`${item.name}核心信息`} />{professional.specialPopulations && <Fact label="特殊人群" text={professional.specialPopulations} points priority />}{professional.monitoring && <Fact label="随访与监测" text={professional.monitoring} points priority />}</> : <DiseaseFacts item={professional} />}
+    <KnowledgeReading type={type} item={item} data={data} onOpen={onOpen} />
   </article>;
 }
 
 function DiseaseFacts({ item }) {
-  return <div className="disease-copy"><Fact label="介绍" text={item.summary} priority /><Fact label="如何理解" text={item.details} priority /><ListFact label="常见体验" items={item.symptoms} /><ListFact label="来访者可能这样描述" items={item.patientPhrases} /><ListFact label="病程线索" items={item.courseClues} /><ListFact label="可能影响" items={item.functionalImpact} /><ListFact label="评估时会关注" items={item.assessment} /><ListFact label="需要鉴别" items={item.differentials} /><ListFact label="治疗与支持概览" items={item.treatmentOverview} /><ListFact label="需要尽快求助的信号" items={item.emergencySignals} warning /></div>;
+  return <div className="disease-copy"><Fact label="介绍" text={item.summary} points priority /><Fact label="如何理解" text={item.details} points priority /><ListFact label="常见体验" items={item.symptoms} /><ListFact label="可能这样描述" items={item.patientPhrases} /><ListFact label="病程线索" items={item.courseClues} /><ListFact label="可能影响" items={item.functionalImpact} /><ListFact label="评估时会关注" items={item.assessment} /><ListFact label="需要鉴别" items={item.differentials} /><ListFact label="治疗与支持概览" items={item.treatmentOverview} /><ListFact label="需要尽快求助的信号" items={item.emergencySignals} warning /></div>;
 }
 
-function Fact({ label, text, warning, priority }) { return <div className={'fact ' + (warning ? 'warning ' : '') + (priority ? 'fact-primary' : 'fact-secondary')}><span>{warning && <ShieldCheck size={14} />}{label}</span><p>{text || '待补充'}</p></div>; }
+function Fact({ label, text, warning, priority, points }) { return <div className={'fact ' + (warning ? 'warning ' : '') + (priority ? 'fact-primary' : 'fact-secondary')}><span>{warning && <ShieldCheck size={14} />}{label}</span>{points ? <MedicalPoints text={text} /> : <p>{text || '待补充'}</p>}</div>; }
 function ListFact({ label, items, warning, priority }) { return <div className={'fact fact-list ' + (warning ? 'warning ' : '') + (priority ? 'fact-primary' : 'fact-secondary')}><span>{warning && <ShieldCheck size={14} />}{label}</span>{items?.length ? <ul>{items.map((item) => <li key={item}>{item}</li>)}</ul> : <p>待补充</p>}</div>; }
-function SourceLine({ text }) { return <div className="source-line"><BookOpen size={14} /><span>{text}</span></div>; }
-function EmptyDetail({ type, onChoose }) { return <div className="empty-detail"><span className="empty-mark"><Brain size={25} /></span><h3>选择一个{type === 'drugs' ? '药物' : '疾病'}词条</h3><p>从左侧索引开始，查看结构化内容与来源说明。</p><button className="text-button" onClick={onChoose}>打开第一个词条 <ArrowUpRight size={15} /></button></div>; }
+function EmptyDetail({ type, onChoose }) { return <div className="empty-detail"><span className="empty-mark"><Brain size={25} /></span><h3>选择一个{type === 'drugs' ? '药物' : '疾病'}词条</h3><p>从左侧索引选择词条，了解你关心的问题。</p><button className="text-button" onClick={onChoose}>打开第一个词条 <ArrowUpRight size={15} /></button></div>; }
 
-function CasesPage({ data, selected, onSelect, onEdit, onDelete, onAdd, onOpenDisorder, mainContentRef, canEdit, focusOnMount, onPageFocused, focusSelected, onSelectedFocused }) {
+function CasesPage({ data, selected, onSelect, onOpen, onOpenDisorder, onEdit, onDelete, onAdd, mainContentRef, canEdit, focusOnMount, onPageFocused, focusSelected, onSelectedFocused }) {
   const detailRef = useRef(null);
-  const mobileListScrollRef = useRef(0);
-  const mobileListTriggerRef = useRef(null);
+  const indexPanelRef = useRef(null);
   const scrollFrameRef = useRef(null);
-  const selectedDisorder = selected ? data.disorders.find((item) => item.id === selected.disorderId) : null;
+  const [openCategory, setOpenCategory] = useState(() => {
+    const first = [...data.disorders].sort((a, b) => {
+      const ai = DISORDER_CATEGORY_ORDER.indexOf(a.category);
+      const bi = DISORDER_CATEGORY_ORDER.indexOf(b.category);
+      return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi) || a.name.localeCompare(b.name, 'zh-CN');
+    }).find((disorder) => data.cases.some((item) => item.disorderId === disorder.id));
+    return first ? first.category : null;
+  });
+
+  const isMobileLayout = () => window.matchMedia('(max-width: 780px)').matches;
 
   function selectCase(item, event) {
-    if (!selected && window.matchMedia('(max-width: 780px)').matches) {
-      mobileListScrollRef.current = mainContentRef.current?.scrollTop || 0;
-      mobileListTriggerRef.current = event?.currentTarget || null;
-    }
     onSelect(item);
   }
 
   function closeCase() {
-    const shouldRestoreScroll = window.matchMedia('(max-width: 780px)').matches;
-    const returnFocusTo = shouldRestoreScroll
-      ? (mobileListTriggerRef.current
-        || document.querySelector('.case-row.selected .case-main'))
-      : document.querySelector('.case-row.selected .case-main');
+    const returnFocusTo = indexPanelRef.current?.querySelector('.case-index button.selected');
+    // Related links can open a category that was expanded only by selection.
+    // Keep it open before clearing selection so its return target stays mounted.
+    if (selected) setOpenCategory(disorderById.get(selected.disorderId)?.category ?? openCategory);
     onSelect(null);
     if (scrollFrameRef.current !== null) window.cancelAnimationFrame(scrollFrameRef.current);
     scrollFrameRef.current = window.requestAnimationFrame(() => {
-      if (shouldRestoreScroll) {
-        mainContentRef.current?.scrollTo({ top: mobileListScrollRef.current, behavior: 'auto' });
-      }
+      // Mobile selection hides the index, so reveal its target after it mounts.
+      returnFocusTo?.scrollIntoView({ block: 'center' });
       returnFocusTo?.focus({ preventScroll: true });
       scrollFrameRef.current = null;
     });
   }
 
   useEffect(() => {
-    if (!selected || (!window.matchMedia('(max-width: 780px)').matches && !focusSelected)) return undefined;
+    if (!selected) return undefined;
     const frame = window.requestAnimationFrame(() => {
-      detailRef.current?.querySelector('.detail-back')?.focus({ preventScroll: true });
-      if (focusSelected) onSelectedFocused?.();
-      if (window.matchMedia('(max-width: 780px)').matches) {
+      indexPanelRef.current?.querySelector('.case-index button.selected')?.scrollIntoView({ block: 'nearest' });
+      if (isMobileLayout() || focusSelected) {
+        detailRef.current?.querySelector('.detail-back')?.focus({ preventScroll: true });
+        if (focusSelected) onSelectedFocused?.();
+      }
+      if (isMobileLayout()) {
         detailRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' });
       }
     });
@@ -655,7 +668,7 @@ function CasesPage({ data, selected, onSelect, onEdit, onDelete, onAdd, onOpenDi
   useEffect(() => () => {
     if (scrollFrameRef.current !== null) window.cancelAnimationFrame(scrollFrameRef.current);
   }, []);
-  const { disorders, casesByDisorder } = useMemo(() => {
+  const { categoryGroups, casesByDisorder, disorderById } = useMemo(() => {
     const sortedDisorders = [...data.disorders].sort((a, b) => {
       const ai = DISORDER_CATEGORY_ORDER.indexOf(a.category);
       const bi = DISORDER_CATEGORY_ORDER.indexOf(b.category);
@@ -667,21 +680,66 @@ function CasesPage({ data, selected, onSelect, onEdit, onDelete, onAdd, onOpenDi
       if (group) group.push(item);
       else groupedCases.set(item.disorderId, [item]);
     });
-    return { disorders: sortedDisorders, casesByDisorder: groupedCases };
+    const groups = [];
+    sortedDisorders.forEach((disorder) => {
+      const cases = groupedCases.get(disorder.id) || [];
+      if (!cases.length) return;
+      let group = groups.find((entry) => entry.category === disorder.category);
+      if (!group) { group = { category: disorder.category, disorders: [] }; groups.push(group); }
+      group.disorders.push({ disorder, cases });
+    });
+    return { categoryGroups: groups, casesByDisorder: groupedCases, disorderById: new Map(data.disorders.map((d) => [d.id, d])) };
   }, [data.cases, data.disorders]);
-  return <div className="page cases-page page-enter">
-    <PageHeader page="cases" eyebrow="CASE NOTES" title="案例分析" description="按疾病词条分组的精神疾病案例。" count={data.cases.length + ' 个案例'} onAdd={() => onAdd('cases')} addLabel="新增案例" canEdit={canEdit} focusOnMount={focusOnMount} onFocused={onPageFocused} />
-    <AnimatedPresence viewKey={selected?.id || EMPTY_VIEW} emptyKey={EMPTY_VIEW} kind="detail" className="case-detail-presence" exitMs={145} enterMs={360} settleMs={620} resolveDirection={resolveDetailDirection}>
-      {selected && <CaseDetail detailRef={detailRef} item={selected} disorder={selectedDisorder} onBack={closeCase} onEdit={() => onEdit('cases', selected)} onDelete={() => onDelete('cases', selected)} canEdit={canEdit} />}
-    </AnimatedPresence>
-    <div className="case-groups">
-      {disorders.map((disorder) => {
-        const cases = casesByDisorder.get(disorder.id) || [];
-        return <section className="case-group" key={disorder.id}>
-          <div className="case-group-heading"><div><span>{disorder.category}</span><h2>{disorder.name}</h2></div><button className="link-button" onClick={() => onOpenDisorder(disorder)}>查看疾病词条 <ChevronRight size={15} /></button></div>
-          {cases.length ? <div className="case-list">{cases.map((item) => <CaseRow key={item.id} item={item} selected={selected?.id === item.id} onSelect={selectCase} onEdit={() => onEdit('cases', item)} onDelete={() => onDelete('cases', item)} canEdit={canEdit} />)}</div> : <p className="muted">还没有案例，点击右上角新增。</p>}
-        </section>;
-      })}
+
+  function toggleCategory(category) {
+    setOpenCategory((current) => (current === category ? null : category));
+  }
+
+  return <div className="page library-page cases-page page-enter">
+    <PageHeader page="cases" eyebrow="CASE NOTES" title="案例分析" description="按疾病分类索引的虚构教学案例：先读情景，再走评估思路。" count={data.cases.length + ' 个案例'} onAdd={() => onAdd('cases')} addLabel="新增案例" canEdit={canEdit} focusOnMount={focusOnMount} onFocused={onPageFocused} />
+    <div className="workspace-grid">
+      <section className="index-panel case-index-panel" ref={indexPanelRef}>
+        <div className="panel-label">
+          <strong>分类索引</strong>
+          <span><strong>{data.cases.length}</strong><small>案例</small></span>
+        </div>
+        <div className="case-index">
+          {categoryGroups.map((group) => {
+            const count = group.disorders.reduce((sum, entry) => sum + entry.cases.length, 0);
+            const open = openCategory === group.category || (selected && disorderById.get(selected.disorderId)?.category === group.category);
+            return <div className={'case-index-group' + (open ? ' open' : '')} key={group.category}>
+              <button className="case-index-category" onClick={() => toggleCategory(group.category)} aria-expanded={open ? 'true' : 'false'}>
+                <span className="case-index-name">{group.category}</span>
+                <span className="case-index-count"><strong>{count}</strong><small>案例</small></span>
+              </button>
+              {open && <div className="case-index-list">
+                {group.disorders.map(({ disorder, cases }) => <div key={disorder.id} className="case-index-disorder">
+                  <div className="case-index-disorder-name">{disorder.name}</div>
+                  {cases.map((item) => <button key={item.id} className={'case-index-item' + (selected?.id === item.id ? ' selected' : '')} onClick={(event) => selectCase(item, event)}>
+                    <strong>{item.title}</strong>
+                    <span>{item.stage}</span>
+                  </button>)}
+                </div>)}
+              </div>}
+            </div>;
+          })}
+        </div>
+      </section>
+      <span className="workspace-rail" aria-hidden="true"><i /></span>
+      <section className={'detail-panel ' + (selected ? 'has-selection' : 'is-empty')} ref={detailRef}>
+        <AnimatedPresence
+          viewKey={selected?.id || EMPTY_VIEW}
+          kind="detail"
+          exitMs={145}
+          enterMs={360}
+          settleMs={620}
+          resolveDirection={resolveDetailDirection}
+        >
+          {selected
+            ? <CaseDetail detailRef={detailRef} item={selected} disorder={disorderById.get(selected.disorderId)} data={data} onOpen={onOpen} onOpenDisorder={onOpenDisorder} onBack={closeCase} onEdit={() => onEdit('cases', selected)} onDelete={() => onDelete('cases', selected)} canEdit={canEdit} />
+            : <EmptyDetail type="cases" onChoose={() => { const first = categoryGroups[0]?.disorders[0]?.cases[0]; if (first) selectCase(first); }} />}
+        </AnimatedPresence>
+      </section>
     </div>
   </div>;
 }
@@ -698,8 +756,29 @@ function CaseRow({ item, selected, onSelect, onEdit, onDelete, canEdit }) {
   </div>;
 }
 
-function CaseDetail({ item, disorder, onBack, onEdit, onDelete, detailRef, canEdit }) {
-  return <article className="case-detail" ref={detailRef}><button className="detail-back" onClick={onBack}><ArrowLeft size={15} /> 返回案例列表</button><div className="detail-top"><span className="detail-entry-number" aria-hidden="true">CASE</span><div><span className="eyebrow">{disorder?.category || 'CASE NOTE'} · {item.stage}</span><h2>{item.title}</h2><p className="aliases">{disorder?.name || '教学性案例'} · 合成案例</p></div>{CAN_EDIT && canEdit && <div className="detail-actions"><button className="icon-button" onClick={onEdit} aria-label="编辑案例"><Edit3 size={17} /></button><button className="icon-button danger" onClick={onDelete} aria-label="删除案例"><Trash2 size={17} /></button></div>}</div><div className="fact-grid"><Fact label="案例摘要" text={item.summary} priority /><Fact label="表现" text={(item.presentation || []).join('；')} priority /><Fact label="时间线" text={item.timeline} /><Fact label="功能影响" text={item.functionImpact} /><Fact label="评估重点" text={(item.assessmentFocus || []).join('；')} /><Fact label="鉴别提示" text={(item.differentialClues || []).join('；')} /><Fact label="风险线索" text={item.riskSignals} warning /><Fact label="安全提醒" text={item.safetyNote} warning /></div><SourceLine text={item.source} /></article>;
+function CaseDetail({ item, disorder, data, onOpen, onBack, onEdit, onDelete, detailRef, canEdit }) {
+  const display = caseFor(item);
+  return <article className="case-detail" ref={detailRef}>
+    <button className="detail-back" onClick={onBack}><ArrowLeft size={15} /> 返回案例列表</button>
+    <div className="detail-top"><span className="detail-entry-number" aria-hidden="true">CASE</span>
+      <div><span className="eyebrow">{disorder?.category || 'CASE NOTE'} · {item.stage}</span><h2>{item.title}</h2><p className="aliases">{disorder?.name || '教学性案例'} · 虚构教学情景</p></div>
+      {CAN_EDIT && canEdit && <div className="detail-actions"><button className="icon-button" onClick={onEdit} aria-label="编辑案例"><Edit3 size={17} /></button><button className="icon-button danger" onClick={onDelete} aria-label="删除案例"><Trash2 size={17} /></button></div>}
+    </div>
+    <KnowledgeReading type="cases" item={item} data={data} onOpen={onOpen} position="before" />
+    <div className="fact-grid">
+      <Fact label="案例摘要" text={display.summary} points priority />
+      <ListFact label="表现" items={display.presentation} priority />
+      <Fact label="时间线" text={display.timeline} points />
+      <Fact label="生活影响" text={display.functionImpact} points />
+      <ListFact label="评估时还需要了解" items={display.assessmentFocus} />
+      <ListFact label="还有哪些可能" items={display.differentialClues} />
+      <Fact label="需要及时留意的变化" text={display.riskSignals} points warning />
+      <Fact label="求助与支持" text={display.safetyNote} points warning />
+      {display.conversation && <Fact label="陪伴者可以怎样开口" text={display.conversation} points priority />}
+      {display.reflection && <Fact label="一起想想" text={display.reflection} points priority />}
+    </div>
+    <KnowledgeReading type="cases" item={item} data={data} onOpen={onOpen} />
+  </article>;
 }
 
 function ResourcesPage({ data, onEdit, onDelete, onAdd, canEdit, focusOnMount, onPageFocused }) {
@@ -730,7 +809,7 @@ function PageHeader({ page, eyebrow, title, description, count, onAdd, addLabel,
   }, [focusOnMount]);
   return <header ref={headerRef} className={`page-header page-header-${meta.accent}`} tabIndex={-1}>
     <div className="page-title-group"><span className="page-kicker">{meta.number} · {eyebrow}</span><KineticTitle as="h1" text={title} mode="converge" replayKey={title} /><p>{description}</p></div>
-    <div className="page-actions"><span className="count-label">{count}</span>{CAN_EDIT && canEdit && <button className="primary-button local-add-button" onClick={onAdd}><Plus size={16} /> {addLabel}</button>}</div>
+    <div className="page-actions"><span className="count-label">{count}</span><AgentGuideEntry moduleId={page} />{CAN_EDIT && canEdit && <button className="primary-button local-add-button" onClick={onAdd}><Plus size={16} /> {addLabel}</button>}</div>
   </header>;
 }
 
