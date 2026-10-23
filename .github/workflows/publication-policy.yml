@@ -1,0 +1,39 @@
+name: Trusted publication policy
+
+# This workflow only becomes trusted after it is independently reviewed into base.
+# No PR files or dependencies are ever executed with this token.
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, edited, reopened, synchronize, ready_for_review, labeled]
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+  checks: read
+
+concurrency:
+  group: publication-policy-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  publication:
+    name: Trusted publication policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: trusted-base
+          persist-credentials: false
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const { pathToFileURL } = require('node:url')
+            const file = pathToFileURL(process.cwd() + '/trusted-base/scripts/security/trusted-pr.mjs').href
+            const { inspectTrustedPr } = await import(file)
+            const evidence = await inspectTrustedPr({ github, context, number: context.payload.pull_request.number })
+            core.info(JSON.stringify(evidence))
+            core.setFailed('BLOCKED: no authenticated exact-output publication authority is configured.')

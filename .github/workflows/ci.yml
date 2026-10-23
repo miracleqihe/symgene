@@ -11,35 +11,56 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
+  identity:
+    name: Commit identity
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - run: node scripts/security/record-ci-evidence.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ci-identity-${{ github.run_id }}-${{ github.run_attempt }}
+          path: work/security/ci-identity.json
+          if-no-files-found: error
+          retention-days: 14
+
   branch-policy:
     name: Branch policy
-    if: github.event_name == 'pull_request' && github.base_ref == 'main'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - name: Require same-repository dev promotion for main
+      - name: Enforce same-repository dev promotion when targeting main
         env:
+          EVENT_NAME: ${{ github.event_name }}
           BASE_REF: ${{ github.base_ref }}
           HEAD_REF: ${{ github.head_ref }}
           BASE_REPOSITORY: ${{ github.repository }}
           HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
         run: |
-          if [[ "$BASE_REF" == "main" ]] && \
-             [[ "$HEAD_REF" != "dev" || "$HEAD_REPOSITORY" != "$BASE_REPOSITORY" ]]; then
-            echo "Pull requests to main must promote the dev branch from this repository."
-            echo "Received: $HEAD_REPOSITORY:$HEAD_REF -> $BASE_REPOSITORY:$BASE_REF"
-            exit 1
+          if [[ "$EVENT_NAME" == "pull_request" && "$BASE_REF" == "main" ]]; then
+            [[ "$HEAD_REF" == "dev" && "$HEAD_REPOSITORY" == "$BASE_REPOSITORY" ]] || exit 1
           fi
 
   verify:
     name: Verify
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: npm
@@ -51,7 +72,7 @@ jobs:
         run: npm run review:browser
         env:
           REVIEW_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: content-review-${{ github.event.pull_request.head.sha || github.sha }}
@@ -59,15 +80,40 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  publication-approval:
-    name: Publication approval
-    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+  content-integration:
+    name: Content integration
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run check:publication
+      - run: npm run check:content
+      - run: npm run check:legacy-content
+      - run: node --test tests/storage.test.mjs tests/content-*.test.mjs
+      - run: git diff --check
+
+  gate:
+    name: Engineering gate
+    if: always()
+    needs: [identity, branch-policy, verify, content-integration]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Deliberately inline: the terminal decision does not import a PR script.
+      # A changed PR workflow is still candidate CI, not production authority.
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        with:
+          script: |
+            const needs = JSON.parse(process.env.NEEDS_JSON)
+            const expected = ['identity', 'branch-policy', 'verify', 'content-integration']
+            if (expected.some(name => needs[name]?.result !== 'success')) {
+              core.setFailed('Every required upstream job must finish with exactly success.')
+            }
