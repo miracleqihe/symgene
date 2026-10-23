@@ -12,7 +12,15 @@ import { fail } from './policy.mjs';
 export const T03_BASE = '6a3eea2f679fa8979c66edcba2724675ee74aa93';
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const paths = value => value.split('\0').filter(Boolean);
-export const allowedT03Path = path => /^\.github\/workflows\/[a-z0-9-]+\.yml$/.test(path)
+// Exact integration surface authorized for the concurrent PR #38 remediation.
+const RELIABILITY_PATHS = new Set([
+  ...['consumer-concurrency', 'consumer-vite-server', 'dev-consumer', 'dev-consumer-browser',
+    'signed-consumer', 'signed-consumer-browser'].map(name => `scripts/t02/${name}.mjs`),
+  'scripts/local-content/check-split.mjs', 'tests/content-concurrency.test.mjs',
+  'tests/browser/content-concurrency.test.mjs', 'tests/helpers/concurrency-gateway.mjs',
+  'docs/t02/local-consumer-concurrency.md',
+]);
+export const allowedT03Path = path => RELIABILITY_PATHS.has(path) || /^\.github\/workflows\/[a-z0-9-]+\.yml$/.test(path)
   || /^scripts\/security\/[a-z0-9-]+\.mjs$/.test(path)
   || /^tests\/security-[a-z0-9-]+\.test\.mjs$/.test(path)
   || ['package.json', 'package-lock.json', 'CONTRIBUTING.md', '.github/CODEOWNERS',

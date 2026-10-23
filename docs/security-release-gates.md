@@ -13,9 +13,10 @@ unless all four upstream results are exactly `success`. Missing, skipped,
 neutral, failed and cancelled work cannot satisfy that terminal decision. No
 historical topic branch name exempts a future PR from content integration.
 
-Commit identity records the PR HEAD, base SHA, synthetic merge SHA, checkout SHA,
-run ID, attempt and workflow ref. A PR merge must have the expected base and head
-as its two parents. The report is engineering evidence, not medical approval.
+Commit identity records the PR HEAD, base SHA, platform synthetic merge SHA,
+run ID, attempt and workflow ref in an isolated inline job. A PR merge must have
+the expected base and head as its two parents. The separate local checkout report
+is diagnostic evidence and cannot independently authorize a trusted decision.
 `Verify` retains browser evidence at four viewport widths, including its separate
 sourceHead and checkoutHead fields.
 
@@ -63,7 +64,7 @@ The trusted collector reads fresh GitHub PR, base branch, merge parents, reviews
 review threads, collaborator permissions, workflow run, jobs and check runs. It
 requires a current independent human approval and the existing main owner review;
 an author, a bot, an old SHA, a dismissed approval or unresolved thread cannot
-satisfy it. A fresh read rejects a PR changed during evidence collection.
+satisfy it. Final fresh reads reject changed PR, branch, CI and review evidence during collection.
 
 It also requires the candidate CI workflow blob to equal the trusted base blob,
 the exact expected workflow path and pull_request event, the current HEAD, exact
@@ -137,3 +138,81 @@ can assist review but cannot satisfy the project's independent human requirement
 GitHub now offers opt-in Copilot Approve counting in public preview, so inspect
 that setting instead of assuming Copilot can only ever comment. See [GitHub's
 current approval documentation](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/use-code-review).
+
+## T03 independent review remediation (2026-10-23)
+
+The prior CI collector accepted a matching HEAD without proving the PR number,
+base snapshot or actual tested merge. Those findings were valid. The collector
+now selects the newest CI run for the HEAD **before** testing success or PR
+association. It never falls back to an older green run. It requires exactly one
+complete `run.pull_requests` association with the requested PR number, numeric
+base/head repository IDs, refs and SHAs. Missing, cross-PR, duplicated or stale
+association metadata blocks authorization. The current PR and current branch
+must still match the synthetic merge's ordered base/head parents.
+
+The actual PR #37 run
+[39983468521](https://github.com/miracleqihe/symgene/actions/runs/39983468521)
+returned a complete association and its `head_sha` was the PR HEAD, not the
+synthetic merge. The [workflow-runs API](https://docs.github.com/en/rest/actions/workflow-runs)
+also allows pull requests to be omitted. This field is not assumed universally
+complete: absent evidence is an explicit fail-closed platform limitation.
+
+`Commit identity` now executes only a fixed inline pinned `github-script` Action
+and a pinned artifact upload, with no checkout, dependency installation or PR
+script. It records GitHub's event action, PR number, numeric repository IDs,
+head/base refs and SHAs, merge `context.sha`, workflow SHA/ref, run ID and attempt.
+The trusted collector reads the **attempt-specific job log**, not the mutable
+`record-ci-evidence.mjs` report or its artifact. Exactly one valid context record
+is required. Base, head and synthetic-merge workflow blobs must all be identical
+before this record can be trusted. GitHub's
+[pull_request event semantics](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request)
+provide the merge ref/SHA; the recorded merge and workflow SHA must equal the
+current candidate. Attempt-specific API jobs, exact job/check IDs and check-run
+URLs, suite status and GitHub Actions App, workflow ID/path, and current run
+status/conclusion are all bound to that same candidate. This conditional trust
+requires the independently reviewed workflow to have entered the trusted base;
+it does not bootstrap the current PR into authority.
+
+The last-reviewable-pusher finding was also valid. Commit author, committer,
+`run.actor`, `triggering_actor` and PR author are different identities. No reliable
+last-reviewable-pusher field is supplied by the PR/review REST evidence, and
+[public Events API history](https://docs.github.com/en/rest/activity/events)
+is bounded, delayed and not an authoritative mapping to GitHub's reviewable-push
+semantics. This implementation does not infer one. It requires an observed
+native branch protection rule with `require_last_push_approval`, at least one
+approval, admin enforcement and no user/team/App bypass allowances. Missing,
+unreadable or insufficient protection blocks the trusted decision. A ruleset-only
+configuration is not currently accepted by this collector; an owner must arrange
+an independently reviewed supported native protection configuration or extend
+its inspection with equivalent verifiable enforcement. No owner settings were
+changed. See [native protection semantics](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)
+and the [rules API field](https://docs.github.com/en/rest/repos/rules).
+
+Before its final decision, the collector re-reads PR state, head/base/merge,
+current branch and merge parents, all reviews and effective decisions, every
+reviewer's current permissions, fully paginated review threads, and native
+last-push protection. Changed reviews fail closed even without HEAD movement.
+GraphQL page metadata must contain a boolean `hasNextPage`; a next page requires
+a nonempty, unique cursor. Missing data, GraphQL errors, API denial and the page
+limit reject collection. A newest run/attempt change during collection also
+rejects the result.
+
+Review changes require reevaluation beyond `pull_request_target` synchronize.
+The publication workflow adds a 15-minute scheduled reevaluation from trusted
+main and main-only manual dispatch. These do not run code from a PR. Direct
+`pull_request_review` triggers execute a PR merge workflow, so adding that event
+would not establish trusted authorization. Polling can be delayed and does not
+provide immediate invalidation on review dismissal, permission loss or reopened
+threads. A final re-read also cannot close the race between checking and merging.
+Native required independent reviews, latest-push approval, current checks and
+conversation resolution at merge time remain mandatory owner prerequisites; an
+owner-controlled trusted webhook/required workflow or issuer is needed for
+immediate trustworthy reevaluation. None is installed by this PR.
+
+The shipped `deploy-pages.yml` inline guard is now executed directly by negative
+tests, alongside its actual environment declaration. Fixtures reject an alternate
+environment, old artifact, replayed attempt, current-main or authorized-SHA drift,
+nonproduction event, malformed expiry, and missing authorization/verification/gate
+success. The production authorization command still returns
+`PUBLICATION_AUTHORITY_NOT_CONFIGURED`; the real medical/rights/privacy authority
+and production remain **BLOCKED**.

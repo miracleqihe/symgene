@@ -6,6 +6,16 @@ on:
   pull_request_target:
     branches: [main]
     types: [opened, edited, reopened, synchronize, ready_for_review, labeled]
+  # Review events run PR-controlled workflow code, so they cannot grant authority.
+  # Poll from the trusted main workflow for dismissals, reopened threads or permission changes.
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      pull_request_number:
+        description: Open main promotion PR to re-evaluate from the trusted main workflow
+        required: true
+        type: number
 
 permissions:
   contents: read
@@ -14,7 +24,7 @@ permissions:
   checks: read
 
 concurrency:
-  group: publication-policy-${{ github.event.pull_request.number }}
+  group: publication-policy-${{ github.event.pull_request.number || inputs.pull_request_number || github.event_name }}
   cancel-in-progress: true
 
 jobs:
@@ -25,7 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: ${{ github.event.pull_request.base.sha }}
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
           path: trusted-base
           persist-credentials: false
       - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
@@ -34,6 +44,15 @@ jobs:
             const { pathToFileURL } = require('node:url')
             const file = pathToFileURL(process.cwd() + '/trusted-base/scripts/security/trusted-pr.mjs').href
             const { inspectTrustedPr } = await import(file)
-            const evidence = await inspectTrustedPr({ github, context, number: context.payload.pull_request.number })
-            core.info(JSON.stringify(evidence))
+            const numbers = context.eventName === 'schedule'
+              ? (await github.paginate(github.rest.pulls.list, { ...context.repo, state: 'open', base: 'main', per_page: 100 })).map(pr => pr.number)
+              : [context.payload.pull_request?.number || Number(context.payload.inputs?.pull_request_number)]
+            for (const number of numbers) {
+              try {
+                const evidence = await inspectTrustedPr({ github, context, number })
+                core.info(JSON.stringify(evidence))
+              } catch (error) {
+                core.error(JSON.stringify({ number, status: 'BLOCKED', code: error.code || error.message }))
+              }
+            }
             core.setFailed('BLOCKED: no authenticated exact-output publication authority is configured.')

@@ -130,9 +130,16 @@ jobs:
           ARTIFACT_DIGEST: ${{ needs.verify.outputs.artifact_digest }}
           AUTHORIZED_SHA: ${{ needs.authorization.outputs.sha }}
           EXPECTED_ENVIRONMENT: github-pages
+          NEEDS_JSON: ${{ toJSON(needs) }}
         with:
           script: |
-            if (context.ref !== 'refs/heads/main' || process.env.EXPECTED_ENVIRONMENT !== 'github-pages' ||
+            const needs = JSON.parse(process.env.NEEDS_JSON)
+            if (['authorization', 'verify', 'gate'].some(name => needs[name]?.result !== 'success')) throw new Error('DEPLOY_APPROVAL_MISSING')
+            if (!['push', 'workflow_dispatch'].includes(context.eventName) ||
+                !Number.isSafeInteger(context.runId) || context.runId < 1 ||
+                !/^[1-9][0-9]*$/.test(process.env.GITHUB_RUN_ATTEMPT || '') ||
+                !/^[a-f0-9]{40}$/.test(process.env.AUTHORIZED_SHA || '') ||
+                context.ref !== 'refs/heads/main' || process.env.EXPECTED_ENVIRONMENT !== 'github-pages' ||
                 process.env.GITHUB_WORKFLOW_REF !== 'miracleqihe/symgene/.github/workflows/deploy-pages.yml@refs/heads/main' ||
                 context.repo.owner + '/' + context.repo.repo !== 'miracleqihe/symgene' ||
                 context.sha !== process.env.AUTHORIZED_SHA) throw new Error('DEPLOY_CONTEXT_REJECTED')
@@ -146,7 +153,7 @@ jobs:
                 run.run_attempt !== Number(process.env.GITHUB_RUN_ATTEMPT) || run.head_sha !== context.sha ||
                 run.head_branch !== 'main' || run.event !== context.eventName ||
                 run.repository.full_name !== 'miracleqihe/symgene' || run.path !== '.github/workflows/deploy-pages.yml' ||
-                artifact.id !== Number(process.env.ARTIFACT_ID) || artifact.name !== expectedName || artifact.expired ||
+                artifact.id !== Number(process.env.ARTIFACT_ID) || artifact.name !== expectedName || artifact.expired !== false ||
                 artifact.workflow_run?.id !== context.runId || artifact.workflow_run?.head_sha !== context.sha ||
                 artifact.workflow_run?.head_branch !== 'main' ||
                 !/^sha256:[a-f0-9]{64}$/.test(process.env.ARTIFACT_DIGEST || '') ||

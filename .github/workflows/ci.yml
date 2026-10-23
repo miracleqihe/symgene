@@ -20,14 +20,29 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      # Isolated platform evidence: no checkout, import, npm or PR code runs here.
+      # Trusted publication accepts it only when base/head/merge workflow blobs match.
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
-          fetch-depth: 2
-          persist-credentials: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 22
-      - run: node scripts/security/record-ci-evidence.mjs
+          script: |
+            const pr = context.payload.pull_request
+            const evidence = {
+              repository: context.repo.owner + '/' + context.repo.repo,
+              repositoryId: context.payload.repository.id,
+              number: pr?.number,
+              headRepositoryId: pr?.head.repo.id,
+              headRef: pr?.head.ref, baseRef: pr?.base.ref,
+              headSha: pr?.head.sha, baseSha: pr?.base.sha,
+              mergeSha: context.sha, ref: context.ref,
+              workflowSha: process.env.GITHUB_WORKFLOW_SHA,
+              workflowRef: process.env.GITHUB_WORKFLOW_REF,
+              eventName: context.eventName, action: context.payload.action,
+              runId: context.runId, runAttempt: Number(process.env.GITHUB_RUN_ATTEMPT),
+            }
+            core.info('SYMGENE_CI_CONTEXT_V1 ' + JSON.stringify(evidence))
+            const fs = require('node:fs')
+            fs.mkdirSync('work/security', { recursive: true })
+            fs.writeFileSync('work/security/ci-identity.json', JSON.stringify(evidence, null, 2) + '\n')
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ci-identity-${{ github.run_id }}-${{ github.run_attempt }}

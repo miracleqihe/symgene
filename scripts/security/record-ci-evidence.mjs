@@ -2,10 +2,10 @@ import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { prIdentity, fail, REPOSITORY } from './policy.mjs';
+import { prIdentity, fail, REPOSITORY, REPOSITORY_ID } from './policy.mjs';
 
 export function recordCiEvidence(env = process.env, git = (...args) => execFileSync('git', args, { encoding: 'utf8' }).trim()) {
-  if (env.GITHUB_REPOSITORY !== REPOSITORY) fail('CI_REPOSITORY_REJECTED');
+  if (env.GITHUB_REPOSITORY !== REPOSITORY || Number(env.GITHUB_REPOSITORY_ID) !== REPOSITORY_ID) fail('CI_REPOSITORY_REJECTED');
   const event = JSON.parse(readFileSync(env.GITHUB_EVENT_PATH, 'utf8'));
   const checkoutSha = git('rev-parse', 'HEAD');
   if (checkoutSha !== env.GITHUB_SHA) fail('CI_CHECKOUT_SHA_MISMATCH');
@@ -25,7 +25,8 @@ export function recordCiEvidence(env = process.env, git = (...args) => execFileS
   }
   return { ...identity, checkoutSha, eventName: env.GITHUB_EVENT_NAME,
     workflowRef: env.GITHUB_WORKFLOW_REF, runId: env.GITHUB_RUN_ID, runAttempt: env.GITHUB_RUN_ATTEMPT,
-    authority: 'engineering-evidence-only-not-content-approval' };
+    repositoryId: REPOSITORY_ID,
+    authority: 'untrusted-diagnostic-only-not-independent-ci-proof-or-content-approval' };
 }
 
 if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {
