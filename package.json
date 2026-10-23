@@ -27,7 +27,9 @@
     "check:publication": "node scripts/local-content/check-publication.mjs",
     "build:release": "npm run check:publication && npm run build",
     "review:browser": "node scripts/local-content/review-browser.mjs",
-    "review:recovery": "node scripts/local-content/recovery-drill.mjs"
+    "review:recovery": "node scripts/local-content/recovery-drill.mjs",
+    "check:security": "node --test tests/security-*.test.mjs",
+    "check:t03-scope": "node scripts/security/check-t03-scope.mjs"
   },
   "dependencies": {
     "@remotion/player": "4.0.502",

@@ -1,54 +1,31 @@
 name: T02 verification
 
+# Ordinary PRs are covered by the unconditional CI Content integration job.
+# This additional manual regression has no deployment authority or branch-name exception.
 on:
-  pull_request:
-    branches: [dev, main]
-  push:
-    branches: [codex/t02-content-contract, codex/t02-m4-m5-gates, codex/t02-post-merge-fixes]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: t02-verification-${{ github.event.pull_request.number || github.ref }}
+  group: t02-verification-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  local-content-integration:
-    name: Content integration
-    if: github.event_name == 'pull_request' && github.head_ref == 'codex/t02-local-split-20261016'
+  regression:
+    name: T02 regression
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
-          cache: npm
       - run: npm ci
-      - run: npm run check:split
-      - name: Storage v4, signed consumer, withdrawal and publication isolation
-        run: node --test tests/storage.test.mjs tests/content-*.test.mjs
+      - run: npm run check:content
+      - run: npm run check:legacy-content
+      - run: node --test tests/storage.test.mjs tests/content-*.test.mjs
       - run: git diff --check
-
-  t02-engineering:
-    if: github.event_name != 'pull_request' || github.head_ref == 'codex/t02-content-contract' || github.head_ref == 'codex/t02-m4-m5-gates' || github.head_ref == 'codex/t02-post-merge-fixes'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run verify
-      - run: git diff --check
-      - run: node scripts/t02/check-repository.mjs

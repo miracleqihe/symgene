@@ -1,9 +1,11 @@
 import { defineConfig } from 'vite';
+import { legacyRuntimeEvidencePlugin } from './scripts/security/legacy-runtime.mjs';
 
 const localFileProtocol = "('file:' + String.fromCharCode(47, 47))";
 
 export default defineConfig({
   plugins: [
+    legacyRuntimeEvidencePlugin(),
     {
       name: 'sanitize-remotion-local-protocol-literal',
       enforce: 'pre',

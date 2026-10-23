@@ -1,3 +1,4 @@
+import { assertLegacyProductionRuntime } from './production-runtime.mjs';
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
@@ -24,6 +25,8 @@ import PaperPlaneLetter from './components/PaperPlaneLetter';
 import { useLocalKnowledge } from './hooks/useLocalKnowledge';
 import symGenMark from './assets/sym-gen-heart-mark.png';
 import './styles.css';
+
+if (import.meta.env.PROD) assertLegacyProductionRuntime();
 
 const CAN_EDIT = import.meta.env.DEV;
 const DISORDER_CATEGORY_ORDER = [

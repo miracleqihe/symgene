@@ -184,7 +184,7 @@ CI 通过只代表自动检查通过，不等于自动获得合并权限。评�
 https://github.com/miracleqihe/symgene/compare/main...dev?expand=1&template=promotion.md
 ```
 
-`Promotion PR policy` 会确定性检查来源分支、标题、必需章节、模板占位符和未确认复选框，并由 `github-actions[bot]` 在同一条评论中提醒 PR 创建者修正。GitHub Copilot code review 可以补充代码层建议，但它只提交非阻断的 review comment，不能替代状态检查或 `@miracleqihe` 的人工批准。
+`Promotion PR policy` 会确定性检查来源分支、标题、必需章节、模板占位符和未确认复选框，并由 `github-actions[bot]` 在同一条评论中提醒 PR 创建者修正。GitHub Copilot code review 可以补充代码层建议，但不能替代状态检查或 `@miracleqihe` 的独立人工批准。GitHub 现提供可选 Copilot Approve 计入合并要求的预览设置，owner 必须检查其配置，不能把机器审批当作本项目的人工审查。
 
 合并到 `main` 后，GitHub Pages 工作流会再次执行完整验证，只有验证成功才部署。部署完成后将 `main` 同步回 `dev`，并按需创建版本标签和发布说明。
 
@@ -234,7 +234,7 @@ https://github.com/miracleqihe/symgene/compare/main...dev?expand=1&template=prom
 - Block force pushes and deletions；
 - 不允许普通贡献者 bypass。
 
-`CODEOWNERS` 会自动请求审核，但只有启用 “Require review from Code Owners” 后才会成为合并门禁。Copilot code review 只能留下 `Comment`，不会给出 `Approve` 或 `Request changes`，因此也不计入必需审批。
+`CODEOWNERS` 会自动请求审核，但只有启用 “Require review from Code Owners” 后才会成为合并门禁。Copilot 默认以 `Comment` 提供建议；当前 GitHub 另有可选 Approve 计票预览。项目仍要求独立合格真人批准，不能以 Copilot 或其他机器审批替代。
 
 ## 设计参考
 
@@ -259,3 +259,8 @@ Bug 报告请包含复现步骤、预期行为、实际行为、浏览器与系�
 升级为真实内容批准。浏览器演练见 scripts/t02/dev-consumer-browser.mjs 的
 参数说明；用独立临时浏览器配置，不使用个人浏览器数据。普通功能 PR 仍
 面向 dev；CI 和模拟演练不自动上传内容或部署。
+
+
+## T03 工程终判与发布阻断
+
+稳定 CI 检查为 `Commit identity`、`Branch policy`、`Verify`、`Content integration` 与 `Engineering gate`。终判无条件运行，所有必要上游必须恰好为 success。main 的可信 base 发布策略、真实审批缺失阻断、bootstrap 限制与 owner 设置任务见 [安全门禁说明](docs/security-release-gates.md)。`check:publication`、`build:release` 与生产授权继续 BLOCKED；工程 CI 通过不授权晋级、医学批准或部署。
