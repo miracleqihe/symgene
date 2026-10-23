@@ -54,7 +54,7 @@ jobs:
 
   verify:
     name: Verify
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -66,8 +66,25 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run verify
-      - run: npx playwright install --with-deps chromium
-      - run: sudo apt-get install -y fonts-noto-cjk
+      - name: Configure bounded official Ubuntu package downloads
+        timeout-minutes: 1
+        shell: bash
+        run: |
+          . /etc/os-release
+          test "$ID" = ubuntu
+          test "$VERSION_ID" = 24.04
+          test -f /etc/apt/apt-mirrors.txt
+          # Preserve the runner's signed Ubuntu sources; replace only its slow mirror list.
+          printf '%s\n' 'https://archive.ubuntu.com/ubuntu' | sudo tee /etc/apt/apt-mirrors.txt
+          printf '%s\n' 'Acquire::Retries "2";' 'Acquire::http::Timeout "20";' 'Acquire::https::Timeout "20";' 'DPkg::Lock::Timeout "30";' | sudo tee /etc/apt/apt.conf.d/99symgene-ci-downloads
+          apt-config dump | grep -F 'Acquire::Retries "2";'
+          apt-config dump | grep -F 'Acquire::https::Timeout "20";'
+      - name: Install locked Playwright Chromium and system dependencies
+        timeout-minutes: 8
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Install the Chinese font required by browser evidence
+        timeout-minutes: 3
+        run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends fonts-noto-cjk
       - name: Reproducible review at 390, 768, 1366 and 1920 pixels
         run: npm run review:browser
         env:

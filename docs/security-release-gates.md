@@ -19,6 +19,19 @@ as its two parents. The report is engineering evidence, not medical approval.
 `Verify` retains browser evidence at four viewport widths, including its separate
 sourceHead and checkoutHead fields.
 
+The first T03 PR run exposed a runner dependency-download failure: Ubuntu's Azure
+HTTP mirror spent over ten minutes on Playwright dependencies and another eight
+minutes on the CJK font, cancelling the 20-minute Verify job before browser review.
+The terminal Engineering gate correctly failed on that cancelled upstream.
+Verify now selects Ubuntu 24.04 explicitly and switches only its mirror list to
+Ubuntu's official HTTPS archive, retaining signed package verification. Apt has
+finite transport/lock waits and two retries; dependency and font installation
+have separate bounded step budgets within the unchanged 20-minute job budget.
+The locked Playwright installation, Chinese font installation, actual Chinese
+glyph assertion and all four-viewport browser checks remain mandatory. Local
+static tests cannot prove remote mirror availability; the next real PR run must
+verify this infrastructure change.
+
 `Content integration` always runs content-pack and legacy integrity checks plus
 the real storage/content test suites. The historical `check:split` and
 `scripts/t02/check-repository.mjs` scanners retain their exact migration scopes;

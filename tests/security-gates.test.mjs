@@ -212,3 +212,20 @@ test('T03 scope audit permits engineering paths while retaining medical, lock an
   for (const path of ['scripts/security/policy.mjs', '.github/workflows/ci.yml', 'tests/security-gates.test.mjs', 'package-lock.json']) assert.equal(allowedT03Path(path), true);
   for (const path of ['src/content/knowledge.json', 'legacy-content.lock', 'content-pack.lock', 'vendor/t02/src/contract.mjs', '../private.txt']) assert.equal(allowedT03Path(path), false);
 });
+
+test('browser CI retains its font and browser gates with bounded signed Ubuntu downloads', () => {
+  const yaml = readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8');
+  const verify = yaml.slice(yaml.indexOf('\n  verify:'), yaml.indexOf('\n  content-integration:'));
+  assert.match(verify, /runs-on: ubuntu-24\.04/);
+  assert.match(verify, /timeout-minutes: 20/);
+  assert.match(verify, /https:\/\/archive\.ubuntu\.com\/ubuntu/);
+  assert.match(verify, /Acquire::Retries "2";/);
+  assert.match(verify, /Acquire::https::Timeout "20";/);
+  assert.match(verify, /timeout-minutes: 8\n        run: npx --no-install playwright install --with-deps chromium/);
+  assert.match(verify, /timeout-minutes: 3\n        run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends fonts-noto-cjk/);
+  assert.match(verify, /run: npm run review:browser/);
+  assert.doesNotMatch(verify, /--allow-unauthenticated|AllowUnauthenticated|trusted=yes|continue-on-error/);
+  const browser = readFileSync(join(root, 'scripts/local-content/review-browser.mjs'), 'utf8');
+  assert.match(browser, /assert\.ok\(hasChineseGlyph/);
+  for (const width of [390, 768, 1366, 1920]) assert.match(browser, new RegExp(String(width)));
+});
