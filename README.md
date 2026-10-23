@@ -23,9 +23,9 @@ Sym Gen 是一个面向公众的精神与心理健康公益知识库。项目以
 ## 网站与数据分仓
 
 - [symgene](https://github.com/miracleqihe/symgene)：维护页面、交互、搜索、存储和内容消费。
-- [symgene-data-pipeline](https://github.com/y4ho0/symgene-data-pipeline)：维护三库内容源、共用 Prompt、本机取材工具及 T02 数据处理核心。当前内容更新见数据仓 PR #4、网站 PR #34，均为面向 dev 的草稿。
+- [symgene-data-pipeline](https://github.com/y4ho0/symgene-data-pipeline)：维护三库内容源、共用 Prompt、本机取材工具及 T02 数据处理核心。2026-10-23 复核：数据仓 [PR #3](https://github.com/y4ho0/symgene-data-pipeline/pull/3)、[PR #4](https://github.com/y4ho0/symgene-data-pipeline/pull/4) 已合入 `dev`，当前集成点为 `c8e9c57e120515d7846dff90d2127896ec6e2c20`；网站 [PR #34](https://github.com/miracleqihe/symgene/pull/34) 面向 `dev`、等待独立最终 Review。
 
-修改正文或 Prompt 时先改数据仓，再导出并核对完整摘要，导入网站固定副本；网站可以独立构建。详见[双仓接续](docs/t02/local-github-sync.md)。未指定的审读与运维职责保留接口，代码同步不代替医学审校或生产采用。
+修改正文或 Prompt 时先改数据仓，再导出并核对完整摘要，导入网站固定副本；网站可以独立构建。当前 19 文件与已合入数据仓 `dev` 逐字节一致，详见[双仓接续](docs/t02/local-github-sync.md)和[配对核验](docs/t02/local-data-handoff.md)。未指定的审读与运维职责保留接口，工程合并不代替医学、公众表达、来源权利审批或生产采用。
 
 ## 信息可视化的数据来源
 

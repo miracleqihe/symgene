@@ -57,7 +57,7 @@ try {
     assert.ok(hasChineseGlyph, `A font covering U+4E2D must be installed before evidence capture; matched ${family}`);
     report.chineseFont = family;
     report.verifiedChineseGlyph = 'U+4E2D';
-  } else report.chineseFont = 'Windows system Chinese fallback; visually inspect captured pages';
+  } else report.chineseFont = `${process.platform === 'darwin' ? 'macOS' : process.platform === 'win32' ? 'Windows' : process.platform} system Chinese fallback; visually inspect captured pages`;
   server = await preview({ root: ROOT, preview: { host: '127.0.0.1', port: 4188, strictPort: true } });
   browser = await chromium.launch({ headless: true,
     ...(process.env.REVIEW_CHROMIUM_EXECUTABLE ? { executablePath: process.env.REVIEW_CHROMIUM_EXECUTABLE } : {}) });
@@ -72,8 +72,23 @@ try {
   async function screenshot(name) {
     await page.screenshot({ path: join(out, name), fullPage: true }); report.screenshots.push(name);
   }
+  async function dialogKeyboardCheck() {
+    const dialog = page.getByRole('dialog');
+    const close = dialog.getByRole('button', { name: '关闭教学材料', exact: true });
+    const copy = dialog.getByRole('button', { name: '复制完整材料', exact: true });
+    assert.ok(await close.evaluate(n => n === document.activeElement));
+    await page.keyboard.press('Shift+Tab');
+    assert.ok(await copy.evaluate(n => n === document.activeElement));
+    await page.keyboard.press('Tab');
+    assert.ok(await close.evaluate(n => n === document.activeElement));
+    await page.keyboard.press('Tab');
+    assert.ok(await dialog.getByLabel('完整教学材料').evaluate(n => n === document.activeElement));
+    await page.keyboard.press('Shift+Tab');
+    assert.ok(await close.evaluate(n => n === document.activeElement));
+  }
   async function dialogCheck(name) {
     const dialog = page.getByRole('dialog'), text = dialog.getByLabel('完整教学材料');
+    await dialogKeyboardCheck();
     const value = await text.inputValue(); assert.ok(value.length > 1000);
     await dialog.getByRole('button', { name: '复制完整材料', exact: true }).click();
     assert.equal(await page.evaluate(() => window.__reviewClipboard), value);
@@ -89,7 +104,7 @@ try {
     if (await toggle.isVisible() && await toggle.getAttribute('aria-expanded') !== 'true') await toggle.click();
     await destination.click();
   }
-  for (const width of [390, 768, 1366]) {
+  for (const width of [390, 768, 1366, 1920]) {
     await page.setViewportSize({ width, height: 900 }); await go();
     const global = page.getByRole('button', { name: '全局 Agent · 一起读懂', exact: true });
     await global.click(); await dialogCheck(`global-${width}.md`);
@@ -123,13 +138,53 @@ try {
     const caseItem = knowledge.cases.find(c => c.disorderId === ocd.id); assert.ok(caseItem);
     const caseTrigger = page.locator('.reading-related button').filter({ hasText: caseItem.title });
     await caseTrigger.click();
-    await page.getByRole('button', { name: '返回案例列表', exact: true }).waitFor();
+    const caseBack = page.getByRole('button', { name: '返回案例列表', exact: true });
+    await caseBack.waitFor();
+    await page.waitForFunction(() => document.activeElement?.classList.contains('detail-back'));
+    assert.ok(await caseBack.evaluate(n => n === document.activeElement));
+    assert.notEqual(await page.locator('.case-index-category .case-index-name').first().textContent(), ocd.category,
+      'related case must exercise a non-default category');
     assert.ok((await page.locator('.case-detail').count()) > 0 || (await page.getByText('虚构教学案例', { exact: false }).count()) > 0);
     await screenshot(`case-${width}.png`);
-    await page.getByRole('button', { name: '返回案例列表', exact: true }).click();
+    await page.keyboard.press('Enter');
     const restored = page.locator('.case-index-item').filter({ hasText: caseItem.title }); await restored.waitFor();
     await page.waitForFunction(() => document.activeElement?.classList.contains('case-index-item'));
+    const group = page.locator('.case-index-group').filter({ has: restored });
+    assert.equal(await group.locator('.case-index-category').getAttribute('aria-expanded'), 'true');
+    assert.ok(await restored.isVisible());
+    assert.ok(await restored.evaluate(n => {
+      const bounds = n.getBoundingClientRect();
+      return n === document.activeElement && n.isConnected && !n.disabled && !n.closest('[inert], [aria-hidden="true"]')
+        && bounds.top >= 0 && bounds.bottom <= innerHeight && bounds.left >= 0 && bounds.right <= innerWidth;
+    }), 'restored case focus must be mounted, enabled and inside the visible viewport');
+    await page.keyboard.press('Shift+Tab');
+    assert.ok(await page.evaluate(() => document.activeElement?.isConnected && document.activeElement?.matches('button, a[href], input, textarea')));
+    await page.keyboard.press('Tab');
+    assert.ok(await restored.evaluate(n => n === document.activeElement));
+    await page.keyboard.press('Enter');
+    await caseBack.waitFor();
+    if (width <= 780) await page.waitForFunction(() => document.activeElement?.classList.contains('detail-back'));
+    else {
+      assert.ok(await restored.evaluate(n => n === document.activeElement));
+      for (let steps = 0; steps < 200 && !await caseBack.evaluate(n => n === document.activeElement); steps += 1) {
+        await page.keyboard.press('Tab');
+      }
+      assert.ok(await caseBack.evaluate(n => n === document.activeElement), 'desktop keyboard can reach the case detail');
+    }
+    await page.keyboard.press('Tab');
+    const casePrompt = page.locator('.case-detail').getByRole('button', { name: /教学 Prompt/ });
+    assert.ok(await casePrompt.evaluate(n => n === document.activeElement));
+    await page.keyboard.press('Enter');
+    await dialogKeyboardCheck();
+    await page.keyboard.press('Escape');
+    await page.getByRole('dialog').waitFor({ state: 'detached' });
+    assert.ok(await casePrompt.evaluate(n => n === document.activeElement));
+    await page.keyboard.press('Shift+Tab');
+    assert.ok(await caseBack.evaluate(n => n === document.activeElement));
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => document.activeElement?.classList.contains('case-index-item'));
     assert.ok(await restored.evaluate(n => n === document.activeElement && n.isConnected));
+    assert.equal(await group.locator('.case-index-category').getAttribute('aria-expanded'), 'true');
     await go(); const search = page.getByRole('textbox', { name: '描述你正在经历的情况' });
     await search.fill('持续低落、早醒，工作效率下降');
     // The target comes from the existing public search UI, never a fabricated diagnosis.
@@ -143,7 +198,9 @@ try {
     await page.getByRole('heading', { name: '中国心理治疗资源地图', exact: true }).waitFor();
     assert.ok(await page.locator('.china-map-svg path').count() > 0);
     await screenshot(`china-atlas-${width}.png`);
-    report.checks.push({ width, diseaseCaseRelatedNavigation: true, caseCloseVisibleFocus: true, searchNavigation: true, existingAtlasRenders: true, existingChinaMapRenders: true });
+    report.checks.push({ width, diseaseCaseRelatedNavigation: true, nonDefaultCaseCategoryPreserved: true,
+      caseCloseVisibleFocus: true, caseKeyboardReopen: true, casePromptTabShiftTabEscape: true,
+      searchNavigation: true, existingAtlasRenders: true, existingChinaMapRenders: true });
   }
 
   // A real v4 override, tombstone, custom entry and backups in a disposable profile.

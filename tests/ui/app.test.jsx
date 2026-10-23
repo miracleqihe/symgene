@@ -382,22 +382,58 @@ describe('editor dialog keyboard and focus', () => {
 });
 
 describe('mobile detail focus', () => {
-  test('从其他页面打开非默认分类案例后关闭，原案例仍可见且恢复焦点', async () => {
+  test.each([false, true])('从其他页面打开非默认分类案例后，键盘可返回和再次打开（mobile=%s）', async (mobile) => {
     const disease = { ...fixture.data.disorders[0], id: 'example-other-disorder', name: '示例其他疾病', category: '示例非默认分类' };
     const exampleCase = { ...fixture.data.cases[0], id: 'example-other-case', disorderId: disease.id, title: '非默认分类虚构案例' };
     fixture.data.disorders.push(disease); fixture.data.cases.push(exampleCase);
     try {
-      const { user } = await renderApp({ mobile: true });
+      const { user } = await renderApp({ mobile });
       await openFromHome(user, '精神药物');
       await user.click(await screen.findByRole('button', { name: /测试药物/ }));
       await user.click(await screen.findByRole('button', { name: /非默认分类虚构案例/ }));
       const back = await screen.findByRole('button', { name: '返回案例列表' });
       await waitFor(() => expect(back).toHaveFocus());
-      await user.click(back);
+      await user.keyboard('{Enter}');
       const target = await screen.findByRole('button', { name: /非默认分类虚构案例/ });
       await waitFor(() => expect(target).toHaveFocus());
       expect(target).toBeVisible();
-      expect(target.closest('.case-index-group')).toHaveClass('open');
+      expect(target.isConnected).toBe(true);
+      expect(target).toBeEnabled();
+      const group = target.closest('.case-index-group');
+      expect(group).toHaveClass('open');
+      const category = within(group).getByRole('button', { name: /示例非默认分类/ });
+      expect(category).toHaveAttribute('aria-expanded', 'true');
+      await user.tab({ shift: true });
+      expect(category).toHaveFocus();
+      await user.tab();
+      expect(target).toHaveFocus();
+      await user.keyboard('{Enter}');
+      const reopenedBack = await screen.findByRole('button', { name: '返回案例列表' });
+      if (mobile) await waitFor(() => expect(reopenedBack).toHaveFocus());
+      else {
+        expect(target).toHaveFocus();
+        for (let steps = 0; steps < 20 && document.activeElement !== reopenedBack; steps += 1) await user.tab();
+        expect(reopenedBack).toHaveFocus();
+      }
+      await user.tab();
+      const prompt = screen.getByRole('button', { name: '教学 Prompt' });
+      expect(prompt).toHaveFocus();
+      await user.keyboard('{Enter}');
+      const dialog = screen.getByRole('dialog');
+      const close = within(dialog).getByRole('button', { name: '关闭教学材料' });
+      expect(close).toHaveFocus();
+      await user.tab({ shift: true });
+      expect(within(dialog).getByRole('button', { name: '复制完整材料' })).toHaveFocus();
+      await user.tab();
+      expect(close).toHaveFocus();
+      await user.keyboard('{Escape}');
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      await waitFor(() => expect(prompt).toHaveFocus());
+      await user.tab({ shift: true });
+      expect(reopenedBack).toHaveFocus();
+      await user.keyboard('{Enter}');
+      await waitFor(() => expect(target).toHaveFocus());
+      expect(category).toHaveAttribute('aria-expanded', 'true');
     } finally {
       fixture.data.disorders.pop(); fixture.data.cases.pop();
     }

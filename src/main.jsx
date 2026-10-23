@@ -644,6 +644,8 @@ function CasesPage({ data, selected, onSelect, onOpen, onOpenDisorder, onEdit, o
     onSelect(null);
     if (scrollFrameRef.current !== null) window.cancelAnimationFrame(scrollFrameRef.current);
     scrollFrameRef.current = window.requestAnimationFrame(() => {
+      // Mobile selection hides the index, so reveal its target after it mounts.
+      returnFocusTo?.scrollIntoView({ block: 'center' });
       returnFocusTo?.focus({ preventScroll: true });
       scrollFrameRef.current = null;
     });

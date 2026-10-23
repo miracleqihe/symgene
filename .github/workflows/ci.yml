@@ -47,7 +47,7 @@ jobs:
       - run: npm run verify
       - run: npx playwright install --with-deps chromium
       - run: sudo apt-get install -y fonts-noto-cjk
-      - name: Reproducible review at 390, 768 and 1366 pixels
+      - name: Reproducible review at 390, 768, 1366 and 1920 pixels
         run: npm run review:browser
         env:
           REVIEW_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
