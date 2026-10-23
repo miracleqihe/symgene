@@ -10,19 +10,23 @@ const ROOT=fileURLToPath(new URL('../../',import.meta.url));
 const BASE='42c4b5968e5423a8de22d4308b05660ae15e95fe';
 const git=(...args)=>execFileSync('git',['-C',ROOT,...args],{encoding:'utf8',maxBuffer:24*1024*1024,stdio:['ignore','pipe','pipe']});
 const nul=s=>s.split('\0').filter(Boolean);
-const allowed=p=>['.gitignore','README.md','AGENTS.md','index.html','package.json','package-lock.json','.github/workflows/ci.yml','.github/workflows/t02-verification.yml','.github/workflows/deploy-pages.yml','legacy-content.lock','src/main.jsx','src/data.js','src/styles.css',
+export const isAllowedSplitPath=p=>['.gitignore','README.md','AGENTS.md','index.html','package.json','package-lock.json','.github/workflows/ci.yml','.github/workflows/t02-verification.yml','.github/workflows/deploy-pages.yml','legacy-content.lock','src/main.jsx','src/data.js','src/styles.css',
   'src/styles/components.css','src/styles/editorial.css','tests/storage.test.mjs','tests/ui/app.test.jsx','docs/t02/local-atlas-hold-inventory.json','tests/content-pack.test.mjs','tests/content-pack-overnight.test.mjs',
   'src/components/FactSlider.jsx','src/components/FrontierReviewsPage.jsx','src/components/visualization/DataAtlasPage.jsx',
   'src/components/AgentGuideEntry.jsx','src/components/KnowledgeReading.jsx','src/components/MedicalPoints.jsx',
   'src/styles/knowledge-reading.css','docs/architecture.md','docs/local-data.md','docs/content-pipeline.md',
   'scripts/check-build.mjs','scripts/audit-drug-coverage.mjs','scripts/audit-knowledge-coverage.mjs','scripts/build-teaching-materials.mjs',
+  // Authorized T03 engineering only; do not open the rest of scripts/t02.
+  'scripts/t02/consumer-concurrency.mjs','scripts/t02/consumer-vite-server.mjs',
+  'scripts/t02/dev-consumer.mjs','scripts/t02/dev-consumer-browser.mjs',
+  'scripts/t02/signed-consumer.mjs','scripts/t02/signed-consumer-browser.mjs',
   'src/comprehensiveKnowledge.js','src/drugSideEffects.js','src/expandedKnowledge.js','src/handbookDrugs.js','src/supplementalKnowledge.js'].includes(p)
   ||/^src\/content\/[A-Za-z]+\.(?:js|json)$/.test(p)
   ||/^scripts\/atlas\/[A-Za-z0-9.-]+$/.test(p)
   ||/^scripts\/local-content\/[a-z-]+\.mjs$/.test(p)
   ||/^tests\/[a-z-]+\.test\.mjs$/.test(p)
   ||/^tests\/ui\/(?:agent-guide|knowledge-reading|medical-points)\.test\.jsx$/.test(p)
-  ||p==='tests/helpers/reparse-fixture.mjs'||p==='tests/fixtures/seed-v2.json'||p==='tests/fixtures/legacy-drug-side-effects.js'
+  ||p==='tests/browser/content-concurrency.test.mjs'||p==='tests/helpers/concurrency-gateway.mjs'||p==='tests/helpers/reparse-fixture.mjs'||p==='tests/fixtures/seed-v2.json'||p==='tests/fixtures/legacy-drug-side-effects.js'
   ||p==='vendor/local-content/legacy-snapshot.mjs'
   ||/^docs\/t02\/local-[a-z-]+\.md$/.test(p);
 export async function checkSplit() {
@@ -31,7 +35,7 @@ export async function checkSplit() {
   const paths=[...new Set([...nul(git('diff','--name-only','--no-renames','-z',BASE)),...nul(git('ls-files','--others','--exclude-standard','-z'))])].sort();
   const findings=[];let files=0;
   for(const p of paths) {
-    if(!allowed(p))throw new Error('LOCAL_SPLIT_PATH_OUTSIDE_SCOPE:'+p);
+    if(!isAllowedSplitPath(p))throw new Error('LOCAL_SPLIT_PATH_OUTSIDE_SCOPE:'+p);
     const full=resolve(ROOT,p);if(!existsSync(full))continue;
     if(p.startsWith('scripts/atlas/'))throw new Error('PRODUCER_REMAINED_IN_WEBSITE');
     if(lstatSync(full).isSymbolicLink()||!lstatSync(full).isFile())throw new Error('LOCAL_SPLIT_UNSAFE_FILE');
