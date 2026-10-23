@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -14,11 +14,11 @@ const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const EVIDENCE = resolve(ROOT, '../../.t02-evidence/m4-m5-gated-2026-10-15/website');
 const fail = (code) => { throw Object.assign(new Error(code), { code }); };
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
-const HASH_FILES = ['scripts/t02/signed-consumer.mjs', 'scripts/t02/signed-consumer-browser.mjs', 'src/dev/t02-signed-consumer.jsx', 'src/dev/t02-signed-session.js', 'src/content/adapter.js', 'src/search.js', 'src/storage/storage.js', 'content-pack.lock'];
+const HASH_FILES = ['scripts/t02/consumer-vite-server.mjs', 'scripts/t02/signed-consumer.mjs', 'scripts/t02/signed-consumer-browser.mjs', 'src/dev/t02-signed-consumer.jsx', 'src/dev/t02-signed-session.js', 'src/content/adapter.js', 'src/search.js', 'src/storage/storage.js', 'content-pack.lock'];
 
 /** Real Chromium reads the opt-in React application through the signed gateway. */
 export async function runSignedBrowser({ producerRoot = resolve(ROOT, '../symgene-data-delivery'),
-  evidenceDir = join(EVIDENCE, 'signed-browser'), playwrightModule, fixtureOptions = {} } = {}) {
+  evidenceDir = join(EVIDENCE, 'signed-browser'), playwrightModule, fixtureOptions = {}, onStage = () => {} } = {}) {
   if (process.versions.node.split('.')[0] !== '22') fail('SIGNED_BROWSER_NODE22_REQUIRED');
   const target = resolve(evidenceDir);
   if (!target.startsWith(EVIDENCE + '/')) fail('SIGNED_BROWSER_EVIDENCE_OUTSIDE_GIT_REQUIRED');
@@ -29,22 +29,26 @@ export async function runSignedBrowser({ producerRoot = resolve(ROOT, '../symgen
     if (!existsSync(component)) mkdirSync(component);
     if (!lstatSync(component).isDirectory() || lstatSync(component).isSymbolicLink()) fail('SIGNED_BROWSER_EVIDENCE_UNSAFE');
   }
+  rmSync(join(target, 'signed-browser-report.json'), { force: true });
   const { createReleaseTestFixture } = await import(pathToFileURL(join(producerRoot, 'src/release-test-fixture.mjs')));
   const { startReleaseGateway } = await import(pathToFileURL(join(producerRoot, 'src/release-gateway.mjs')));
   const { verifyPack } = await import(pathToFileURL(join(producerRoot, 'src/pack.mjs')));
-  const fixture = await createReleaseTestFixture({ ...fixtureOptions, root: mkdtempSync(join(target, 'runtime-')) });
-  const runtime = { snapshot: (request) => fixture.runtime.snapshot(request) };
-  let gateway = await startReleaseGateway({ runtime });
-  const gatewayPort = Number(new URL(gateway.url).port);
-  const server = await startSignedConsumer({ enabled: true, gatewayURL: gateway.url, versions: fixture.versions, candidateVersion: fixture.candidateVersion });
   const modulePath = playwrightModule ?? join(homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs');
-  const { chromium } = await import(pathToFileURL(modulePath));
-  let browser; let page;
+  let fixture; let gateway; let server; let browser; let page;
+  let completedReport;
   let checks = 0; let pageErrors = 0; let externalRequests = 0;
   const drills = []; const responses = [];
   const check = (value, code) => { if (!value) fail(code); checks++; };
   const drill = (scenario, initial, action, expected, observed, recovery) => drills.push({ scenario, initial, action, expected, observed, recovery });
   try {
+    onStage({ stage: 'start', consumer: 'signed' });
+    fixture = await createReleaseTestFixture({ ...fixtureOptions, root: mkdtempSync(join(target, 'runtime-')) });
+    const runtime = { snapshot: (request) => fixture.runtime.snapshot(request) };
+    gateway = await startReleaseGateway({ runtime });
+    const gatewayPort = Number(new URL(gateway.url).port);
+    server = await startSignedConsumer({ enabled: true, gatewayURL: gateway.url, versions: fixture.versions, candidateVersion: fixture.candidateVersion });
+    onStage({ stage: 'ready', consumer: 'signed', origin: new URL(server.url).origin });
+    const { chromium } = await import(pathToFileURL(modulePath));
     const initial = verifyPack(fixture.packages.get(fixture.candidateVersion).packDir, { allowSimulation: true });
     const seed = adaptVerifiedBundle(initial.bundle, { allowSimulation: true }).seedData;
     let protectedEnvelope = createEnvelope(seed);
@@ -64,10 +68,11 @@ export async function runSignedBrowser({ producerRoot = resolve(ROOT, '../symgen
       }
     }, { original });
     page = await context.newPage();
-    page.on('pageerror', () => pageErrors++);
+    page.on('pageerror', (cause) => { pageErrors++; onStage({ stage: 'pageerror', consumer: 'signed', message: cause.message }); });
     page.on('response', (response) => {
       if (response.url().includes('/t02-signed/snapshot?')) responses.push({ path: new URL(response.url()).pathname,
         version: new URL(response.url()).searchParams.get('version'), action: new URL(response.url()).searchParams.get('action'), status: response.status(), cacheControl: response.headers()['cache-control'] });
+      if (response.url().includes('/t02-signed/snapshot?')) onStage({ stage: 'snapshot-fetch', consumer: 'signed', status: response.status() });
     });
     const state = async () => JSON.parse(await page.getByTestId('signed-consumer-state').textContent());
     const waitState = async (predicate) => {
@@ -83,7 +88,9 @@ export async function runSignedBrowser({ producerRoot = resolve(ROOT, '../symgen
     // This application continuously polls. Wait for the asserted React state,
     // rather than requiring an unrelated period of network silence.
     await page.goto(server.url, { waitUntil: 'domcontentloaded' });
+    onStage({ stage: 'domcontentloaded', consumer: 'signed' });
     await hidden();
+    onStage({ stage: 'react-mount', consumer: 'signed' });
     check(fixture.controls.adoptionRequestCount() === 0 && JSON.parse(readFileSync(join(fixture.paths.auditDirectory, 'operations.json'))).entries.length === 0,
       'SIGNED_BROWSER_STARTUP_CREATED_ADOPTION');
     await page.getByRole('button', { name: '签名采用所选测试版本', exact: true }).click();
@@ -180,13 +187,22 @@ export async function runSignedBrowser({ producerRoot = resolve(ROOT, '../symgen
       originalStorageDigest: originalDigest, originalStoragePreserved: true, cacheAuthority: 'none-denial-only',
       pageErrors, externalRequests, responses, drills,
       implementation: HASH_FILES.map((file) => ({ file, sha256: sha256(readFileSync(join(ROOT, file))) })) };
-    writeFileSync(join(target, 'signed-browser-report.json'), JSON.stringify(report, null, 2) + '\n');
+    completedReport = report;
     return report;
   } catch (cause) {
     if (page) { try { await page.screenshot({ path: join(target, 'signed-failure.png'), fullPage: true }); } catch { /* Browser may be unavailable. */ } }
     writeFileSync(join(target, 'signed-browser-failure.json'), JSON.stringify({ status: 'FAIL', code: cause.code ?? cause.name, checks, pageErrors, externalRequests, responses, drills }, null, 2) + '\n');
     throw cause;
-  } finally { await browser?.close(); await server.app.close(); if (gateway) await gateway.close(); await fixture.close(); }
+  } finally {
+    const closed = await Promise.allSettled([browser?.close(), server?.app.close(), gateway?.close(), fixture?.close()]);
+    onStage({ stage: 'closed', consumer: 'signed', serverClosed: !server || !server.app.httpServer.listening });
+    const errors = closed.filter((result) => result.status === 'rejected').map((result) => result.reason);
+    if (errors.length) {
+      writeFileSync(join(target, 'signed-browser-failure.json'), JSON.stringify({ status: 'FAIL', code: 'SIGNED_BROWSER_CLEANUP_FAILED', checks, pageErrors, externalRequests }, null, 2) + '\n');
+      throw new AggregateError(errors, 'SIGNED_BROWSER_CLEANUP_FAILED');
+    }
+    if (completedReport) writeFileSync(join(target, 'signed-browser-report.json'), JSON.stringify(completedReport, null, 2) + '\n');
+  }
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

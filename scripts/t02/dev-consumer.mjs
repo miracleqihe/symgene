@@ -1,4 +1,4 @@
-import { createServer } from 'vite';
+import { createConsumerViteServer } from './consumer-vite-server.mjs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { verifyPack } from '../../vendor/t02/src/pack.mjs';
@@ -36,13 +36,13 @@ export async function loadDevelopmentBootstrap(root = ROOT, { now = Date.now() }
     trust: 'controlled_synthetic_injection_only', publisherIdentity: 'not_configured' };
 }
 
-export async function startDevelopmentConsumer({ enabled = false, root = ROOT, port = 0 } = {}) {
+export async function startDevelopmentConsumer({ enabled = false, root = ROOT, port = 0, cacheDir } = {}) {
   // Explicit opt-in precedes reading lock, packages, or creating a server.
   if (enabled !== true) fail('DEV_CONSUMER_DISABLED');
   if (process.versions.node.split('.')[0] !== '22') fail('DEV_CONSUMER_NODE22_REQUIRED');
   if (!Number.isInteger(port) || port < 0 || port > 65535) fail('DEV_CONSUMER_PORT_INVALID');
   await loadDevelopmentBootstrap(root);
-  const app = await createServer({ root, server: { host: '127.0.0.1', port, strictPort: true, hmr: false }, plugins: [{
+  const app = await createConsumerViteServer({ root, cacheDir, server: { host: '127.0.0.1', port, strictPort: true, hmr: false }, plugins: [{
     name: 't02-explicit-development-consumer',
     configureServer(server) {
       server.middlewares.use(async (request, response, next) => {
