@@ -59,8 +59,8 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  publication-approval:
-    name: Publication approval
+  publication-integrity:
+    name: Publication integrity
     if: github.event_name == 'pull_request' && github.base_ref == 'main'
     runs-on: ubuntu-latest
     steps:
