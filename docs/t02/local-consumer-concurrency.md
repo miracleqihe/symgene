@@ -76,3 +76,15 @@ or production approval passed.
 
 Local Chromium results are local verification. They do not prove GitHub rulesets
 are active, establish medical/rights approval, or authorize publication.
+
+## CI runner dependency downloads
+
+The reliability PR inherits the older CI definition, so its corrected Linux
+verify completed but Chromium/system-font preparation stalled. It carries the
+same minimal Ubuntu HTTPS mirror and strict final-value Apt readback already
+validated in security PR #37. No test or Chinese glyph assertion is skipped.
+Verify now explicitly selects Ubuntu 24.04 and has a 20-minute total budget;
+the older workflow had no explicit job limit. Dependency and font steps remain
+bounded. The broader trusted-policy, stable-check and token changes stay in
+PR #37. This common preparation block is identical in both PRs and must appear
+only once when they are integrated.
