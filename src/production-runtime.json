@@ -1,0 +1,7 @@
+{
+  "contentMode": "legacy",
+  "legacySeed": "src/content/knowledge.json",
+  "signedGateway": null,
+  "formalT02Adoption": false,
+  "developmentConsumers": "explicit-opt-in-only"
+}

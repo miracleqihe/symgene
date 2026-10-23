@@ -1,3 +1,8 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { checkLegacy } from '../local-content/check-legacy.mjs';
+import { checkLegacyRuntime, checkLegacyRuntimeExecution } from './legacy-runtime.mjs';
 // Engineering policy only. This module does not define a content signature contract.
 export const REPOSITORY = 'miracleqihe/symgene';
 export const ACTIONS_APP_ID = 15368;
@@ -154,9 +159,27 @@ export function deploymentArtifact({ context, run, artifact, expectedId, expecte
   return { status: 'PASS', artifactId: artifact.id, digest: artifact.digest };
 }
 
-// No existing authenticated approval source covers these exact public outputs.
-// Deliberately accept no flag, local approval template, new signature, or bypass.
-export function publicationAuthority() {
-  return { status: 'BLOCKED', code: 'PUBLICATION_AUTHORITY_NOT_CONFIGURED',
-    reason: 'Existing authenticated content contracts are unchanged; exact-output medical, rights, public-language, privacy and G2-G5 approval is not configured.' };
+const POLICY_ROOT = fileURLToPath(new URL('../../', import.meta.url));
+
+// Legacy eligibility asserts current bytes and a built production entry. It
+// deliberately carries no medical/rights claim or production deployment grant.
+export function legacyReleaseEligibility({ root = POLICY_ROOT, distDir = resolve(root, 'dist') } = {}) {
+  const integrity = checkLegacy(root);
+  const runtimeBuild = checkLegacyRuntime(root, { distDir });
+  const runtime = checkLegacyRuntimeExecution(root, { distDir, build: runtimeBuild });
+  const lock = JSON.parse(readFileSync(resolve(root, 'legacy-content.lock'), 'utf8'));
+  return { status: 'LEGACY_ENGINEERING_ELIGIBLE', snapshotDigest: lock.digest,
+    snapshotVersion: integrity.version, integrity, runtimeBuild, runtime,
+    medicalApproval: 'not_asserted', rightsApproval: 'not_asserted', productionDeployment: 'not_authorized' };
 }
+
+// No authenticated formal T02 authority exists. Local flags, synthetic signatures
+// and successful legacy engineering must not create that independent authority.
+export function formalT02AdoptionAuthority() {
+  return { status: 'T02_FORMAL_ADOPTION_BLOCKED', code: 'T02_FORMAL_AUTHORITY_NOT_CONFIGURED',
+    reason: 'Production adoption of a formal T02 signed package has not been authorized.' };
+}
+
+// Compatibility name for callers that previously asked for publication authority.
+// It now denotes only the still-unavailable formal T02 adoption authority.
+export function publicationAuthority() { return formalT02AdoptionAuthority(); }

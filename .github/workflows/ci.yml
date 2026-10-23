@@ -104,6 +104,10 @@ jobs:
       - name: Install the Chinese font required by browser evidence
         timeout-minutes: 3
         run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends fonts-noto-cjk
+      - name: Execute the built legacy production entry in Chromium
+        run: |
+          node --test tests/browser/legacy-runtime.test.mjs
+          node scripts/security/verify-production-runtime.mjs
       - name: Reproducible review at 390, 768, 1366 and 1920 pixels
         run: npm run review:browser
         env:

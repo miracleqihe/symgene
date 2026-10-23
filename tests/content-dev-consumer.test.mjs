@@ -149,7 +149,17 @@ test('expired and corrupted isolated safety state fail closed without changing k
 });
 
 test('actual production build excludes the development React app and enabling markers', async () => {
-  const result = await build({ root: ROOT, logLevel: 'silent', build: { write: false } });
+  // Vite development servers in earlier cases set NODE_ENV=development.
+  // This case claims a production build, so explicitly restore that mode.
+  const previousNodeEnv = process.env.NODE_ENV;
+  let result;
+  try {
+    process.env.NODE_ENV = 'production';
+    result = await build({ root: ROOT, logLevel: 'silent', build: { write: false } });
+  } finally {
+    if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = previousNodeEnv;
+  }
   const outputs = (Array.isArray(result) ? result : [result]).flatMap((item) => item.output);
   assert.ok(outputs.some((asset) => asset.type === 'chunk' && asset.isEntry));
   for (const asset of outputs) {

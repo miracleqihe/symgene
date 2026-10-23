@@ -1,4 +1,4 @@
-import { REPOSITORY, CI_PATH, prIdentity, independentReview, trustedChecks, latestCiRun, parseCiContext, publicationAuthority, fail } from './policy.mjs';
+import { REPOSITORY, CI_PATH, prIdentity, independentReview, trustedChecks, latestCiRun, parseCiContext, formalT02AdoptionAuthority, fail } from './policy.mjs';
 
 export async function collectReviewThreads({ github, repo, number, maxPages = 100 }) {
   const threads = [], seen = new Set(); let cursor = null;
@@ -32,7 +32,15 @@ async function reviewSnapshot({ github, repo, pull }) {
   // "reviewable push". Do not substitute commit attribution or run actor.
   let protection;
   try { ({ data: protection } = await github.rest.repos.getBranchProtection({ ...repo, branch: pull.base.ref })); }
-  catch { fail('LAST_PUSH_NATIVE_PROTECTION_UNVERIFIABLE'); }
+  catch (error) {
+    // This endpoint requires Administration: read. GITHUB_TOKEN has no such
+    // configurable permission; an API denial is missing evidence, never PASS.
+    throw Object.assign(new Error('LAST_PUSH_NATIVE_PROTECTION_UNVERIFIABLE'), {
+      code: 'LAST_PUSH_NATIVE_PROTECTION_UNVERIFIABLE', status: 'BLOCKED',
+      platformRequirement: 'Independent audit credential with Administration: read',
+      httpStatus: Number.isSafeInteger(error?.status) ? error.status : undefined,
+    });
+  }
   const rule = protection?.required_pull_request_reviews;
   const bypass = rule?.bypass_pull_request_allowances;
   const lastPushProtection = rule?.require_last_push_approval === true && rule.required_approving_review_count >= 1
@@ -54,7 +62,7 @@ export async function inspectTrustedPr({ github, context, number }) {
   if (pull.number !== number || pull.draft !== false) fail('PR_REQUEST_REJECTED');
   const eventPr = context.payload.pull_request;
   const trustedEvent = context.eventName === 'pull_request_target' && eventPr?.number === number
-    || ['schedule', 'workflow_dispatch'].includes(context.eventName) && context.ref === 'refs/heads/main';
+    || context.eventName === 'workflow_dispatch' && context.ref === 'refs/heads/main';
   if (!trustedEvent || pull.state !== 'open' || pull.base.ref !== 'main') fail('TRUSTED_PR_EVENT_REJECTED');
   const [{ data: branch }, { data: merge }] = await Promise.all([
     github.rest.repos.getBranch({ ...repo, branch: pull.base.ref }),
@@ -95,5 +103,7 @@ export async function inspectTrustedPr({ github, context, number }) {
   if (latest.id !== run.id || latest.run_attempt !== run.run_attempt || latest.status !== run.status
     || latest.conclusion !== run.conclusion || JSON.stringify(latest.pull_requests) !== JSON.stringify(run.pull_requests)) fail('CI_CHANGED_DURING_CHECK');
   trustedChecks({ ...inputs, pull: current, run: latest });
-  return { identity, review: finalReview.decision, ci, publication: publicationAuthority() };
+  return { engineering: { status: 'PASS', code: 'TRUSTED_ENGINEERING_AUDIT_PASS' },
+    identity, review: finalReview.decision, ci,
+    formalT02Adoption: formalT02AdoptionAuthority(), productionDeployment: 'not_authorized' };
 }

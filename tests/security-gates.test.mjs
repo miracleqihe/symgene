@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { runInNewContext } from 'node:vm';
 import { ACTIONS_APP_ID, CI_JOBS, prIdentity, independentReview, trustedChecks, successfulNeeds,
-  deploymentIdentity, deploymentArtifact, publicationAuthority, latestCiRun, parseCiContext } from '../scripts/security/policy.mjs';
+  deploymentIdentity, deploymentArtifact, publicationAuthority, formalT02AdoptionAuthority, latestCiRun, parseCiContext } from '../scripts/security/policy.mjs';
 import { inspectTrustedPr, collectReviewThreads } from '../scripts/security/trusted-pr.mjs';
 import { productionGate } from '../scripts/security/production-gate.mjs';
 import { allowedT03Path } from '../scripts/security/check-t03-scope.mjs';
@@ -91,11 +91,15 @@ test('actual inline terminal workflow decisions reject every non-success upstrea
       return failed;
     };
     const passing = Object.fromEntries(names.map(name => [name, { result: 'success' }]));
+    if (workflow === 'deploy-pages.yml') passing.verify.outputs = { legacy_status: 'LEGACY_ENGINEERING_ELIGIBLE' };
     assert.equal(execute(passing), false);
     for (const name of names) for (const result of ['failure', 'skipped', 'neutral', 'cancelled', undefined]) {
       assert.equal(execute({ ...passing, [name]: { result } }), true, `${workflow}:${name}:${result}`);
     }
     assert.equal(execute({}), true);
+    if (workflow === 'deploy-pages.yml') for (const status of [undefined, 'PASS', 'T02_FORMAL_ADOPTION_BLOCKED']) {
+      assert.equal(execute({ ...passing, verify: { result: 'success', outputs: { legacy_status: status } } }), true);
+    }
   }
 });
 
@@ -132,13 +136,17 @@ test('5: feature, fork dev and same-name different repository ID cannot promote 
   rejects(() => prIdentity(moved), 'PR_BASE_STALE');
 });
 
-test('6: local flags, fake approvals and templates cannot create a publication authority', () => {
+test('6: local flags, fake approvals and templates cannot create formal T02 adoption authority', () => {
   for (const evidence of [null, { approved: true }, { publication: 'approved', medicalApproval: 'approved' },
     { PUBLICATION_APPROVED: 'true', SKIP_PUBLICATION_CHECK: 'true' },
     { signature: 'fictional-example-only', status: 'APPROVED', expires: '2099-01-01' },
     { status: 'APPROVED', revoked: true }, { status: 'APPROVED', expires: '2000-01-01' }]) {
-    assert.equal(publicationAuthority(evidence).status, 'BLOCKED');
-    assert.equal(productionGate({ ...context(), approval: evidence }).code, 'PUBLICATION_AUTHORITY_NOT_CONFIGURED');
+    assert.equal(publicationAuthority(evidence).status, 'T02_FORMAL_ADOPTION_BLOCKED');
+    const authority = formalT02AdoptionAuthority(evidence);
+    assert.equal(authority.status, 'T02_FORMAL_ADOPTION_BLOCKED');
+    assert.equal(authority.code, 'T02_FORMAL_AUTHORITY_NOT_CONFIGURED');
+    assert.equal('medicalApproval' in authority, false);
+    assert.equal('rightsApproval' in authority, false);
   }
 });
 
@@ -204,8 +212,21 @@ test('workflow controls keep terminal checks unconditional, trusted source isola
   const trusted = readFileSync(join(root, '.github/workflows/publication-policy.yml'), 'utf8');
   assert.match(trusted, /ref: \$\{\{ github\.event\.pull_request\.base\.sha \|\| github\.sha \}\}/);
   assert.doesNotMatch(trusted, /head\.sha|npm ci|secrets\./);
+  assert.ok(trusted.indexOf("throw new Error('TRUSTED_AUDIT_WORKFLOW_REJECTED')") < trusted.indexOf('uses: actions/checkout'));
   assert.match(trusted, /core\.setFailed\('BLOCKED/);
+  assert.doesNotMatch(trusted, /^  schedule:|cron:/m);
+  assert.doesNotMatch(trusted, /administration:|checks: write|contents: write|pull-requests: write/);
+  assert.doesNotMatch(trusted, /core\.setFailed\('BLOCKED: no authenticated/);
   const pages = readFileSync(join(root, '.github/workflows/deploy-pages.yml'), 'utf8');
+  const eligibility = pages.match(/      - name: Validate legacy production source and the actual build\n([\s\S]*?)(?=      - uses:)/)?.[1];
+  assert.ok(eligibility);
+  assert.match(eligibility, /CURRENT_MAIN_SHA: \$\{\{ needs\.authorization\.outputs\.sha \}\}/);
+  assert.match(eligibility, /EXPECTED_ENVIRONMENT: github-pages/);
+  assert.ok(pages.indexOf('run: npm run verify') < pages.indexOf('run: node scripts/security/production-gate.mjs'));
+  assert.match(pages, /timeout-minutes: 8\n        run: npx --no-install playwright install --with-deps chromium/);
+  assert.match(pages, /timeout-minutes: 3\n        run: node scripts\/security\/verify-production-runtime\.mjs/);
+  assert.ok(pages.indexOf('run: npm run verify') < pages.indexOf('run: node scripts/security/verify-production-runtime.mjs'));
+  assert.ok(pages.indexOf('run: node scripts/security/verify-production-runtime.mjs') < pages.indexOf('run: node scripts/security/production-gate.mjs'));
   assert.match(pages, /name: Deployment gate\n    if: always\(\)/);
   assert.match(pages, /context\.ref !== 'refs\/heads\/main'/);
   const deploy = pages.slice(pages.indexOf('\n  deploy:'));
@@ -373,7 +394,11 @@ function collectorFixture(mutate = () => {}) {
 }
 
 test('trusted final collection rechecks dismissal, permission, threads, unchanged-head review changes and CI changes', async () => {
-  assert.equal((await inspectTrustedPr(collectorFixture())).publication.status, 'BLOCKED');
+  const audited = await inspectTrustedPr(collectorFixture());
+  assert.equal(audited.engineering.status, 'PASS');
+  assert.equal(audited.engineering.code, 'TRUSTED_ENGINEERING_AUDIT_PASS');
+  assert.equal(audited.formalT02Adoption.status, 'T02_FORMAL_ADOPTION_BLOCKED');
+  assert.equal(audited.productionDeployment, 'not_authorized');
   const attacks = [
     ['INDEPENDENT_CURRENT_REVIEW_REQUIRED', (kind, count, data) => { if (kind === 'reviews' && count === 2) data[0].state = 'DISMISSED'; }],
     ['INDEPENDENT_CURRENT_REVIEW_REQUIRED', (kind, count, data) => { if (kind === 'permission' && count === 2) data.permission = 'read'; }],
@@ -389,6 +414,79 @@ test('trusted final collection rechecks dismissal, permission, threads, unchange
   for (const [code, mutate] of attacks) await assert.rejects(inspectTrustedPr(collectorFixture(mutate)), { code });
 });
 
+test('unreadable native protection remains blocked and documents the Administration read requirement', async () => {
+  for (const status of [403, 404, 500]) {
+    const fixture = collectorFixture();
+    fixture.github.rest.repos.getBranchProtection = async () => { throw Object.assign(new Error('not accessible'), { status }); };
+    await assert.rejects(inspectTrustedPr(fixture), error => error.code === 'LAST_PUSH_NATIVE_PROTECTION_UNVERIFIABLE'
+      && error.status === 'BLOCKED' && error.httpStatus === status && /Administration: read/.test(error.platformRequirement));
+  }
+  const fixture = collectorFixture(); fixture.context.eventName = 'schedule'; fixture.context.ref = 'refs/heads/main';
+  await assert.rejects(inspectTrustedPr(fixture), { code: 'TRUSTED_PR_EVENT_REJECTED' });
+});
+
+test('shipped trusted workflow reports engineering audit separately and fails every missing or denied audit', async () => {
+  const yaml = readFileSync(join(root, '.github/workflows/publication-policy.yml'), 'utf8');
+  const body = [...yaml.matchAll(/script: \|\n((?: {12}[^\n]*\n)+)/g)].map(m => m[1])
+    .find(script => script.includes('await inspectTrustedPr'))?.replace(/^ {12}/gm, '');
+  assert.ok(body);
+  const script = body.replace('const { inspectTrustedPr } = await import(file)', 'const inspectTrustedPr = inspectFixture');
+  assert.notEqual(script, body, 'only substitute the remote collector boundary');
+  const execute = async inspectFixture => {
+    const failures = [], errors = [], info = [];
+    await runInNewContext('(async () => {' + script + '})()', {
+      require: name => { assert.equal(name, 'node:url'); return { pathToFileURL: path => ({ href: path }) }; },
+      process: { cwd: () => '/example' }, inspectFixture, github: {},
+      context: { eventName: 'workflow_dispatch', repo: {}, payload: { inputs: { pull_request_number: '7' } } },
+      core: { info: text => info.push(text), error: text => errors.push(text), setFailed: text => failures.push(text) },
+    }, { timeout: 500 });
+    return { failures, errors, info };
+  };
+  const passing = await execute(async () => ({ engineering: { status: 'PASS', code: 'TRUSTED_ENGINEERING_AUDIT_PASS' },
+    formalT02Adoption: { status: 'T02_FORMAL_ADOPTION_BLOCKED' }, productionDeployment: 'not_authorized' }));
+  assert.equal(passing.failures.length, 0);
+  assert.ok(passing.info.some(text => text.includes('T02_FORMAL_ADOPTION_BLOCKED')));
+  for (const engineering of [undefined, { status: 'BLOCKED' }, { status: 'PASS', code: 'wrong' }]) {
+    assert.equal((await execute(async () => ({ engineering }))).failures.length, 1);
+  }
+  for (const code of ['LAST_PUSH_NATIVE_PROTECTION_UNVERIFIABLE', 'CI_CHANGED_DURING_CHECK', 'REVIEW_THREAD_UNRESOLVED']) {
+    const rejected = await execute(async () => { throw Object.assign(new Error(code), { code }); });
+    assert.equal(rejected.failures.length, 1); assert.ok(rejected.errors[0].includes(code));
+  }
+});
+
+test('actual workflow guards reject unsafe refs before trusted source or production checkout', async () => {
+  for (const [name, marker] of [['publication-policy.yml', 'TRUSTED_AUDIT_WORKFLOW_REJECTED'],
+    ['deploy-pages.yml', 'DEPLOY_MAIN_CHANGED']]) {
+    const yaml = readFileSync(join(root, '.github/workflows', name), 'utf8');
+    const body = [...yaml.matchAll(/script: \|\n((?: {12}[^\n]*\n)+)/g)]
+      .map(match => match[1]).find(script => script.includes(marker))?.replace(/^ {12}/gm, '');
+    assert.ok(body);
+    assert.ok(yaml.indexOf(marker) < yaml.indexOf('uses: actions/checkout'));
+    const fixture = () => ({ context: { repo: { owner: 'miracleqihe', repo: 'symgene' },
+      ref: 'refs/heads/main', eventName: 'workflow_dispatch', sha: H, runId: 42 },
+    env: { GITHUB_WORKFLOW_REF: `${repo.full_name}/.github/workflows/${name}@refs/heads/main`, GITHUB_RUN_ATTEMPT: '2' },
+    branch: { commit: { sha: H } } });
+    const execute = fixture => runInNewContext('(async () => {' + body + '})()', {
+      context: fixture.context, process: { env: fixture.env }, core: { setOutput: () => {} },
+      github: { rest: { repos: { getBranch: async () => ({ data: fixture.branch }) } } },
+    }, { timeout: 500 });
+    await execute(fixture());
+    const mutations = [fixture => fixture.context.repo.owner = 'example-other',
+      fixture => fixture.context.ref = 'refs/heads/feature/example',
+      fixture => fixture.context.eventName = 'pull_request', fixture => fixture.env.GITHUB_WORKFLOW_REF = 'wrong',
+      fixture => fixture.branch.commit.sha = B];
+    if (name === 'deploy-pages.yml') mutations.push(fixture => fixture.context.runId = 0,
+      fixture => fixture.env.GITHUB_RUN_ATTEMPT = '0');
+    if (name === 'publication-policy.yml') {
+      const target = fixture(); target.context.eventName = 'pull_request_target';
+      target.context.payload = { pull_request: { base: { sha: H } } }; await execute(target);
+      target.context.payload.pull_request.base.sha = B; await assert.rejects(execute(target), /TRUSTED_AUDIT_BASE_CHANGED/);
+    }
+    for (const mutate of mutations) { const f = fixture(); mutate(f); await assert.rejects(execute(f)); }
+  }
+});
+
 // Execute the shipped inline deployment guard, with the same env/API surfaces.
 // This deliberately does not substitute the separately tested policy helper.
 test('actual deploy-pages inline guard rejects environment, stale artifact, attempt, SHA drift and missing authorization', async () => {
@@ -399,17 +497,30 @@ test('actual deploy-pages inline guard rejects environment, stale artifact, atte
   const fixture = () => ({ context: { repo: { owner: 'miracleqihe', repo: 'symgene' }, ref: 'refs/heads/main', eventName: 'workflow_dispatch', sha: H, runId: 42 },
     env: { ARTIFACT_ID: '500', ARTIFACT_DIGEST: artifact().expectedDigest, AUTHORIZED_SHA: H, EXPECTED_ENVIRONMENT: 'github-pages',
       GITHUB_WORKFLOW_REF: `${repo.full_name}/.github/workflows/deploy-pages.yml@refs/heads/main`, GITHUB_RUN_ATTEMPT: '2',
-      NEEDS_JSON: JSON.stringify({ authorization: { result: 'success' }, verify: { result: 'success' }, gate: { result: 'success' } }) },
+      NEEDS_JSON: JSON.stringify({ authorization: { result: 'success' }, verify: { result: 'success',
+        outputs: { legacy_status: 'LEGACY_ENGINEERING_ELIGIBLE' } }, gate: { result: 'success' } }) },
     branch: { commit: { sha: H } }, run: artifact().run, artifact: artifact().artifact });
   const execute = f => runInNewContext('(async () => { ' + body + ' })()', { context: f.context, process: { env: f.env },
     github: { rest: { repos: { getBranch: async () => ({ data: f.branch }) }, actions: {
       getWorkflowRun: async () => ({ data: f.run }), getArtifact: async () => ({ data: f.artifact }), listWorkflowRunArtifacts: () => {},
-    } }, paginate: async () => [f.artifact] } }, { timeout: 500 });
+    } }, paginate: async () => f.artifacts || [f.artifact] } }, { timeout: 500 });
   await execute(fixture());
   for (const mutate of [f => f.env.EXPECTED_ENVIRONMENT = 'alternate', f => f.artifact.name = 'github-pages-42-1',
     f => f.run.run_attempt = 1, f => f.branch.commit.sha = B, f => f.env.AUTHORIZED_SHA = B,
-    f => f.env.NEEDS_JSON = '{}', f => f.artifact.expired = null, f => f.context.eventName = 'pull_request']) {
+    f => f.env.NEEDS_JSON = '{}', f => f.artifact.expired = null, f => f.context.eventName = 'pull_request',
+    f => f.artifact.id++, f => f.artifact.workflow_run.id++, f => f.run.id++,
+    f => f.artifact.digest = 'sha256:' + 'e'.repeat(64), f => f.env.ARTIFACT_ID = '-1',
+    f => f.env.GITHUB_WORKFLOW_REF = 'wrong', f => f.context.ref = 'refs/heads/dev',
+    f => f.run.path = '.github/workflows/ci.yml', f => f.env.GITHUB_RUN_ATTEMPT = '0',
+    f => f.artifacts = [f.artifact, clone(f.artifact)],
+    f => f.artifacts = [{ ...f.artifact, id: 501 }]]) {
     const f = fixture(); mutate(f); await assert.rejects(execute(f));
   }
-  assert.equal(productionGate(context()).code, 'PUBLICATION_AUTHORITY_NOT_CONFIGURED');
+  for (const name of ['authorization', 'verify', 'gate']) for (const result of ['skipped', 'failure', 'cancelled', 'neutral', undefined]) {
+    const f = fixture(), needs = JSON.parse(f.env.NEEDS_JSON); needs[name].result = result;
+    f.env.NEEDS_JSON = JSON.stringify(needs); await assert.rejects(execute(f));
+  }
+  const noLegacy = fixture(), needs = JSON.parse(noLegacy.env.NEEDS_JSON); delete needs.verify.outputs;
+  noLegacy.env.NEEDS_JSON = JSON.stringify(needs); await assert.rejects(execute(noLegacy), /LEGACY_ELIGIBILITY_MISSING/);
+  rejects(() => productionGate({ ...context(), ref: 'refs/heads/feature/example' }), 'DEPLOY_REF_REJECTED');
 });

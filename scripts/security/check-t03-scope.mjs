@@ -20,7 +20,18 @@ const RELIABILITY_PATHS = new Set([
   'tests/browser/content-concurrency.test.mjs', 'tests/helpers/concurrency-gateway.mjs',
   'docs/t02/local-consumer-concurrency.md',
 ]);
-export const allowedT03Path = path => RELIABILITY_PATHS.has(path) || /^\.github\/workflows\/[a-z0-9-]+\.yml$/.test(path)
+// Exact #39 policy/report/test surface. This does not permit snapshot, medical
+// content, signature contract or arbitrary local-content/security rewrites.
+const LEGACY_POLICY_PATHS = new Set([
+  'scripts/local-content/check-publication.mjs', 'tests/content-publication.test.mjs',
+  'docs/t02/local-acceptance-alignment.md', 'docs/t02/local-data-handoff.md',
+  'docs/t02/local-final-engineering.md', 'docs/t02/local-review-remediation.md',
+  'docs/t02/local-standard-release.md', 'docs/security/trusted-audit-platform.md',
+  'vite.config.js', 'src/main.jsx', 'src/production-runtime.mjs', 'src/production-runtime.json',
+  'tests/browser/legacy-runtime.test.mjs',
+  'tests/content-dev-consumer.test.mjs', 'tests/content-signed-consumer.test.mjs',
+]);
+export const allowedT03Path = path => RELIABILITY_PATHS.has(path) || LEGACY_POLICY_PATHS.has(path) || /^\.github\/workflows\/[a-z0-9-]+\.yml$/.test(path)
   || /^scripts\/security\/[a-z0-9-]+\.mjs$/.test(path)
   || /^tests\/security-[a-z0-9-]+\.test\.mjs$/.test(path)
   || ['package.json', 'package-lock.json', 'CONTRIBUTING.md', '.github/CODEOWNERS',
@@ -54,7 +65,8 @@ export function checkT03Scope(root = ROOT) {
     JSON.parse(readFileSync(resolve(root, 'package-lock.json'))));
   return { status: 'PASS', scope: 'T03-delivery-only', base: T03_BASE, changedPaths: changed,
     protectedFilesUnchanged: protectedPaths.length, protectedBytesDigest: hashes.digest('hex'),
-    dependencyLock, vendor: verifyVendorProvenance(root), publication: 'BLOCKED' };
+    dependencyLock, vendor: verifyVendorProvenance(root),
+    formalT02Adoption: 'T02_FORMAL_ADOPTION_BLOCKED', productionDeployment: 'NOT_AUTHORIZED_BY_SCOPE_AUDIT' };
 }
 
 if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {

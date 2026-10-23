@@ -192,7 +192,17 @@ test('same-origin proxy fetches authority on every read and refuses offline cach
 });
 
 test('actual production build excludes signed development UI, routes and namespace', async () => {
-  const result = await build({ root: ROOT, logLevel: 'silent', build: { write: false } });
+  // Vite development servers in earlier cases set NODE_ENV=development.
+  // This case claims a production build, so explicitly restore that mode.
+  const previousNodeEnv = process.env.NODE_ENV;
+  let result;
+  try {
+    process.env.NODE_ENV = 'production';
+    result = await build({ root: ROOT, logLevel: 'silent', build: { write: false } });
+  } finally {
+    if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = previousNodeEnv;
+  }
   for (const asset of (Array.isArray(result) ? result : [result]).flatMap((item) => item.output)) {
     const value = asset.type === 'chunk' ? asset.code : String(asset.source);
     assert.doesNotMatch(value, /T02_SIGNED_TEST_CONSUMER|symgene-t02-signed-test:|enable-signed-test|t02-signed-consumer|t02-signed-session|\/symgene\/t02-signed\//);
