@@ -26,7 +26,7 @@ export const isAllowedSplitPath=p=>['.gitignore','README.md','AGENTS.md','index.
   ||/^scripts\/local-content\/[a-z-]+\.mjs$/.test(p)
   ||/^tests\/[a-z-]+\.test\.mjs$/.test(p)
   ||/^tests\/ui\/(?:agent-guide|knowledge-reading|medical-points)\.test\.jsx$/.test(p)
-  ||p==='tests/helpers/reparse-fixture.mjs'||p==='tests/fixtures/seed-v2.json'||p==='tests/fixtures/legacy-drug-side-effects.js'
+  ||p==='tests/browser/content-concurrency.test.mjs'||p==='tests/helpers/concurrency-gateway.mjs'||p==='tests/helpers/reparse-fixture.mjs'||p==='tests/fixtures/seed-v2.json'||p==='tests/fixtures/legacy-drug-side-effects.js'
   ||p==='vendor/local-content/legacy-snapshot.mjs'
   ||/^docs\/t02\/local-[a-z-]+\.md$/.test(p);
 export async function checkSplit() {

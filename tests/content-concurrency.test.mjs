@@ -48,6 +48,7 @@ test('close drains a real optimizer writer before removing its cache', { timeout
     closing = app.close();
     const outcome = await Promise.race([closing.then(() => 'closed'), new Promise(resolve => setTimeout(() => resolve('writer-pending'), 100))]);
     assert.equal(outcome, 'writer-pending', 'close must join the writer, not merely cancel it');
+    await new Promise(resolve => setTimeout(resolve, 150));
     releaseWriter.resolve();
     await closing;
     assert.equal(existsSync(cache), false, 'late writes must finish before cache deletion');
@@ -188,4 +189,74 @@ test('signed browser closes its Vite, gateway and checkpoint on Playwright impor
     assert.deepEqual(JSON.parse(readFileSync(join(evidence, 'signed-browser-failure.json'))).cleanupErrors,
       [{ code: 'FICTIONAL_CLOSE_FAILURE', cleanupIncomplete: false }]);
   } finally { rmSync(producer, { recursive: true, force: true }); rmSync(evidence, { recursive: true, force: true }); }
+});
+
+test('worker supervision rejects signals, report-before-failure, absent and mismatched reports', { timeout: 15000 }, async () => {
+  const { superviseWorker, isWorkerSuccess } = await import('../scripts/t02/consumer-concurrency.mjs');
+  const directory = mkdtempSync(join(tmpdir(), 'symgene-worker-negatives-'));
+  const modulePath = join(directory, 'worker.mjs');
+  writeFileSync(modulePath, `
+    const options = JSON.parse(process.env.SYM_T02_PROBE_OPTIONS);
+    if (options.scenario === 'orphan-pipe') {
+      const { spawn } = await import('node:child_process');
+      const descendant = spawn(process.execPath, ['-e', "const s=require('node:net').createServer();process.on('SIGTERM',()=>{});s.listen(0,'127.0.0.1',()=>process.send({port:s.address().port}));"], { stdio: ['ignore','inherit','inherit','ipc'] });
+      await new Promise(resolve => descendant.once('message', message => { console.log(JSON.stringify({ descendantPort: message.port })); resolve(); }));
+      process.disconnect(); process.exit(0);
+    }
+    const row = { kind: options.kind, pid: process.pid, status: 'PASS', complete: true, externalRequests: 0,
+      pageErrors: [], consoleErrors: [], requestFailures: [], httpErrors: [], http504Count: 0,
+      cachePolicy: 'per-instance-owned', serverClosed: true, browserClosed: true, ownedCacheRemoved: true, cleanupErrors: [],
+      closedPorts: [{port: 1, reachable: false}],
+      timeline: ['start','ready','domcontentloaded','react-mount','snapshot','closed'].map(stage => ({stage})) };
+    if (options.scenario === 'wrong-kind') row.kind = 'signed';
+    const report = { type: 'complete', version: 1, mode: 'probe', pid: process.pid,
+      executionId: options.scenario === 'wrong-execution' ? 'fictional-other-execution' : process.env.SYM_T02_EXECUTION_ID, result: row };
+    if (options.scenario === 'timeout') { process.on('SIGTERM', () => {}); setInterval(() => {}, 1000); }
+    else if (options.scenario.startsWith('SIG')) { process.kill(process.pid, options.scenario); }
+    else if (options.scenario === 'missing') process.disconnect();
+    else await new Promise(resolve => process.send(report, resolve));
+    if (options.scenario === 'report-fail') process.exitCode = 7;
+    if (process.connected && options.scenario !== 'timeout') process.disconnect();
+  `);
+  try {
+    for (const scenario of ['SIGTERM', 'SIGKILL', 'report-fail', 'missing', 'wrong-kind', 'wrong-execution', 'timeout', 'valid']) {
+      const row = await superviseWorker({ mode: 'probe', options: { kind: 'development', scenario }, modulePath,
+        timeoutMs: scenario === 'timeout' ? 300 : 2000, graceMs: 200 });
+      assert.equal(isWorkerSuccess(row), scenario === 'valid', scenario);
+      if (scenario.startsWith('SIG')) { assert.equal(row.exitCode, null); assert.equal(row.signal, scenario); }
+      if (scenario === 'report-fail') { assert.equal(row.reportReceived, true); assert.equal(row.exitCode, 7); }
+      if (scenario === 'missing') assert.equal(row.reportReceived, false);
+      if (scenario === 'timeout') { assert.equal(row.timedOut, true); assert.equal(row.signal, 'SIGKILL'); }
+    }
+    const shared = await superviseWorker({ mode: 'case', options: { consumers: ['development', 'signed'], scenario: 'timeout' }, modulePath, timeoutMs: 300, graceMs: 200 });
+    assert.equal(shared.status, 'FAIL');
+    assert.equal(shared.timedOut, true);
+    assert.equal(shared.signal, 'SIGKILL', 'shared-process work is also supervised outside its event loop');
+    const orphan = await superviseWorker({ mode: 'probe', options: { kind: 'development', scenario: 'orphan-pipe' }, modulePath, timeoutMs: 300, graceMs: 200 });
+    assert.equal(orphan.status, 'FAIL');
+    assert.equal(orphan.exitCode, 0, 'the leader exits successfully before its descendant');
+    assert.equal(orphan.timedOut, true, 'inherited pipes must remain subject to the parent deadline');
+    const { descendantPort } = JSON.parse(orphan.output.trim());
+    assert.equal(await portIsReachable(descendantPort), false, 'the parent kills descendants even after the leader exits');
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+test('network evidence rejects dependency HTTP errors, failed requests and startup console errors', async () => {
+  const { EventEmitter } = await import('node:events');
+  const { observeProbePage, isProbeSuccess } = await import('../scripts/t02/consumer-concurrency.mjs');
+  for (const [name, payload] of [
+    ['response', { url: () => 'http://127.0.0.1/node_modules/.vite/deps/react.js', status: () => 504, request: () => ({ method: () => 'GET' }) }],
+    ['response', { url: () => 'http://127.0.0.1/src/entry.js', status: () => 500, request: () => ({ method: () => 'GET' }) }],
+    ['response', { url: () => 'http://127.0.0.1/symgene/t02-signed/snapshot', status: () => 503, request: () => ({ method: () => 'GET' }) }],
+    ['requestfailed', { url: () => 'http://127.0.0.1/src/entry.js', failure: () => ({ errorText: 'net::ERR_CONNECTION_RESET' }) }],
+    ['pageerror', new Error('FICTIONAL_UNCAUGHT')],
+    ['console', { type: () => 'error', text: () => 'FICTIONAL_STARTUP_ERROR', location: () => ({ url: 'http://127.0.0.1/src/entry.js' }) }],
+  ]) {
+    const page = new EventEmitter();
+    const row = { status: 'PASS', complete: true, pid: process.pid, externalRequests: 0, pageErrors: [], consoleErrors: [], requestFailures: [], httpErrors: [], http504Count: 0,
+      cachePolicy: 'per-instance-owned', serverClosed: true, browserClosed: true, ownedCacheRemoved: true, cleanupErrors: [], closedPorts: [{ port: 1, reachable: false }],
+      timeline: ['start', 'ready', 'domcontentloaded', 'react-mount', 'snapshot', 'closed'].map(stage => ({ stage })) };
+    observeProbePage(page, row); page.emit(name, payload);
+    assert.equal(isProbeSuccess(row), false, name);
+  }
 });

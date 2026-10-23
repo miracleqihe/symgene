@@ -69,6 +69,21 @@ jobs:
       - name: Install the Chinese font required by browser evidence
         timeout-minutes: 3
         run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends fonts-noto-cjk
+      - name: Real Chromium T02 concurrent startup (three pairs, six probes)
+        timeout-minutes: 5
+        env:
+          T02_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          node --test tests/browser/content-concurrency.test.mjs
+          node scripts/t02/consumer-concurrency.mjs --producer-root "$GITHUB_WORKSPACE" --evidence-dir "$RUNNER_TEMP/t02-concurrency" --profile ci
+      - name: Upload T02 matrix, errors and cleanup evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: t02-concurrency-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/t02-concurrency/
+          if-no-files-found: error
+          retention-days: 14
       - name: Reproducible review at 390, 768, 1366 and 1920 pixels
         run: npm run review:browser
         env:

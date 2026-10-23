@@ -88,3 +88,49 @@ the older workflow had no explicit job limit. Dependency and font steps remain
 bounded. The broader trusted-policy, stable-check and token changes stay in
 PR #37. This common preparation block is identical in both PRs and must appear
 only once when they are integrated.
+
+## Independent review hardening
+
+Every matrix case now runs under an independent supervisor, including the cases
+that share a Node process internally. Probe workers have 55 seconds plus a
+4-second termination grace; shared cases have 110 seconds plus that grace. A final
+one-second parent deadline also bounds inherited output pipes after the leader
+exits. The supervisor sends TERM then KILL to the owned process group regardless
+of the leader's exit status, and closes its own pipes at the absolute deadline.
+Timeouts, signals, missing/duplicate/incomplete reports, wrong probe kind, wrong
+PID or execution ID, and a report followed by a nonzero exit all fail. PASS needs
+exit code exactly zero, signal exactly null, timedOut exactly false and one
+complete successful report bound to that execution. Unit regressions also leave
+a child socket and inherited pipe open after its leader exits successfully.
+
+Startup probes fail on every HTTP error, including 504, dependency failures and
+503, every failed browser request, uncaught page error and console error. A real
+Chromium regression injects a dependency-path 504 while React still mounts and
+loads its snapshot; that probe must FAIL. These probes start the signed fixture
+with a bounded adoption through its existing loopback gateway, then wait for the
+browser's fresh read before clicking its real adopt button again. This only sets
+the concurrency fixture's initial state. The separate signed browser exercise
+retains its original unadopted-read denial, signature, withdrawal, rollback and
+recovery assertions, where expected 503s belong to those explicit fault drills.
+No startup error is exempted as an expected fault.
+
+CI runs all three simultaneous pairs (development/signed, signed/signed and
+development/development), six real Chromium probes, under a five-minute step
+budget. Each instance must have a distinct cache and complete React mount,
+snapshot, resource cleanup and process-exit checks. It uploads case JSON,
+matrix.json, error-statistics.json and cleanup.json under the CI run ID and
+attempt, including source and checkout commits. The browser regression is a
+required separate command in the same step; missing Chromium or matrix failure
+cannot become a skipped green result.
+
+The private producer cannot be anonymously fetched by public website CI. CI uses
+`tests/helpers/concurrency-gateway.mjs`, a website-owned synthetic loopback test
+gateway serving the existing locked fictional bundles and explicit fictional
+proof fields. Its evidence states that producer signatures are not verified by
+that harness. The full local 20-case matrix still uses the actual private
+producer, its signed test identities and independent checkpoint service. Neither
+mode establishes formal publication authority; production remains BLOCKED.
+
+The controlled optimizer writer regression holds its writer beyond a 50 ms
+quiet observation and proves close remains pending until the writer is released
+and joined. A quiet window alone never establishes that background writes ended.
