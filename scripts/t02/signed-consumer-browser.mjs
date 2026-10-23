@@ -198,7 +198,9 @@ export async function runSignedBrowser({ producerRoot = resolve(ROOT, '../symgen
     onStage({ stage: 'closed', consumer: 'signed', serverClosed: !server || !server.app.httpServer.listening });
     const errors = closed.filter((result) => result.status === 'rejected').map((result) => result.reason);
     if (errors.length) {
-      writeFileSync(join(target, 'signed-browser-failure.json'), JSON.stringify({ status: 'FAIL', code: 'SIGNED_BROWSER_CLEANUP_FAILED', checks, pageErrors, externalRequests }, null, 2) + '\n');
+      const cleanupErrors = errors.map(error => ({ code: error.code ?? error.message,
+        cleanupIncomplete: error.cleanupIncomplete === true, ...(error.cleanupIncomplete ? { cacheDir: error.cacheDir } : {}) }));
+      writeFileSync(join(target, 'signed-browser-failure.json'), JSON.stringify({ status: 'FAIL', code: 'SIGNED_BROWSER_CLEANUP_FAILED', checks, pageErrors, externalRequests, cleanupErrors }, null, 2) + '\n');
       throw new AggregateError(errors, 'SIGNED_BROWSER_CLEANUP_FAILED');
     }
     if (completedReport) writeFileSync(join(target, 'signed-browser-report.json'), JSON.stringify(completedReport, null, 2) + '\n');

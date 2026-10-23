@@ -11,8 +11,10 @@ observed failure was HTTP 504 `Outdated Optimize Dep` for React modules, followe
 by a React mount timeout before configuration or signed snapshot requests.
 
 Each server now creates its own temporary optimizer cache, even when two servers
-run the same consumer. `app.close()` closes Vite and removes only that server's
-owned cache. The signed browser runner also closes resources it has successfully
+run the same consumer. `app.close()` first stops new HTTP requests and file
+discovery, waits for dependency scanning and all observed optimizer processing
+batches, closes Vite, then removes only that server's owned cache. The signed
+browser runner also closes resources it has successfully
 acquired if a later initialization step fails. A producer factory that throws
 before returning must clean up its own partially initialized resources. The
 existing mount timeout and signature,
@@ -39,12 +41,26 @@ DOM load, React mount, snapshot, browser/network errors, load and memory samples
 child exit codes, and cleanup of owned loopback sockets. Application requests to
 other origins are blocked and counted; any such request fails the probe.
 
-Vite cancellation does not prove every asynchronous bundle write has stopped.
-Owned-cache removal uses bounded filesystem retries and fails if exhausted.
-Regression tests also observe cache absence and refused owned sockets after a
-short settle window. This is a bounded observation, not a guarantee about every
-possible future Vite writer or platform. A failed cleanup produces FAIL evidence;
-the runners persist PASS reports only after cleanup succeeds.
+The first PR #38 Linux CI failed the cache-absence assertion: Vite cancellation
+returned before an asynchronous bundle writer completed. Filesystem deletion
+retries and a short settle observation did not fix that lifecycle race. A
+regression now gates a real Rolldown `writeBundle` and proves that successful
+shutdown joins its processing promise before deleting the cache. It also retains
+the original cache-absence and refused-socket checks.
+
+Waiting for optimizer drain and Vite close has a 15-second failure deadline.
+Reaching it starts remaining Vite shutdown without an unbounded wait, rejects
+with `T02_CONSUMER_SHUTDOWN_TIMEOUT`, marks `cleanupIncomplete`, and retains the
+cache path in the error. A writer that has not been joined must not have its cache
+deleted and be declared clean. A controlled deadline regression holds the writer
+past that limit, verifies the HTTP endpoint is closed and the cache is retained,
+then releases and joins its own test writer before removing that exact cache.
+Arbitrary stuck plugin work cannot be forcibly terminated inside a shared Node
+process; a deadline failure is not a guarantee of complete cleanup. Successful
+owned-cache removal retries transient filesystem failures and fails if exhausted.
+Failed cleanup produces FAIL evidence with cleanup details; runners persist PASS
+reports only after cleanup succeeds. Local results do not replace a successful
+rerun of the real Linux PR CI.
 
 `cacheDir` is an explicit experimental escape hatch owned by the caller. It is
 used to retain distinct caches for cold/warm comparisons. Sharing one explicit

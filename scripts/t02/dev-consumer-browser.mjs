@@ -206,7 +206,9 @@ export async function runDevelopmentBrowser({ evidenceDir = join(EVIDENCE, 'reac
     onStage({ stage: 'closed', consumer: 'development', serverClosed: !server.app.httpServer.listening });
     const errors = closed.filter((result) => result.status === 'rejected').map((result) => result.reason);
     if (errors.length) {
-      writeFileSync(join(evidenceDir, 'failure.json'), JSON.stringify({ status: 'FAIL', code: 'DEV_BROWSER_CLEANUP_FAILED', checks }, null, 2) + '\n');
+      const cleanupErrors = errors.map(error => ({ code: error.code ?? error.message,
+        cleanupIncomplete: error.cleanupIncomplete === true, ...(error.cleanupIncomplete ? { cacheDir: error.cacheDir } : {}) }));
+      writeFileSync(join(evidenceDir, 'failure.json'), JSON.stringify({ status: 'FAIL', code: 'DEV_BROWSER_CLEANUP_FAILED', checks, cleanupErrors }, null, 2) + '\n');
       throw new AggregateError(errors, 'DEV_BROWSER_CLEANUP_FAILED');
     }
     if (completedReport) writeFileSync(join(evidenceDir, 'result.json'), JSON.stringify(completedReport, null, 2) + '\n');

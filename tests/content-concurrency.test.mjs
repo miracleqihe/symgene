@@ -10,6 +10,7 @@ import { probeConsumer, runConcurrencyMatrix } from '../scripts/t02/consumer-con
 import { startDevelopmentConsumer } from '../scripts/t02/dev-consumer.mjs';
 import { startSignedConsumer } from '../scripts/t02/signed-consumer.mjs';
 import { isAllowedSplitPath } from '../scripts/local-content/check-split.mjs';
+import { createConsumerViteServer } from '../scripts/t02/consumer-vite-server.mjs';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const portIsReachable = port => new Promise(resolve => {
@@ -17,6 +18,84 @@ const portIsReachable = port => new Promise(resolve => {
   socket.once('connect', () => { socket.destroy(); resolve(true); });
   socket.once('error', () => resolve(false));
   socket.setTimeout(1000, () => { socket.destroy(); resolve(true); });
+});
+
+test('close drains a real optimizer writer before removing its cache', { timeout: 20000 }, async () => {
+  const writerStarted = Promise.withResolvers();
+  const writerFinished = Promise.withResolvers();
+  const releaseWriter = Promise.withResolvers();
+  let app;
+  let closing;
+  try {
+    app = await createConsumerViteServer({ root: ROOT, server: { host: '127.0.0.1', hmr: false },
+      optimizeDeps: { holdUntilCrawlEnd: false, include: ['react'], rolldownOptions: { plugins: [{
+        name: 'fictional-delayed-optimizer-writer',
+        async writeBundle(options) {
+          try {
+            writerStarted.resolve();
+            await releaseWriter.promise;
+            mkdirSync(options.dir, { recursive: true });
+            writeFileSync(join(options.dir, 'fictional-late-write'), 'synthetic');
+          } finally { writerFinished.resolve(); }
+        },
+      }] } } });
+    await new Promise((resolve, reject) => {
+      app.httpServer.once('error', reject);
+      app.httpServer.listen(0, '127.0.0.1', resolve);
+    });
+    await writerStarted.promise;
+    const cache = app.config.cacheDir;
+    closing = app.close();
+    const outcome = await Promise.race([closing.then(() => 'closed'), new Promise(resolve => setTimeout(() => resolve('writer-pending'), 100))]);
+    assert.equal(outcome, 'writer-pending', 'close must join the writer, not merely cancel it');
+    releaseWriter.resolve();
+    await closing;
+    assert.equal(existsSync(cache), false, 'late writes must finish before cache deletion');
+  } finally {
+    releaseWriter.resolve();
+    if (app) await writerFinished.promise;
+    await (closing ?? app?.close());
+  }
+});
+
+test('an optimizer drain deadline fails without deleting an unjoined writer cache', { timeout: 30000 }, async () => {
+  const writerStarted = Promise.withResolvers();
+  const writerFinished = Promise.withResolvers();
+  const releaseWriter = Promise.withResolvers();
+  let app;
+  let pending = [];
+  try {
+    app = await createConsumerViteServer({ root: ROOT, server: { host: '127.0.0.1', hmr: false },
+      optimizeDeps: { holdUntilCrawlEnd: false, include: ['react'], rolldownOptions: { plugins: [{
+        name: 'fictional-deadline-optimizer-writer',
+        async writeBundle(options) {
+          try {
+            writerStarted.resolve();
+            await releaseWriter.promise;
+            mkdirSync(options.dir, { recursive: true });
+            writeFileSync(join(options.dir, 'fictional-late-write'), 'synthetic');
+          } finally { writerFinished.resolve(); }
+        },
+      }] } } });
+    await new Promise((resolve, reject) => {
+      app.httpServer.once('error', reject);
+      app.httpServer.listen(0, '127.0.0.1', resolve);
+    });
+    await writerStarted.promise;
+    const port = app.httpServer.address().port;
+    pending = Object.values(app.environments.client.depsOptimizer.metadata.discovered).map(info => info.processing);
+    await assert.rejects(app.close(), error => error.code === 'T02_CONSUMER_SHUTDOWN_TIMEOUT'
+      && error.cleanupIncomplete === true && error.cacheDir === app.config.cacheDir);
+    assert.equal(await portIsReachable(port), false, 'the deadline must not leave the owned HTTP endpoint open');
+    assert.equal(existsSync(app.config.cacheDir), true, 'an unjoined writer cache must be retained and reported incomplete');
+  } finally {
+    releaseWriter.resolve();
+    if (app) await writerFinished.promise;
+    await Promise.all(pending);
+    await app?.close().catch(() => {});
+    // This test owns the synthetic blocked writer and can join it explicitly.
+    if (app) rmSync(app.config.cacheDir, { recursive: true, force: true });
+  }
 });
 
 test('split scope admits the six reviewed engineering scripts without opening other T02 scripts', () => {
@@ -106,5 +185,7 @@ test('signed browser closes its Vite, gateway and checkpoint on Playwright impor
       { name: 'AggregateError', message: 'SIGNED_BROWSER_CLEANUP_FAILED' });
     assert.equal(existsSync(join(evidence, 'signed-browser-report.json')), false, 'cleanup failure must not leave a PASS report');
     assert.equal(JSON.parse(readFileSync(join(evidence, 'signed-browser-failure.json'))).code, 'SIGNED_BROWSER_CLEANUP_FAILED');
+    assert.deepEqual(JSON.parse(readFileSync(join(evidence, 'signed-browser-failure.json'))).cleanupErrors,
+      [{ code: 'FICTIONAL_CLOSE_FAILURE', cleanupIncomplete: false }]);
   } finally { rmSync(producer, { recursive: true, force: true }); rmSync(evidence, { recursive: true, force: true }); }
 });
