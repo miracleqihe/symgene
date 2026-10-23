@@ -6,7 +6,7 @@ const PROJECT_ROOT = fileURLToPath(new URL('../', import.meta.url));
 const DIST_DIRECTORY = path.join(PROJECT_ROOT, 'dist');
 const INDEX_FILE = path.join(DIST_DIRECTORY, 'index.html');
 const ASSETS_DIRECTORY = path.join(DIST_DIRECTORY, 'assets');
-const TEXT_EXTENSIONS = new Set(['.css', '.html', '.js', '.json', '.map', '.svg', '.txt', '.xml']);
+const TEXT_EXTENSIONS = new Set(['.css', '.html', '.js', '.json', '.map', '.md', '.svg', '.txt', '.xml']);
 const FORBIDDEN_PATTERNS = [
   ['私有目录引用', /(?:^|["'=(\s\\/])(?:raw|work|tmp)[\\/]/i],
   ['file:// URL', /file:\/\//i],

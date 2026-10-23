@@ -1,0 +1,186 @@
+{
+  "format": "symgen-atlas-hold-inventory/1",
+  "logicalLocation": "local-hold://atlas-tools",
+  "actualLocation": "mapped only in the operator Git-out resource index",
+  "files": [
+    {
+      "path": "aggregate-social.mjs",
+      "bytes": 7778,
+      "sha256": "2bca755efa210eefa56f1fe2b2395cc261092915c03f76d095347be819dc4612"
+    },
+    {
+      "path": "apply-adjudication-batch2.mjs",
+      "bytes": 30066,
+      "sha256": "6d3ab1cd4b2e034d7db427f072e306543ce521e8fd1e9262a18343705e24263a"
+    },
+    {
+      "path": "apply-adjudication-batch3.mjs",
+      "bytes": 14819,
+      "sha256": "2206b0f8afe159382ffccb2e26adbed573db3767e3e5f4d85d9be61f78fe4ca1"
+    },
+    {
+      "path": "apply-adjudication.mjs",
+      "bytes": 17371,
+      "sha256": "fa2b7e0f489a21c9ff43e9a0c714f211329355fac77a31b6f9e9496879b58c9f"
+    },
+    {
+      "path": "apply-polarity.mjs",
+      "bytes": 7204,
+      "sha256": "7afb54f4f2bb0d3a13d75d39b5d73be519697d16e2b1640e16cb49b41bbcf1e8"
+    },
+    {
+      "path": "build-atlas-data.mjs",
+      "bytes": 15456,
+      "sha256": "26128019940627f777bc4f57bd026f48d0f4e553d43f5462713d901aa89b4a87"
+    },
+    {
+      "path": "build-china-data.mjs",
+      "bytes": 16669,
+      "sha256": "af54550842f6f22bae85212033ee931b7de1d65cde290cbfb4687b4c2b514146"
+    },
+    {
+      "path": "build-institution-package.mjs",
+      "bytes": 15521,
+      "sha256": "264afc001dfae58867db20ced70cfcb39a789a208aef0736087ef0683401600f"
+    },
+    {
+      "path": "build-institution-profile-report.mjs",
+      "bytes": 13985,
+      "sha256": "d3c097d848f14f45fefb6e4284412b29e512a43e4e40d364917270e039d43fa9"
+    },
+    {
+      "path": "build-queue-batch2.mjs",
+      "bytes": 2377,
+      "sha256": "8402bad9f966a8b192fd05d204e6e62de739be3866899d590fe3825d200256f4"
+    },
+    {
+      "path": "build-queue-batch3.mjs",
+      "bytes": 2761,
+      "sha256": "1a4bb5e47cc3854fe0b08a3df1d251d2cafbd90b9cffa1c8397f605a5cc70468"
+    },
+    {
+      "path": "build-review-report.mjs",
+      "bytes": 14669,
+      "sha256": "a8c55a45099eb7d9b470d6d14dff95a2b440ae0d8601a405bd0ad21b00f0d93c"
+    },
+    {
+      "path": "discover-official-channels.mjs",
+      "bytes": 18387,
+      "sha256": "cfff5573a244c1ed6ac04f107badc439ac04bd60e66e35d7b01e4dae6787c654"
+    },
+    {
+      "path": "discover-official-sites.mjs",
+      "bytes": 14535,
+      "sha256": "55d2b9bf474223a080d92152ef618aaf44ca996ec37bc0bb37015944c50dfc82"
+    },
+    {
+      "path": "drill-campus-channels.mjs",
+      "bytes": 10413,
+      "sha256": "02f211800d93040d6f79dc7f88854ec763155358e514649a96de68e7ac3d5b6e"
+    },
+    {
+      "path": "fetch-amap-fields.mjs",
+      "bytes": 5958,
+      "sha256": "2db46f521724810e936b68837c08a2b7932ecc2b7e1ec76f1d8c4e2fce752f97"
+    },
+    {
+      "path": "fetch-amap-poi.mjs",
+      "bytes": 4736,
+      "sha256": "4edad9c7f71a080bc3a47c5987f089f8deb2216da766da10d0b37c707edae14b"
+    },
+    {
+      "path": "fetch-health-commission-registry.mjs",
+      "bytes": 8065,
+      "sha256": "9dc96da54ec58d59e27b62e3b64bd3ed1f5290dace2fdf8699825f411b32cd61"
+    },
+    {
+      "path": "fetch-institution-profiles.mjs",
+      "bytes": 19220,
+      "sha256": "3b09a4f0b769a1cd24b5472d4856bded079a11fcc954acc3e45fda4a3eb0ec09"
+    },
+    {
+      "path": "institution-profile-schema.mjs",
+      "bytes": 7236,
+      "sha256": "0df490eff05b737d1b54830ae7ec14719de584abfc70931b89e6db4684e1e9c8"
+    },
+    {
+      "path": "institution-types.mjs",
+      "bytes": 9456,
+      "sha256": "1630d4ef48f6221e89691eed62bbb268010c31d4cce08eff9aadd2d4a9a1fdd2"
+    },
+    {
+      "path": "lib/private-inputs.mjs",
+      "bytes": 1767,
+      "sha256": "5408af8c869ce12083ba932d19b18f7807c93b7e171c550881c0f082e83c173b"
+    },
+    {
+      "path": "merge-adjudication.mjs",
+      "bytes": 5546,
+      "sha256": "8cfcb56da1582dd059dfbe08b8779ba85bf8ed1674cfbb75f2c99e72d9b065ce"
+    },
+    {
+      "path": "mine-institution-domains.mjs",
+      "bytes": 11453,
+      "sha256": "490bc572861cae3d96b23bd868306b3f339f42ba46b47990b577c41d19c09160"
+    },
+    {
+      "path": "normalize-social-evidence.mjs",
+      "bytes": 14113,
+      "sha256": "40f2bab82949995cea1a4ff8dabadb167f7036323608d01c0cab9ac4cddc5c95"
+    },
+    {
+      "path": "probe-campus-channels.mjs",
+      "bytes": 13109,
+      "sha256": "b1bd67ce1248a7ce530b642b8e2823fbe14ddd11307abc0b38abfe5818978037"
+    },
+    {
+      "path": "probe-registry-sources.mjs",
+      "bytes": 5485,
+      "sha256": "510290c0e83375cbec916f092c883577573c366bb6c815d44363a5533988da09"
+    },
+    {
+      "path": "promote-institution-fields.mjs",
+      "bytes": 12679,
+      "sha256": "2cec2ba61254d393d9f2d7e71f209d28682e18f74d9961cabcb3b721323998dd"
+    },
+    {
+      "path": "publish-reviewed-aggregate.mjs",
+      "bytes": 11091,
+      "sha256": "59a3270426adb1391c85058a7d28e5a78f592b58a6b00707c29b1915c9dc656e"
+    },
+    {
+      "path": "REVIEW-RULES.md",
+      "bytes": 8734,
+      "sha256": "2a6c587e1cc5cf2d215404f0213179b05441747786fbba715e7883478ce4b645"
+    },
+    {
+      "path": "scan-social-leads.mjs",
+      "bytes": 8117,
+      "sha256": "35897d7ddaf78c1692ed4bbfdfc6d0c4a80f80b989927e7574a5a0cb78000f37"
+    },
+    {
+      "path": "select-institution-cohort.mjs",
+      "bytes": 21493,
+      "sha256": "f10df360f588e761ee84932321bd5580f54d15521cd1d19e9ba55e2ab1521446"
+    },
+    {
+      "path": "sources/china-sansha.json",
+      "bytes": 14195,
+      "sha256": "d680dd7bc5f5c62923f53f1b9704213ff45556f6136e57cc3980fba190d3c712"
+    },
+    {
+      "path": "sync-institution-types.mjs",
+      "bytes": 1410,
+      "sha256": "b8766da3f48447b9d2817962d30b3a83cd2385461a4c0d119906bc9da88c98a0"
+    },
+    {
+      "path": "verify-official-names.mjs",
+      "bytes": 8829,
+      "sha256": "5683c10d72744c4fad29aefdc6fb7e9a760c0186c43bb7d8b28b531d45b349c2"
+    }
+  ],
+  "rightsApproval": "not_asserted",
+  "executed": false,
+  "sourcePreservation": "all 35 match at least one protected original source",
+  "restoreProcedure": "verify_hold.py --manifest <inventory> --hold-root <private-mapped-root> --restore-to <new-directory>; verify first, never execute, never overwrite an existing destination"
+}
