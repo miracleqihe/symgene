@@ -32,6 +32,15 @@ glyph assertion and all four-viewport browser checks remain mandatory. Local
 static tests cannot prove remote mirror availability; the next real PR run must
 verify this infrastructure change.
 
+The second PR run correctly failed that configuration readback: the official
+runner image also writes `zz-retries`, which sorts after numeric `99*` files and
+overrides their values. The job-specific policy now sorts after that runner file.
+It dumps the selected effective root Apt keys and checks each exact value using
+`apt-config shell` before installing anything; an unexpected later override still
+fails the job. This follows the image's documented last-setting-wins behavior,
+not an assumption that writing a configuration file made it effective. See the
+[official runner Apt configuration](https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/scripts/build/configure-apt.sh).
+
 `Content integration` always runs content-pack and legacy integrity checks plus
 the real storage/content test suites. The historical `check:split` and
 `scripts/t02/check-repository.mjs` scanners retain their exact migration scopes;

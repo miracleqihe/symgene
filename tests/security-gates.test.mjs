@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, mkdtempSync, mkdirSync, cpSync, writeFileSync, rmSync } from 'node:fs';
+import { readFileSync, mkdtempSync, mkdirSync, cpSync, writeFileSync, chmodSync, rmSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -221,6 +222,16 @@ test('browser CI retains its font and browser gates with bounded signed Ubuntu d
   assert.match(verify, /https:\/\/archive\.ubuntu\.com\/ubuntu/);
   assert.match(verify, /Acquire::Retries "2";/);
   assert.match(verify, /Acquire::https::Timeout "20";/);
+  const configName = verify.match(/\/etc\/apt\/apt\.conf\.d\/([a-z0-9-]+)/)?.[1];
+  assert.ok(configName, 'the bounded download settings must have a concrete apt config file');
+  // A real runner-images zz-retries file overrides NN-* files in C-locale order.
+  assert.equal(['99symgene-ci-downloads', 'zz-retries', configName].sort().at(-1), configName);
+  assert.notEqual(configName, 'zz-retries', 'do not replace another owner\'s policy file');
+  for (const [key, value] of [['Acquire::Retries', '2'], ['Acquire::http::Timeout', '20'],
+    ['Acquire::https::Timeout', '20'], ['DPkg::Lock::Timeout', '30']]) {
+    assert.ok(verify.includes(`test "$(sudo apt-config shell VALUE ${key})" = "VALUE='${value}'"`),
+      `the actual root apt setting ${key} must be read back and compared`);
+  }
   assert.match(verify, /timeout-minutes: 8\n        run: npx --no-install playwright install --with-deps chromium/);
   assert.match(verify, /timeout-minutes: 3\n        run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends fonts-noto-cjk/);
   assert.match(verify, /run: npm run review:browser/);
@@ -228,4 +239,23 @@ test('browser CI retains its font and browser gates with bounded signed Ubuntu d
   const browser = readFileSync(join(root, 'scripts/local-content/review-browser.mjs'), 'utf8');
   assert.match(browser, /assert\.ok\(hasChineseGlyph/);
   for (const width of [390, 768, 1366, 1920]) assert.match(browser, new RegExp(String(width)));
+});
+
+test('the actual Apt readback shell refuses runner overrides instead of silently accepting written values', () => {
+  const yaml = readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8');
+  const checks = yaml.split('\n').map(line => line.trim()).filter(line => line.startsWith('test "$(sudo apt-config shell VALUE '));
+  assert.equal(checks.length, 4);
+  const dir = mkdtempSync(join(tmpdir(), 'symgene-apt-readback-'));
+  try {
+    const sudo = join(dir, 'sudo');
+    writeFileSync(sudo, '#!/bin/sh\ncase "$4" in\n  Acquire::Retries) value="${EXAMPLE_RETRIES:-2}" ;;\n  Acquire::http::Timeout|Acquire::https::Timeout) value=20 ;;\n  DPkg::Lock::Timeout) value=30 ;;\n  *) exit 2 ;;\nesac\nprintf "VALUE=\\047%s\\047\\n" "$value"\n');
+    chmodSync(sudo, 0o755);
+    for (const [retries, expected] of [['2', 0], ['1', 1], ['3', 1]]) {
+      const result = spawnSync('bash', ['-e', '-o', 'pipefail', '-c', checks.join('\n')], {
+        env: { ...process.env, PATH: dir + ':' + process.env.PATH, EXAMPLE_RETRIES: retries }, encoding: 'utf8', timeout: 5000,
+      });
+      assert.ifError(result.error);
+      assert.equal(result.status, expected, result.stdout + result.stderr);
+    }
+  } finally { rmSync(dir, { recursive: true, force: true }); }
 });

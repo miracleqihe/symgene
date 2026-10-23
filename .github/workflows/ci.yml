@@ -76,9 +76,13 @@ jobs:
           test -f /etc/apt/apt-mirrors.txt
           # Preserve the runner's signed Ubuntu sources; replace only its slow mirror list.
           printf '%s\n' 'https://archive.ubuntu.com/ubuntu' | sudo tee /etc/apt/apt-mirrors.txt
-          printf '%s\n' 'Acquire::Retries "2";' 'Acquire::http::Timeout "20";' 'Acquire::https::Timeout "20";' 'DPkg::Lock::Timeout "30";' | sudo tee /etc/apt/apt.conf.d/99symgene-ci-downloads
-          apt-config dump | grep -F 'Acquire::Retries "2";'
-          apt-config dump | grep -F 'Acquire::https::Timeout "20";'
+          printf '%s\n' 'Acquire::Retries "2";' 'Acquire::http::Timeout "20";' 'Acquire::https::Timeout "20";' 'DPkg::Lock::Timeout "30";' | sudo tee /etc/apt/apt.conf.d/zzzz-symgene-ci-downloads
+          # runner-images also installs zz-retries; our leaf must sort after it.
+          sudo apt-config dump Acquire::Retries Acquire::http::Timeout Acquire::https::Timeout DPkg::Lock::Timeout
+          test "$(sudo apt-config shell VALUE Acquire::Retries)" = "VALUE='2'"
+          test "$(sudo apt-config shell VALUE Acquire::http::Timeout)" = "VALUE='20'"
+          test "$(sudo apt-config shell VALUE Acquire::https::Timeout)" = "VALUE='20'"
+          test "$(sudo apt-config shell VALUE DPkg::Lock::Timeout)" = "VALUE='30'"
       - name: Install locked Playwright Chromium and system dependencies
         timeout-minutes: 8
         run: npx --no-install playwright install --with-deps chromium
