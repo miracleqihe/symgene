@@ -15,7 +15,9 @@ const REQUIRED_MODULES = ['src/main.jsx', 'src/production-runtime.mjs', CONFIG,
 const BUILD_INPUTS = ['index.html', 'vite.config.js', 'package.json', 'package-lock.json',
   'scripts/security/legacy-runtime.mjs', 'scripts/security/verify-production-runtime.mjs', 'scripts/local-content/check-legacy.mjs',
   'vendor/local-content/legacy-snapshot.mjs', 'scripts/build-teaching-materials.mjs',
-  'scripts/t02/dev-consumer.mjs', 'scripts/t02/signed-consumer.mjs', 'legacy-content.lock', 'content-pack.lock'];
+  'scripts/t02/dev-consumer.mjs', 'scripts/t02/signed-consumer.mjs', 'legacy-content.lock', 'content-pack.lock',
+  'scripts/security/production-closure.json'];
+const CLOSURE = 'scripts/security/production-closure.json';
 const fail = code => { throw Object.assign(new Error(code), { code }); };
 const requireThat = (condition, code) => { if (!condition) fail(code); };
 const digest = value => createHash('sha256').update(value).digest('hex');
@@ -53,6 +55,73 @@ function forbiddenModule(path) {
   return ['src/dev/', 'scripts/t02/', 'vendor/t02/', 'content-packs/', 'tests/'].some(prefix => path.startsWith(prefix))
     || path === 'src/content/adapter.js';
 }
+// Reviewed dependency closure (R3/F4 remediation). The primary production boundary is no
+// longer the path-prefix denylist: every first-party module reachable from the entry must
+// be exactly enumerated in the reviewed closure file, and every third-party module must
+// belong to an explicitly allowed package root. Relocating a forbidden module to a new
+// path therefore fails closure equality; keeping it in a forbidden path still fails here.
+export function loadClosure(root) {
+  let closure;
+  try { closure = JSON.parse(readFileSync(resolve(root, CLOSURE), 'utf8')); }
+  catch { fail('PRODUCTION_CLOSURE_INVALID'); }
+  const shape = closure?.format === 'symgene-production-closure/1'
+    && closure.entry === 'src/main.jsx'
+    && Array.isArray(closure.firstPartyModules) && closure.firstPartyModules.every(p => typeof p === 'string')
+    && Array.isArray(closure.allowedPackages) && closure.allowedPackages.every(p => typeof p === 'string')
+    && Array.isArray(closure.virtualModules) && closure.virtualModules.every(p => typeof p === 'string')
+    && Array.isArray(closure.forbiddenCapabilityMarkers) && closure.forbiddenCapabilityMarkers.every(p => typeof p === 'string');
+  requireThat(shape && new Set(closure.firstPartyModules).size === closure.firstPartyModules.length
+    && closure.firstPartyModules.includes('src/main.jsx') && closure.firstPartyModules.includes(CONFIG),
+    'PRODUCTION_CLOSURE_INVALID');
+  return { ...closure, firstParty: new Set(closure.firstPartyModules),
+    packages: new Set(closure.allowedPackages), virtual: new Set(closure.virtualModules),
+    fileDigest: digest(readFileSync(resolve(root, CLOSURE))) };
+}
+function closurePackage(path) {
+  const parts = path.split('/');
+  if (parts[0] !== 'node_modules' || !parts[1]) return null;
+  return parts[1].startsWith('@') ? `${parts[1]}/${parts[2]}` : parts[1];
+}
+export function validateClosure(graph, closure) {
+  const seenFirstParty = [];
+  for (const module of graph) {
+    const path = module.path;
+    if (path.startsWith('virtual:')) {
+      requireThat(closure.virtual.has(path), 'PRODUCTION_MODULE_OUTSIDE_REVIEWED_CLOSURE');
+      continue;
+    }
+    requireThat(!path.startsWith('external:'), 'PRODUCTION_EXTERNAL_MODULE_REJECTED');
+    const pkg = closurePackage(path);
+    if (pkg !== null) {
+      requireThat(closure.packages.has(pkg), 'PRODUCTION_MODULE_OUTSIDE_REVIEWED_CLOSURE');
+      continue;
+    }
+    requireThat(closure.firstParty.has(path), 'PRODUCTION_MODULE_OUTSIDE_REVIEWED_CLOSURE');
+    seenFirstParty.push(path);
+  }
+  // Exact set equality both ways: every graph first-party module is listed (loop above)
+  // and every listed module still builds (loop below). A listed module that no longer
+  // builds, or an unlisted module that now builds, both require a reviewed closure change.
+  for (const path of closure.firstPartyModules) {
+    requireThat(seenFirstParty.includes(path), 'PRODUCTION_CLOSURE_MEMBER_MISSING');
+  }
+  return { firstPartyCount: seenFirstParty.length, allowedPackages: closure.allowedPackages.length };
+}
+// Capability-level isolation: T02 test-session contract constants are high-entropy and have
+// no legitimate role in legacy output. Their presence in any emitted chunk means relocated
+// T02 capability was bundled even when every path looks legitimate. This complements —
+// never replaces — the reviewed closure and the frozen runtime configuration assertion.
+export function scanBundleCapability(bundle, closure) {
+  const findings = [];
+  for (const [file, chunk] of Object.entries(bundle)) {
+    if (chunk.type !== 'chunk') continue;
+    for (const marker of closure.forbiddenCapabilityMarkers) {
+      if (chunk.code.includes(marker)) findings.push({ file, marker });
+    }
+  }
+  requireThat(findings.length === 0, 'PRODUCTION_T02_MARKER_IN_BUNDLE');
+  return { checkedMarkers: closure.forbiddenCapabilityMarkers.length, findings };
+}
 function validateGraph(graph) {
   requireThat(Array.isArray(graph) && graph.length > 0 && new Set(graph.map(row => row.path)).size === graph.length,
     'PRODUCTION_GRAPH_INVALID');
@@ -89,13 +158,14 @@ function disabledConsumers(root) {
 // deployed files. Check the graph before tree shaking so dead-code imports of
 // a test gateway cannot quietly introduce a future adoption switch.
 export function legacyRuntimeEvidencePlugin() {
-  let root, outDir, graph, writesFiles;
+  let root, outDir, graph, writesFiles, closure, capabilityScan;
   return { name: 'symgene-legacy-production-runtime', apply: 'build',
     configResolved(config) {
       root = resolve(config.root); outDir = resolve(root, config.build.outDir); writesFiles = config.build.write !== false;
       requireThat(config.command === 'build' && config.mode === 'production' && config.isProduction === true && !config.build.ssr
         && !config.build.lib, 'PRODUCTION_BUILD_MODE_REJECTED');
       configuration(root);
+      closure = loadClosure(root);
     },
     generateBundle(_options, bundle) {
       const normalize = id => {
@@ -108,8 +178,10 @@ export function legacyRuntimeEvidencePlugin() {
         return { path: normalize(id), imports: [...new Set([...info.importedIds, ...info.dynamicallyImportedIds].map(normalize))].sort(), external: info.isExternal };
       }).sort((a, b) => a.path.localeCompare(b.path));
       validateGraph(candidate);
+      const closureResult = validateClosure(candidate, closure);
       requireThat(Object.values(bundle).some(chunk => chunk.type === 'chunk'
         && chunk.code.includes('__SYMGENE_PRODUCTION_RUNTIME__')), 'PRODUCTION_STARTUP_ASSERTION_MISSING');
+      capabilityScan = { ...scanBundleCapability(bundle, closure), ...closureResult };
       graph = candidate;
     },
     closeBundle() {
@@ -117,6 +189,8 @@ export function legacyRuntimeEvidencePlugin() {
       const paths = [...new Set([...graph.map(row => row.path).filter(path => !path.startsWith('virtual:') && !path.startsWith('external:')), ...BUILD_INPUTS, ...files(resolve(root, 'src')).map(path => `src/${path}`)])].sort();
       const evidence = { format: 'symgene-legacy-production-runtime/1', mode: 'production', entry: 'src/main.jsx',
         runtime: configuration(root), graph, sources: hashes(root, paths), outputs: hashes(outDir, files(outDir).filter(path => path !== EVIDENCE && path !== EXECUTION)),
+        closure: { fileDigest: closure.fileDigest, firstPartyCount: capabilityScan.firstPartyCount,
+          allowedPackages: closure.allowedPackages, capabilityScan: { checkedMarkers: capabilityScan.checkedMarkers, findings: capabilityScan.findings } },
         formalT02Adoption: 'T02_FORMAL_ADOPTION_BLOCKED', medicalApproval: 'not_asserted', rightsApproval: 'not_asserted' };
       writeFileSync(resolve(outDir, EVIDENCE), JSON.stringify(evidence));
     },
@@ -133,6 +207,25 @@ export function checkLegacyRuntime(root = ROOT, { distDir = resolve(root, 'dist'
     && evidence.formalT02Adoption === 'T02_FORMAL_ADOPTION_BLOCKED'
     && evidence.medicalApproval === 'not_asserted' && evidence.rightsApproval === 'not_asserted', 'PRODUCTION_RUNTIME_EVIDENCE_REJECTED');
   validateGraph(evidence.graph);
+  // R3: the reviewed closure is re-enforced here, independent of the build that produced
+  // the evidence: the graph must still satisfy the CURRENT closure file, and the evidence
+  // must record the same closure bytes and a clean capability scan as the build.
+  const closure = loadClosure(root);
+  const closureResult = validateClosure(evidence.graph, closure);
+  requireThat(evidence.closure?.fileDigest === closure.fileDigest, 'PRODUCTION_CLOSURE_DRIFT');
+  requireThat(evidence.closure?.firstPartyCount === closureResult.firstPartyCount
+    && JSON.stringify(ordered(evidence.closure?.allowedPackages ?? [])) === JSON.stringify(ordered(closure.allowedPackages)),
+    'PRODUCTION_RUNTIME_EVIDENCE_REJECTED');
+  requireThat(evidence.closure?.capabilityScan?.checkedMarkers === closure.forbiddenCapabilityMarkers.length
+    && Array.isArray(evidence.closure?.capabilityScan?.findings) && evidence.closure.capabilityScan.findings.length === 0,
+    'PRODUCTION_T02_MARKER_IN_BUNDLE');
+  // Independently re-scan the emitted bytes: a neutered build plugin cannot suppress this.
+  for (const [path, expected] of Object.entries(evidence.outputs)) {
+    if (!path.endsWith('.js')) continue;
+    const code = readFileSync(safePath(distDir, path)).toString('utf8');
+    const found = closure.forbiddenCapabilityMarkers.filter(marker => code.includes(marker));
+    requireThat(found.length === 0, 'PRODUCTION_T02_MARKER_IN_BUNDLE');
+  }
   requireThat(evidence.sources && BUILD_INPUTS.concat(REQUIRED_MODULES).every(path => Object.hasOwn(evidence.sources, path)), 'PRODUCTION_SOURCE_EVIDENCE_MISSING');
   requireThat(evidence.graph.every(row => row.path.startsWith('virtual:') || Object.hasOwn(evidence.sources, row.path)), 'PRODUCTION_SOURCE_EVIDENCE_MISSING');
   for (const [path, expected] of Object.entries(evidence.sources)) {

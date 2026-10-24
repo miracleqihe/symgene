@@ -175,3 +175,51 @@ CODEOWNERS still names the real existing Owner, `@miracleqihe`. If that person
 is author or latest pusher, an independent eligible human reviewer is still
 required. No fabricated reviewer, approval, medical/rights record, T02 authority,
 merge or production deployment is created by this work.
+
+## Integrated legacy release policy (T03 candidate, #37 × #39)
+
+The Owner has restored the standard engineering release flow for legacy content
+(#39): `check:publication` returns `LEGACY_RELEASE_INTEGRITY_VERIFIED` for
+content whose snapshot, verifier, counts and T02 adoption flags all match the
+lock, and exits non-zero on any drift (`LEGACY_VENDOR_DRIFT`,
+`LEGACY_VERIFIER_DRIFT`, `LEGACY_ADOPTION_CHANGED`, `SNAPSHOT_COUNT_DROP`).
+Approval environment variables, review templates and review registers can
+neither claim approval nor bypass integrity. This restores deployability while
+keeping three facts separate: local release-engineering verification success
+(`LEGACY_ENGINEERING_ELIGIBLE` from a real build plus real Chromium execution),
+and an authorized production deployment remain distinct; the `github-pages`
+Environment gate and Owner authorization are still required for the latter.
+No medical, public-language or rights approval is asserted by any of this
+tooling, and formal T02 adoption stays `T02_FORMAL_ADOPTION_BLOCKED`.
+
+## Reviewed production dependency closure (R3)
+
+`scripts/security/production-closure.json` enumerates every first-party module
+allowed in the production graph and every third-party package root. The build
+plugin and the post-build verifier both enforce exact set equality: an
+unlisted first-party module (`PRODUCTION_MODULE_OUTSIDE_REVIEWED_CLOSURE`), a
+missing one (`PRODUCTION_CLOSURE_MEMBER_MISSING`), an unlisted package, an
+unknown virtual module, or a closure file that differs from the one recorded
+in the build evidence (`PRODUCTION_CLOSURE_DRIFT`) all fail. Moving a T02
+module to a new path therefore requires a visible reviewed closure edit, and a
+capability scan additionally rejects the high-entropy T02 test-session
+constants in any emitted chunk (`PRODUCTION_T02_MARKER_IN_BUNDLE`), checked
+both at build time and again independently against the emitted `.js` bytes at
+verification time. The marker list is required by test to track the live
+constants exported from `src/dev/`. These in-repo mechanisms make boundary
+changes loud and reviewable; they do not replace the native review and branch
+protection that decide what actually merges.
+
+## Time-boxed T03 scope audit (R4)
+
+`node scripts/security/check-t03-scope.mjs` now runs as a mandatory step of
+the `Content integration` job (no new job name, so the trusted-audit job
+contract in `CI_JOBS` is unchanged). Its applicability is governed by
+`scripts/security/t03-scope-state.json`: while `active` is true it audits all
+changed paths against T03_BASE `6a3eea2f679fa8979c66edcba2724675ee74aa93` and
+fails on protected-byte drift; once the T03 family (#37/#38/#39) has landed,
+the Owner retires it with a reviewed flip of `active` to `false`, after which
+the audit reports `SCOPE_RETIRED` and stops constraining future engineering
+PRs. Retiring is itself a visible, auditable diff, not a silent bypass. This
+audit is intentionally NOT a permanent rule: future medical or engineering PRs
+after retirement are ordinary reviewed changes.

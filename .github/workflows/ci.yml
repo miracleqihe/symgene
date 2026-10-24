@@ -135,6 +135,12 @@ jobs:
       - run: npm ci
       - run: npm run check:content
       - run: npm run check:legacy-content
+      # R4: the T03 delivery-scope audit is now a mandatory engineering check. It is
+      # time-boxed by scripts/security/t03-scope-state.json: while active it audits every
+      # changed path against T03_BASE, and the owner retires it with a reviewed flip of
+      # `active` once the T03 family has landed. It runs inside this job so the trusted
+      # audit job contract (CI_JOBS in scripts/security/policy.mjs) stays unchanged.
+      - run: node scripts/security/check-t03-scope.mjs
       - run: node --test tests/storage.test.mjs tests/content-*.test.mjs
       - run: git diff --check
 

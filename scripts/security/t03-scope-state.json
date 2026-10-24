@@ -1,0 +1,7 @@
+{
+  "format": "symgene-t03-scope-state/1",
+  "active": true,
+  "base": "6a3eea2f679fa8979c66edcba2724675ee74aa93",
+  "governs": "The T03 delivery window only (#37 security, #38 reliability, #39 legacy policy).",
+  "retire": "Flip active to false in a reviewed change once the T03 family has landed; the audit then reports SCOPE_RETIRED and stops constraining future engineering PRs. Retiring is itself a reviewed, auditable diff — not a silent bypass."
+}

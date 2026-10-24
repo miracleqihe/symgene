@@ -33,11 +33,33 @@ const LEGACY_POLICY_PATHS = new Set([
 ]);
 export const allowedT03Path = path => RELIABILITY_PATHS.has(path) || LEGACY_POLICY_PATHS.has(path) || /^\.github\/workflows\/[a-z0-9-]+\.yml$/.test(path)
   || /^scripts\/security\/[a-z0-9-]+\.mjs$/.test(path)
+  || ['scripts/security/production-closure.json', 'scripts/security/t03-scope-state.json'].includes(path)
   || /^tests\/security-[a-z0-9-]+\.test\.mjs$/.test(path)
   || ['package.json', 'package-lock.json', 'CONTRIBUTING.md', '.github/CODEOWNERS',
     'docs/security-release-gates.md'].includes(path);
 
+const STATE_PATH = 'scripts/security/t03-scope-state.json';
+// The scope audit is deliberately time-boxed to the T03 delivery window. The state file is
+// the single lifecycle switch: while `active` is true every T03 PR is audited against
+// T03_BASE; after the T03 family lands the owner flips `active` to false in a reviewed
+// change and the audit becomes a no-op PASS (SCOPE_RETIRED) instead of a permanent ban on
+// future engineering. Retiring is therefore itself a visible, auditable diff.
+export function t03ScopeState(root = ROOT) {
+  let state;
+  try { state = JSON.parse(readFileSync(resolve(root, STATE_PATH), 'utf8')); }
+  catch { fail('T03_SCOPE_STATE_INVALID'); }
+  if (state?.format !== 'symgene-t03-scope-state/1'
+    || (state.active !== true && state.active !== false)) fail('T03_SCOPE_STATE_INVALID');
+  if (state.active === true && state.base !== T03_BASE) fail('T03_SCOPE_STATE_INVALID');
+  return state;
+}
+
 export function checkT03Scope(root = ROOT) {
+  const state = t03ScopeState(root);
+  if (state.active === false) {
+    return { status: 'PASS', scope: 'SCOPE_RETIRED', note: 'T03 delivery window closed; no further path restriction.',
+      base: T03_BASE, formalT02Adoption: 'T02_FORMAL_ADOPTION_BLOCKED', productionDeployment: 'NOT_AUTHORIZED_BY_SCOPE_AUDIT' };
+  }
   const git = (...args) => execFileSync('git', ['-C', root, ...args], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
   git('merge-base', '--is-ancestor', T03_BASE, 'HEAD');
   const changed = [...new Set([...paths(git('diff', '--name-only', '--no-renames', '-z', T03_BASE)),
@@ -65,7 +87,7 @@ export function checkT03Scope(root = ROOT) {
     JSON.parse(readFileSync(resolve(root, 'package-lock.json'))));
   return { status: 'PASS', scope: 'T03-delivery-only', base: T03_BASE, changedPaths: changed,
     protectedFilesUnchanged: protectedPaths.length, protectedBytesDigest: hashes.digest('hex'),
-    dependencyLock, vendor: verifyVendorProvenance(root),
+    dependencyLock, vendor: verifyVendorProvenance(root), scopeLifecycle: 'active-until-owner-retires',
     formalT02Adoption: 'T02_FORMAL_ADOPTION_BLOCKED', productionDeployment: 'NOT_AUTHORIZED_BY_SCOPE_AUDIT' };
 }
 
