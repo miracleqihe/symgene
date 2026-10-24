@@ -92,7 +92,7 @@ index d65414c..4cf2a93 100644
 +  assert.ok(!codes.includes('PR_TARGET_UNTRUSTED_INPUT'), `unexpected ${codes}`)
 +})
 diff --git a/.github/tests/lib/audit-governance.mjs b/.github/tests/lib/audit-governance.mjs
-index 3f5fe98..291ae3f 100644
+index 3f5fe98..651a407 100644
 --- a/.github/tests/lib/audit-governance.mjs
 +++ b/.github/tests/lib/audit-governance.mjs
 @@ -85,8 +85,11 @@ function auditSwallowedFailures(jobs, guardedJobIds, add) {
@@ -150,7 +150,7 @@ index 3f5fe98..291ae3f 100644
 +  // A job-level if is allowed only in the exact v1 gating form. Substring
 +  // matching accepted always-false variants ("x == 'main' && false"), so the
 +  // condition must equal the v1 gate after whitespace normalization.
-+  const jobIfOk = !jobIfText || jobIfText.replace(/\s+/g, '') === "github.event_name=='pull_request'&&github.base_ref=='main'" 
++  const jobIfOk = !jobIfText || jobIfText.replace(/\s+/g, '') === "github.event_name=='pull_request'&&github.base_ref=='main'"
  
    // Step-level conditions on the enforcement step are rejected: the gate
    // must not be conditional.

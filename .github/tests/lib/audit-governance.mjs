@@ -627,7 +627,7 @@ export function auditBranchPolicy(blocks, fileName) {
   // A job-level if is allowed only in the exact v1 gating form. Substring
   // matching accepted always-false variants ("x == 'main' && false"), so the
   // condition must equal the v1 gate after whitespace normalization.
-  const jobIfOk = !jobIfText || jobIfText.replace(/\s+/g, '') === "github.event_name=='pull_request'&&github.base_ref=='main'" 
+  const jobIfOk = !jobIfText || jobIfText.replace(/\s+/g, '') === "github.event_name=='pull_request'&&github.base_ref=='main'"
 
   // Step-level conditions on the enforcement step are rejected: the gate
   // must not be conditional.

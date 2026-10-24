@@ -843,7 +843,7 @@ index 0000000..2c87438
 +})
 diff --git a/.github/tests/lib/audit-governance.mjs b/.github/tests/lib/audit-governance.mjs
 new file mode 100644
-index 0000000..291ae3f
+index 0000000..651a407
 --- /dev/null
 +++ b/.github/tests/lib/audit-governance.mjs
 @@ -0,0 +1,731 @@
@@ -1476,7 +1476,7 @@ index 0000000..291ae3f
 +  // A job-level if is allowed only in the exact v1 gating form. Substring
 +  // matching accepted always-false variants ("x == 'main' && false"), so the
 +  // condition must equal the v1 gate after whitespace normalization.
-+  const jobIfOk = !jobIfText || jobIfText.replace(/\s+/g, '') === "github.event_name=='pull_request'&&github.base_ref=='main'" 
++  const jobIfOk = !jobIfText || jobIfText.replace(/\s+/g, '') === "github.event_name=='pull_request'&&github.base_ref=='main'"
 +
 +  // Step-level conditions on the enforcement step are rejected: the gate
 +  // must not be conditional.
