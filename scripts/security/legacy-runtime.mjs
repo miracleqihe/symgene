@@ -178,9 +178,11 @@ export function legacyRuntimeEvidencePlugin() {
         return { path: normalize(id), imports: [...new Set([...info.importedIds, ...info.dynamicallyImportedIds].map(normalize))].sort(), external: info.isExternal };
       }).sort((a, b) => a.path.localeCompare(b.path));
       validateGraph(candidate);
-      const closureResult = validateClosure(candidate, closure);
+      // Entry-level contract first, then the graph-level closure, so tree-shaking a
+      // disabled startup assertion reports the specific missing-assertion failure.
       requireThat(Object.values(bundle).some(chunk => chunk.type === 'chunk'
         && chunk.code.includes('__SYMGENE_PRODUCTION_RUNTIME__')), 'PRODUCTION_STARTUP_ASSERTION_MISSING');
+      const closureResult = validateClosure(candidate, closure);
       capabilityScan = { ...scanBundleCapability(bundle, closure), ...closureResult };
       graph = candidate;
     },

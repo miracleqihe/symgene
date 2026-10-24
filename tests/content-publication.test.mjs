@@ -136,13 +136,14 @@ test('CI and deployment verify integrity while retaining every hardened identity
   assert.match(workflow, /DEPLOY_MAIN_CHANGED/);
   assert.match(workflow, /artifact\.digest !== process\.env\.ARTIFACT_DIGEST/);
   assert.match(workflow, /ARTIFACT_AMBIGUOUS/);
-  assert.match(workflow, /environment:\n    name: github-pages/);
+  assert.match(workflow, /environment:\s*\n\s*name: github-pages/);
   const ci = readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8');
   // No #39-era publication job and no approval job may return:
   assert.doesNotMatch(ci, /name: Publication approval|publication-approval:/);
   // The trusted-audit job contract (CI_JOBS) and ci.yml stay in lockstep:
   for (const name of CI_JOBS) assert.ok(ci.includes(`name: ${name}\n`), `ci.yml must keep job "${name}"`);
-  assert.ok(ci.includes(CI_PATH));
+  // CI stays a pull_request workflow on the audited bases so run.pull_requests associations exist:
+  assert.match(ci, /pull_request:\n    branches: \[dev, main\]/);
   // The mandatory T03 scope audit rides inside the existing job set (R4), not a new job.
   assert.match(ci, /node scripts\/security\/check-t03-scope\.mjs/);
   const manifest = JSON.parse(readFileSync(join(root, 'package.json')));

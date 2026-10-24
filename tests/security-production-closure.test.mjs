@@ -26,14 +26,14 @@ test('closure rejects relocated, re-exported, aliased or renamed T02 capability 
 });
 
 test('closure rejects unlisted third-party packages and unknown virtual modules', () => {
-  assert.throws(() => validateClosure(fakeGraph([module('src/main.jsx'), module('node_modules/attacker-pack/index.mjs')]), closure),
+  const full = closure.firstPartyModules.map(module); // exact-equality baseline
+  assert.throws(() => validateClosure(fakeGraph([...full, module('node_modules/attacker-pack/index.mjs')]), closure),
     { code: 'PRODUCTION_MODULE_OUTSIDE_REVIEWED_CLOSURE' });
-  assert.throws(() => validateClosure(fakeGraph([module('src/main.jsx'), module('node_modules/lucide-react/dist/esm/deep/icon.mjs'),
-    module('node_modules/@scope/newpkg/index.mjs')]), closure),
+  assert.throws(() => validateClosure(fakeGraph([...full, module('node_modules/@scope/newpkg/index.mjs')]), closure),
     { code: 'PRODUCTION_MODULE_OUTSIDE_REVIEWED_CLOSURE' });
-  assert.throws(() => validateClosure(fakeGraph([module('src/main.jsx'), module('virtual:evil/inject.js')]), closure),
+  assert.throws(() => validateClosure(fakeGraph([...full, module('virtual:evil/inject.js')]), closure),
     { code: 'PRODUCTION_MODULE_OUTSIDE_REVIEWED_CLOSURE' });
-  assert.doesNotThrow(() => validateClosure(fakeGraph([module('src/main.jsx'), module('node_modules/react/index.js')]), closure));
+  assert.doesNotThrow(() => validateClosure(fakeGraph(full), closure));
 });
 
 test('closure requires exact set equality: removing or renaming a legitimate module needs a reviewed update', () => {
@@ -51,11 +51,12 @@ test('closure requires exact set equality: removing or renaming a legitimate mod
 test('capability markers track the live T02 contract constants', () => {
   const session = readFileSync(join(root, 'src/dev/t02-signed-session.js'), 'utf8');
   const dev = readFileSync(join(root, 'src/dev/t02-session.js'), 'utf8');
+  const devConsumer = readFileSync(join(root, 'scripts/t02/dev-consumer.mjs'), 'utf8');
   const live = [session.match(/export const SIGNED_MARKER = '([^']+)'/)?.[1],
     session.match(/export const SIGNED_PATH = '([^']+)'/)?.[1],
     session.match(/export const SIGNED_STORAGE_PREFIX = '([^']+)'/)?.[1],
     dev.match(/export const DEVELOPMENT_MARKER = '([^']+)'/)?.[1],
-    dev.match(/export const DEVELOPMENT_PATH = '([^']+)'/)?.[1]];
+    devConsumer.match(/export const DEVELOPMENT_PATH = '([^']+)'/)?.[1]];
   for (const marker of live) {
     assert.ok(marker, 'T02 contract constant not found in src/dev');
     assert.ok(closure.forbiddenCapabilityMarkers.includes(marker), `closure must forbid live marker ${marker}`);
