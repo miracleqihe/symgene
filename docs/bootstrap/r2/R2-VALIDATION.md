@@ -1,5 +1,12 @@
 # R2-VALIDATION — 测试数量、命令、退出码与 CI 原始链接
 
+## GitHub CI(PR #40 @ `34f74b0`,R2 文档提交后的最终 HEAD)
+
+- CI run(pull_request):**https://github.com/miracleqihe/symgene/actions/runs/40125409347**
+  - `Governance` **pass**(job/120965649924)、`Verify` **pass**(job/120965649977)
+  - `Branch policy` fail(设计内:head 非 dev,job/120965649953)
+- PR governance run:**https://github.com/miracleqihe/symgene/actions/runs/40125429459**(`Promotion PR policy` fail,设计内,job/120965709349)
+
 ## 本地验证(node v22.23.4,与 CI node 22 一致;隔离 worktree @ d814f3c 起步)
 
 | # | 命令 | 时点 | 结果 | 退出码 |
