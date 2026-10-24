@@ -1,2 +1,3 @@
-# Auto-detect text files and keep repository checkouts consistent across platforms.
-* text=auto eol=lf
+# Preserved patch artifacts keep their original bytes (email-format
+# signature lines contain trailing whitespace by design).
+docs/bootstrap/*.patch -whitespace
