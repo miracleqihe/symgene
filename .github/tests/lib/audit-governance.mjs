@@ -85,8 +85,11 @@ function auditSwallowedFailures(jobs, guardedJobIds, add) {
     if (!guardedJobIds.includes(jobId)) continue
     for (const raw of jobBlock.lines) {
       const line = stripComments(raw)
-      if (/^\s*continue-on-error:\s*true/i.test(line)) {
-        add('FAILURE_SWALLOWED', `job "${jobId}" sets continue-on-error: true; its failure would not fail the required check`)
+      if (/^\s*continue-on-error:/i.test(line)) {
+        const value = line.replace(/^\s*continue-on-error:\s*/i, '').trim()
+        if (value !== 'false') {
+          add('FAILURE_SWALLOWED', `job "${jobId}" sets continue-on-error: ${value || '(empty)'}; only the literal false is accepted, anything else (including expressions) can swallow failures`)
+        }
       }
       if (/\|\|\s*(true|:)\b/.test(line)) {
         add('FAILURE_SWALLOWED', `job "${jobId}" swallows a failure with "|| true"; gate and publish steps must fail loudly`)
@@ -353,6 +356,12 @@ export function auditWorkflow(text, fileName, { pagesJobs = {} } = {}) {
   }
   if (fileName === 'ci.yml') {
     auditSwallowedFailures(jobs, ['branch-policy', 'governance'], add)
+    // Skipped jobs SATISFY required checks (official docs), so a conditional
+    // Governance job would silently vacate the gate. It must be unconditional.
+    const governance = jobs.get('governance')
+    if (governance && subBlocks(governance.lines, 4).get('if')) {
+      add('GOVERNANCE_JOB_CONDITIONAL', 'the governance job has a job-level if; skipped jobs satisfy required checks, so it must run on every CI event unconditionally')
+    }
     violations.push(...auditBranchPolicy(blocks, fileName))
   }
   return violations
@@ -368,7 +377,16 @@ const PR_TRUSTED_FIELDS = /^(number|base\.)/
 
 function auditUntrustedInterpolation(text, jobId, where, add) {
   for (const m of text.matchAll(/\$\{\{\s*([^}]+?)\s*\}\}/g)) {
-    const expr = m[1].replace(/\s+/g, '')
+    // Normalize bracket indexing to dot paths so `github['event']...` cannot
+    // evade the scanner; strip whitespace.
+    const expr = m[1]
+      .replace(/\[\s*'([^']+)'\s*\]/g, '.$1')
+      .replace(/\[\s*"([^"]+)"\s*\]/g, '.$1')
+      .replace(/\s+/g, '')
+    if (/^github\.head_ref\b/.test(expr)) {
+      add('PR_TARGET_UNTRUSTED_INPUT', `job "${jobId}" ${where} interpolates attacker-controlled github.head_ref (the PR head branch name); it must not reach executed scripts or step inputs`)
+      continue
+    }
     const pm = expr.match(/^github\.event\.pull_request\.(.+)$/)
     if (!pm) continue
     const field = pm[1]
@@ -606,9 +624,10 @@ export function auditBranchPolicy(blocks, fileName) {
   const sigV1 = script === V1_TEMPLATE
   const sigV2 = script === V2_TEMPLATE
 
-  // A job-level if is allowed only when it gates the job onto PRs to main
-  // (v1 form). Anything else can skip the gate exactly when it must run.
-  const jobIfOk = !jobIfText || jobIfText.includes("github.base_ref == 'main'")
+  // A job-level if is allowed only in the exact v1 gating form. Substring
+  // matching accepted always-false variants ("x == 'main' && false"), so the
+  // condition must equal the v1 gate after whitespace normalization.
+  const jobIfOk = !jobIfText || jobIfText.replace(/\s+/g, '') === "github.event_name=='pull_request'&&github.base_ref=='main'" 
 
   // Step-level conditions on the enforcement step are rejected: the gate
   // must not be conditional.

@@ -695,3 +695,88 @@ test('R2-A5: deploy job running on failure (if: always()) is rejected', () => {
   const codes = auditWorkflow(DEPLOY_IF_ALWAYS, 'deploy-pages.yml', { pagesJobs: PJ }).map((v) => v.code)
   assert.ok(codes.includes('DEPLOY_FAILURE_FINALITY'), `expected DEPLOY_FAILURE_FINALITY, got ${codes}`)
 })
+
+// ===========================================================================
+// R3 adversarial round (2026-10-24, findings P1-10..P1-17, P2-06).
+// Written before the fix: P1-10/11/12/13 must be red on the R2 auditor.
+// ===========================================================================
+
+// --- P1-10: job-condition bypass (substring rule accepted always-false ifs) --
+const V2_IF_AND_FALSE = GOOD_CI_V2.replace(
+  '  branch-policy:\n    name: Branch policy\n    runs-on: ubuntu-latest',
+  "  branch-policy:\n    name: Branch policy\n    if: github.base_ref == 'main' && false\n    runs-on: ubuntu-latest")
+const V2_IF_FALSE_LITERAL = GOOD_CI_V2.replace(
+  '  branch-policy:\n    name: Branch policy\n    runs-on: ubuntu-latest',
+  '  branch-policy:\n    name: Branch policy\n    if: false\n    runs-on: ubuntu-latest')
+
+test('P1-10: job if "github.base_ref == main && false" (always-false) is rejected', () => {
+  const codes = auditWorkflow(V2_IF_AND_FALSE, 'ci.yml').map((v) => v.code)
+  assert.ok(codes.includes('BRANCH_POLICY_NOT_GATED'), `expected BRANCH_POLICY_NOT_GATED, got ${codes}`)
+})
+
+test('P1-10 control: literal if:false stays rejected', () => {
+  const codes = auditWorkflow(V2_IF_FALSE_LITERAL, 'ci.yml').map((v) => v.code)
+  assert.ok(codes.includes('BRANCH_POLICY_NOT_GATED'), `expected BRANCH_POLICY_NOT_GATED, got ${codes}`)
+})
+
+// --- P1-11: Governance job must not be conditionally skippable --------------
+const GOV_IF_FALSE = GOOD_CI.replace(
+  '  governance:\n    name: Governance\n    runs-on: ubuntu-latest',
+  '  governance:\n    name: Governance\n    if: false\n    runs-on: ubuntu-latest')
+const GOV_IF_EXPR = GOOD_CI.replace(
+  '  governance:\n    name: Governance\n    runs-on: ubuntu-latest',
+  "  governance:\n    name: Governance\n    if: \${{ github.event_name == 'push' }}\n    runs-on: ubuntu-latest")
+
+test('P1-11: governance job with if:false is rejected (skipped satisfies required checks)', () => {
+  const codes = auditWorkflow(GOV_IF_FALSE, 'ci.yml').map((v) => v.code)
+  assert.ok(codes.includes('GOVERNANCE_JOB_CONDITIONAL'), `expected GOVERNANCE_JOB_CONDITIONAL, got ${codes}`)
+})
+
+test('P1-11: governance job with an expression if is rejected', () => {
+  const codes = auditWorkflow(GOV_IF_EXPR, 'ci.yml').map((v) => v.code)
+  assert.ok(codes.includes('GOVERNANCE_JOB_CONDITIONAL'), `expected GOVERNANCE_JOB_CONDITIONAL, got ${codes}`)
+})
+
+// --- P1-12: expression-form continue-on-error -------------------------------
+const COE_EXPRESSION = GOOD_DEPLOY.replace(
+  '  verify:\n    runs-on: ubuntu-latest',
+  '  verify:\n    continue-on-error: \${{ steps.gate.outputs.swallow }}\n    runs-on: ubuntu-latest')
+const COE_NUMERIC = GOOD_DEPLOY.replace(
+  '  verify:\n    runs-on: ubuntu-latest',
+  '  verify:\n    continue-on-error: 1\n    runs-on: ubuntu-latest')
+
+test('P1-12: expression-valued continue-on-error is rejected', () => {
+  const codes = auditWorkflow(COE_EXPRESSION, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }).map((v) => v.code)
+  assert.ok(codes.includes('FAILURE_SWALLOWED'), `expected FAILURE_SWALLOWED, got ${codes}`)
+})
+
+test('P1-12: truthy non-boolean continue-on-error is rejected', () => {
+  const codes = auditWorkflow(COE_NUMERIC, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }).map((v) => v.code)
+  assert.ok(codes.includes('FAILURE_SWALLOWED'), `expected FAILURE_SWALLOWED, got ${codes}`)
+})
+
+// --- P1-13: github.head_ref and bracket-index untrusted inputs --------------
+const HEAD_REF_RUN = PR_TARGET_SAFE.replace(
+  '          persist-credentials: false\n',
+  '          persist-credentials: false\n      - name: r\n        run: echo "\${{ github.head_ref }}"\n')
+const BRACKET_TITLE_RUN = PR_TARGET_SAFE.replace(
+  '          persist-credentials: false\n',
+  '          persist-credentials: false\n      - name: r\n        run: echo "\${{ github[\'event\'][\'pull_request\'][\'title\'] }}"\n')
+const BRACKET_NUMBER_RUN = PR_TARGET_SAFE.replace(
+  '          persist-credentials: false\n',
+  '          persist-credentials: false\n      - name: r\n        run: echo "\${{ github[\'event\'][\'pull_request\'][\'number\'] }}"\n')
+
+test('P1-13: github.head_ref interpolation in pull_request_target scripts is rejected', () => {
+  const codes = auditWorkflow(HEAD_REF_RUN, 'pr-governance.yml').map((v) => v.code)
+  assert.ok(codes.includes('PR_TARGET_UNTRUSTED_INPUT'), `expected PR_TARGET_UNTRUSTED_INPUT, got ${codes}`)
+})
+
+test('P1-13: bracket-indexed pull_request.title interpolation is rejected', () => {
+  const codes = auditWorkflow(BRACKET_TITLE_RUN, 'pr-governance.yml').map((v) => v.code)
+  assert.ok(codes.includes('PR_TARGET_UNTRUSTED_INPUT'), `expected PR_TARGET_UNTRUSTED_INPUT, got ${codes}`)
+})
+
+test('P1-13 control: bracket-indexed pull_request.number stays allowed', () => {
+  const codes = auditWorkflow(BRACKET_NUMBER_RUN, 'pr-governance.yml').map((v) => v.code)
+  assert.ok(!codes.includes('PR_TARGET_UNTRUSTED_INPUT'), `unexpected ${codes}`)
+})
