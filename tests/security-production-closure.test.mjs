@@ -63,7 +63,11 @@ test('capability markers track the live T02 contract constants', () => {
   }
 });
 
-test('closure drift between build evidence and the current closure file is rejected', () => {
+test('closure drift between build evidence and the current closure file is rejected', t => {
+  if (!existsSync(join(root, 'dist/.symgene-runtime.json'))) {
+    t.skip('requires a built dist; enforced by the verify job and tests/browser/legacy-runtime.test.mjs');
+    return;
+  }
   const copy = mkdtempSync(join(tmpdir(), 'symgen-closure-'));
   try {
     for (const entry of ['scripts', 'src', 'vendor', 'package.json', 'package-lock.json', 'legacy-content.lock',
@@ -84,8 +88,12 @@ test('closure drift between build evidence and the current closure file is rejec
 // checkLegacyRuntimeExecution in isolation, but no CI or deployment path consumes it:
 // verify-production-runtime always deletes and regenerates the receipt BEFORE
 // production-gate reads it, and a receipt bound to a foreign digest is rejected outright.
-test('forged receipts cannot reach the deployment gate: verify always precedes and regenerates', () => {
+test('forged receipts cannot reach the deployment gate: verify always precedes and regenerates', t => {
   const receiptPath = join(root, 'dist/.symgene-runtime-browser.json');
+  if (!existsSync(receiptPath)) {
+    t.skip('requires a built dist with a browser receipt; enforced by the browser CI step and tests/browser/legacy-runtime.test.mjs');
+    return;
+  }
   const original = readFileSync(receiptPath, 'utf8');
   try {
     // A receipt bound to a foreign build digest is rejected outright:
