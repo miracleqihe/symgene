@@ -26,6 +26,78 @@ const KNOWN_TRIGGERS = new Set([
   'schedule', 'workflow_call',
 ])
 
+// Canonical branch-policy gate scripts. Matching is TEMPLATE EQUALITY of the
+// whitespace-normalized script (not containment): a signature appearing in a
+// dead string, behind extra statements, or inside another branch of control
+// flow does not prove execution semantics. New gate variants require a
+// deliberate, reviewed extension of this list.
+const V1_CANONICAL = `if [[ "$BASE_REF" == "main" ]] && \
+[[ "$HEAD_REF" != "dev" || "$HEAD_REPOSITORY" != "$BASE_REPOSITORY" ]]; then
+echo "Pull requests to main must promote the dev branch from this repository."
+echo "Received: $HEAD_REPOSITORY:$HEAD_REF -> $BASE_REPOSITORY:$BASE_REF"
+exit 1
+fi`
+
+const V2_CANONICAL = `if [[ "$EVENT_NAME" == "pull_request" && "$BASE_REF" == "main" ]]; then
+[[ "$HEAD_REF" == "dev" && "$HEAD_REPOSITORY" == "$BASE_REPOSITORY" ]] || exit 1
+fi`
+
+function normalizeText(s) {
+  return s.replace(/\\\r?\n/g, ' ').replace(/\s+/g, '')
+}
+const V1_TEMPLATE = normalizeText(V1_CANONICAL)
+const V2_TEMPLATE = normalizeText(V2_CANONICAL)
+
+// Duplicate keys are valid YAML (last wins — the scanner's Maps behave the
+// same, so conclusions stay consistent), but they are a classic parser-
+// confusion foot-gun: flag them for deliberate review.
+export function findDuplicateKeys(text) {
+  const dups = []
+  const seenTop = new Set()
+  let inJobs = false
+  const seenJobs = new Set()
+  for (const raw of text.split('\n')) {
+    const line = stripComments(raw)
+    if (!line.trim()) continue
+    const m = line.match(/^([A-Za-z_][A-Za-z0-9_-]*|"[^"]+"):\s*(.*)$/)
+    if (m) {
+      if (seenTop.has(m[1])) dups.push({ scope: '(top level)', key: m[1] })
+      seenTop.add(m[1])
+      inJobs = m[1] === 'jobs'
+      continue
+    }
+    if (inJobs) {
+      const j = line.match(/^ {2}([A-Za-z_][A-Za-z0-9_-]*):\s*(.*)$/)
+      if (j) {
+        if (seenJobs.has(j[1])) dups.push({ scope: 'jobs', key: j[1] })
+        seenJobs.add(j[1])
+      }
+    }
+  }
+  return dups
+}
+
+// continue-on-error / "|| true" / "set +e" swallow failures that gate and
+// publish chains depend on. Scoped to the jobs whose result is security
+// relevant; reporting bots elsewhere keep their legitimate usage.
+function auditSwallowedFailures(jobs, guardedJobIds, add) {
+  for (const [jobId, jobBlock] of jobs) {
+    if (!guardedJobIds.includes(jobId)) continue
+    for (const raw of jobBlock.lines) {
+      const line = stripComments(raw)
+      if (/^\s*continue-on-error:\s*true/i.test(line)) {
+        add('FAILURE_SWALLOWED', `job "${jobId}" sets continue-on-error: true; its failure would not fail the required check`)
+      }
+      if (/\|\|\s*(true|:)\b/.test(line)) {
+        add('FAILURE_SWALLOWED', `job "${jobId}" swallows a failure with "|| true"; gate and publish steps must fail loudly`)
+      }
+      if (/\bset\s+\+e\b/.test(line)) {
+        add('FAILURE_SWALLOWED', `job "${jobId}" disables errexit (set +e); failures would be swallowed`)
+      }
+    }
+  }
+}
+
 export function stripComments(line) {
   if (line.trimStart().startsWith('#')) return ''
   const hash = line.indexOf(' #')
@@ -219,6 +291,14 @@ export function auditWorkflow(text, fileName, { pagesJobs = {} } = {}) {
   const triggers = triggerKeys(onBlock)
   auditSyntaxSubset(text, triggers, add)
 
+  for (const d of findDuplicateKeys(text)) {
+    add('YAML_DUPLICATE_KEY', `duplicate key "${d.key}" in ${d.scope}; last-wins is consistent here but duplicate keys are a parser-confusion foot-gun`)
+  }
+  const jobsBlock = blocks.get('jobs')
+  if (jobsBlock && jobsBlock.inline) {
+    add('UNSUPPORTED_YAML_CONSTRUCT', 'jobs declared as a flow mapping; the auditor only parses block-form jobs and fails closed otherwise')
+  }
+
   // Top level must be read-only (any read/none scopes, declared explicitly):
   // write values belong in job-level blocks where they can be sanctioned.
   const topPermBlock = blocks.get('permissions')
@@ -246,68 +326,99 @@ export function auditWorkflow(text, fileName, { pagesJobs = {} } = {}) {
     }
   }
 
-  for (const [jobId, jobBlock] of subBlocks(blocks.get('jobs')?.lines ?? [], 2)) {
+  const jobs = subBlocks(blocks.get('jobs')?.lines ?? [], 2)
+  for (const [jobId, jobBlock] of jobs) {
+    if (jobBlock.inline) {
+      add('UNSUPPORTED_YAML_CONSTRUCT', `job "${jobId}" uses a flow mapping; the auditor only parses block-form jobs and fails closed otherwise`)
+      continue
+    }
+    const nameEntry = subBlocks(jobBlock.lines, 4).get('name')
+    if (nameEntry && (nameEntry.inline || '').includes('${{')) {
+      add('JOB_NAME_DYNAMIC', `job "${jobId}" has a dynamic display name; check-run names must be static for impersonation detection`)
+    }
     const perm = jobPermissions(jobBlock.lines)
     const isPagesJob = allowedPagesJobs.includes(jobId)
     auditPermissionMap(perm, { isPagesJob, jobId, add })
 
     // pull_request_target is the one trigger that gets a write-capable token
-    // for the base branch: it must never act on pull-request-head data.
+    // for the base branch: it must never act on attacker-controlled PR input.
     if (triggers.includes('pull_request_target')) {
       auditPullRequestTargetJob(jobBlock, jobId, add)
     }
   }
 
   if (fileName === 'deploy-pages.yml') {
+    auditSwallowedFailures(jobs, [...jobs.keys()], add)
     violations.push(...auditDeployWorkflow(blocks, fileName))
   }
   if (fileName === 'ci.yml') {
+    auditSwallowedFailures(jobs, ['branch-policy', 'governance'], add)
     violations.push(...auditBranchPolicy(blocks, fileName))
   }
   return violations
 }
 
-// Head-referencing channels inside a pull_request_target job:
-//  - ref/repository values resolving the head (checkout of PR content) —
-//    flow mappings included because the scan is line-based, not nesting-based;
-//  - run scripts (inline or block) consuming head.sha / head.ref;
-//  - other key: value inputs (with:, env:, artifact names) carrying
-//    head.sha / head.ref. Display-only `name:` labels are exempt.
-// head.repo.full_name is allowed outside ref/repository lines: it identifies
-// the source repository (fork rejection), not head content.
+// pull_request_target jobs get a write-capable token for the base branch.
+// Interpolation of attacker-controlled PR fields into scripts or step inputs
+// is code injection; only pull_request.number (integer) and pull_request.base.*
+// (trusted base) may be interpolated. head.sha|ref additionally must never
+// reach ref/repository (checkout) or any executed/input position. Display
+// `name:` labels stay exempt.
+const PR_TRUSTED_FIELDS = /^(number|base\.)/
+
+function auditUntrustedInterpolation(text, jobId, where, add) {
+  for (const m of text.matchAll(/\$\{\{\s*([^}]+?)\s*\}\}/g)) {
+    const expr = m[1].replace(/\s+/g, '')
+    const pm = expr.match(/^github\.event\.pull_request\.(.+)$/)
+    if (!pm) continue
+    const field = pm[1]
+    if (PR_TRUSTED_FIELDS.test(field)) continue
+    if (/^head\.(sha|ref)\b/.test(field)) {
+      add('PR_TARGET_HEAD_REFERENCE', `job "${jobId}" ${where} consumes pull_request.head.sha/ref; head-controlled input must not reach executed scripts or step inputs`)
+    } else {
+      add('PR_TARGET_UNTRUSTED_INPUT', `job "${jobId}" ${where} interpolates attacker-controlled pull_request.${field}; only pull_request.number and pull_request.base.* may be interpolated`)
+    }
+  }
+}
+
 function auditPullRequestTargetJob(jobBlock, jobId, add) {
-  let runIndent = null
+  let blockIndent = null // tracks run:| / script:| block scalars
+  let withIndent = null // tracks with: blocks (inputs, not display labels)
   for (const raw of jobBlock.lines) {
     const line = stripComments(raw)
     if (!line.trim()) continue
     const indent = line.length - line.trimStart().length
-    if (runIndent !== null && indent <= runIndent) runIndent = null
+    if (blockIndent !== null && indent <= blockIndent) blockIndent = null
+    if (withIndent !== null && indent <= withIndent) withIndent = null
 
     if (/(^|[\s{[])(ref|repository)\s*:\s*.*pull_request\.head/.test(line)) {
       add('PR_TARGET_HEAD_CHECKOUT', `job "${jobId}" resolves ref/repository from pull_request.head; pull_request_target workflows must only use the trusted base commit`)
       continue
     }
 
-    const runMatch = line.match(/^\s*(?:-\s+)?run:\s*(.*)$/)
-    if (runMatch) {
-      const value = runMatch[1]
-      if (/pull_request\.head\.(sha|ref)\b/.test(value)) {
-        add('PR_TARGET_HEAD_REFERENCE', `job "${jobId}" run script consumes pull_request.head.sha/ref; head-controlled input must not reach executed scripts`)
-      }
-      if (/[|>]\s*$/.test(value)) runIndent = indent
+    const blockStart = line.match(/^\s*(?:-\s+)?(run|script):\s*(.*)$/)
+    if (blockStart) {
+      auditUntrustedInterpolation(blockStart[2], jobId, `${blockStart[1]} script`, add)
+      if (/[|>]\s*$/.test(blockStart[2])) blockIndent = indent
       continue
     }
-    if (runIndent !== null) {
-      if (/pull_request\.head\.(sha|ref)\b/.test(line)) {
-        add('PR_TARGET_HEAD_REFERENCE', `job "${jobId}" run script consumes pull_request.head.sha/ref; head-controlled input must not reach executed scripts`)
-      }
+    if (blockIndent !== null) {
+      auditUntrustedInterpolation(line, jobId, 'script', add)
+      continue
+    }
+
+    if (/^\s*with:\s*$/.test(line)) {
+      withIndent = indent
+      continue
+    }
+    if (withIndent !== null) {
+      auditUntrustedInterpolation(line, jobId, 'with input', add)
       continue
     }
 
     const kv = line.match(/^\s*([A-Za-z_-]+):\s*(.+)$/)
-    if (kv && !['name', 'uses', 'if', 'needs', 'runs-on', 'timeout-minutes', 'shell', 'working-directory'].includes(kv[1])
-        && /pull_request\.head\.(sha|ref)\b/.test(kv[2])) {
-      add('PR_TARGET_HEAD_REFERENCE', `job "${jobId}" passes pull_request.head.sha/ref into "${kv[1]}"; head-controlled input must not enter step inputs`)
+    if (kv && !['name', 'uses', 'if', 'needs', 'runs-on', 'timeout-minutes', 'shell', 'working-directory'].includes(kv[1])) {
+      auditUntrustedInterpolation(kv[2], jobId, `input "${kv[1]}"`, add)
     }
   }
 }
@@ -352,6 +463,41 @@ function auditDeployWorkflow(blocks, fileName) {
     } else {
       if (perm.get('pages') !== 'write') add('DEPLOY_PERMISSIONS_MISSING', 'deploy job must declare pages: write (publish integrity)')
       if (perm.get('id-token') !== 'write') add('DEPLOY_PERMISSIONS_MISSING', 'deploy job must declare id-token: write (OIDC integrity)')
+      // Allowlist: write only for the publishing scopes; read only for the
+      // scopes the chain legitimately needs (contents, actions).
+      for (const [scope, value] of perm) {
+        if (scope.startsWith('__')) continue
+        if (value === 'write' && !['pages', 'id-token'].includes(scope)) {
+          add('DEPLOY_PERMISSIONS_UNEXPECTED', `deploy job grants unexpected "${scope}: write"; the publishing allowlist is pages/id-token write only`)
+        }
+        if (value === 'read' && !['contents', 'actions'].includes(scope)) {
+          add('DEPLOY_PERMISSIONS_UNEXPECTED', `deploy job grants unexpected "${scope}: read"; the allowlist is contents/actions read`)
+        }
+      }
+    }
+
+    // The deploy job must depend on the verification chain and run only after
+    // its needs succeed: no needs, unknown needs, or an always()-style if
+    // would let an unverified or failed run reach production.
+    const needsEntry = subBlocks(deploy.lines, 4).get('needs')
+    let needsList = []
+    if (needsEntry) {
+      if (needsEntry.inline) {
+        needsList = needsEntry.inline.replace(/[[\]]/g, '').split(',').map((s) => s.trim()).filter(Boolean)
+      } else {
+        needsList = needsEntry.lines.map((l) => stripComments(l).trim().replace(/^-\s*/, '').trim()).filter(Boolean)
+      }
+    }
+    if (!needsList.includes('verify')) {
+      add('DEPLOY_NEEDS_MISSING', `deploy job needs [${needsList}] does not include "verify"; publish must depend on the verification chain`)
+    }
+    for (const n of needsList) {
+      if (n !== 'verify' && !jobs.has(n)) {
+        add('DEPLOY_NEEDS_UNKNOWN', `deploy job needs unknown job "${n}"`)
+      }
+    }
+    if (subBlocks(deploy.lines, 4).get('if')) {
+      add('DEPLOY_FAILURE_FINALITY', 'deploy job has a job-level if; it must run unconditionally after its needs succeed (always()/!cancelled() would bypass verify failures)')
     }
   }
 
@@ -403,12 +549,28 @@ function collectStepEnv(blockLines) {
   return env
 }
 
-function normalizeScript(blockLines) {
-  return blockLines
-    .map(stripComments)
-    .join('\n')
-    .replace(/\\\r?\n/g, ' ')
-    .replace(/\s+/g, '')
+// Extract exactly the run-block script text (the block scalar after
+// `run: |`, or the inline value) so template equality applies to the
+// executed script alone, not to the surrounding job metadata.
+function extractRunScript(blockLines) {
+  const lines = blockLines.map(stripComments)
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(/^\s*(?:-\s+)?run:\s*(.*)$/)
+    if (!m) continue
+    const value = m[1]
+    if (!/^[|>]\s*$/.test(value)) return normalizeText(value)
+    const indent = lines[i].length - lines[i].trimStart().length
+    const body = []
+    for (let j = i + 1; j < lines.length; j++) {
+      const l = lines[j]
+      if (!l.trim()) { body.push(''); continue }
+      const li = l.length - l.trimStart().length
+      if (li <= indent) break
+      body.push(l)
+    }
+    return normalizeText(body.join('\n'))
+  }
+  return ''
 }
 
 export function auditBranchPolicy(blocks, fileName) {
@@ -436,23 +598,38 @@ export function auditBranchPolicy(blocks, fileName) {
 
   const jobIf = subBlocks(policy.lines, 4).get('if')
   const jobIfText = jobIf ? (jobIf.inline || jobIf.lines.join(' ')) : ''
-  const script = normalizeScript(policy.lines)
-  const gate =
-    jobIfText.includes("github.base_ref == 'main'") ||
-    script.includes('[["$EVENT_NAME"=="pull_request"&&"$BASE_REF"=="main"]]') ||
-    script.includes('[["$BASE_REF"=="main"]]')
+  const script = extractRunScript(policy.lines)
 
-  const sigV1 = script.includes('[["$BASE_REF"=="main"]]&&[["$HEAD_REF"!="dev"||"$HEAD_REPOSITORY"!="$BASE_REPOSITORY"]]') && script.includes('exit1')
-  const sigV2 = script.includes('[["$EVENT_NAME"=="pull_request"&&"$BASE_REF"=="main"]]')
-    && script.includes('[["$HEAD_REF"=="dev"&&"$HEAD_REPOSITORY"=="$BASE_REPOSITORY"]]||exit1')
+  // Template equality (not containment): the normalized script must be
+  // exactly an accepted gate. Containment allowed the signature to hide in
+  // dead strings, extra statements, or non-executed branches.
+  const sigV1 = script === V1_TEMPLATE
+  const sigV2 = script === V2_TEMPLATE
 
-  if (!gate) add('BRANCH_POLICY_NOT_GATED', 'branch-policy job no longer gates on pull_request to main')
-  if (!sigV1 && !sigV2) {
-    const recognizable = script.includes('HEAD_REF') && /dev/.test(script) && script.includes('exit1')
-    if (recognizable) {
-      add('BRANCH_POLICY_WEAKENED', 'branch-policy job resembles a gate but no accepted deny-by-default signature matches; a constraint was likely removed or weakened')
-    } else {
-      add('BRANCH_POLICY_UNRECOGNIZED', 'branch-policy job implements no accepted gate signature (v1 deny-by-default or v2 positive-gate); extend the auditor deliberately before trusting it')
+  // A job-level if is allowed only when it gates the job onto PRs to main
+  // (v1 form). Anything else can skip the gate exactly when it must run.
+  const jobIfOk = !jobIfText || jobIfText.includes("github.base_ref == 'main'")
+
+  // Step-level conditions on the enforcement step are rejected: the gate
+  // must not be conditional.
+  for (const raw of policy.lines) {
+    if (/^\s{6,}if:/.test(stripComments(raw))) {
+      add('BRANCH_POLICY_STEP_CONDITION', 'branch-policy steps must not be conditional; the gate has to execute on every PR to main')
+      break
+    }
+  }
+
+  if (!jobIfOk || !(sigV1 || sigV2)) {
+    if (!jobIfOk) {
+      add('BRANCH_POLICY_NOT_GATED', `branch-policy job-level if "${jobIfText}" can skip the gate on pull_request to main; only a main-gating condition or no if is accepted`)
+    }
+    if (!(sigV1 || sigV2)) {
+      const recognizable = script.includes('HEAD_REF') && /dev/.test(script) && script.includes('exit1')
+      if (recognizable) {
+        add('BRANCH_POLICY_WEAKENED', 'branch-policy script resembles a gate but does not equal an accepted template; a constraint was likely removed, weakened, or wrapped')
+      } else {
+        add('BRANCH_POLICY_UNRECOGNIZED', 'branch-policy script does not equal an accepted gate template (v1 deny-by-default, v2 positive-gate); extend the auditor deliberately before trusting it')
+      }
     }
   }
   return violations

@@ -117,8 +117,19 @@ jobs:
         run: |
           if [[ "$BASE_REF" == "main" ]] && \\
              [[ "$HEAD_REF" != "dev" || "$HEAD_REPOSITORY" != "$BASE_REPOSITORY" ]]; then
+            echo "Pull requests to main must promote the dev branch from this repository."
+            echo "Received: $HEAD_REPOSITORY:$HEAD_REF -> $BASE_REPOSITORY:$BASE_REF"
             exit 1
           fi
+
+  governance:
+    name: Governance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: node --test .github/tests/*.test.mjs
 `
 
 const WEAKENED_CI = GOOD_CI.replace(
@@ -511,4 +522,176 @@ test('F1: inline read-all top-level permissions are acceptable', () => {
 test('F1: any write value at top level is rejected', () => {
   const codes = auditWorkflow(TOP_WRITE_SCOPE, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }).map((v) => v.code)
   assert.ok(codes.includes('TOP_PERMISSIONS_NOT_LEAST_PRIVILEGE'), `expected TOP_PERMISSIONS_NOT_LEAST_PRIVILEGE, got ${codes}`)
+})
+
+// ===========================================================================
+// R2 adversarial round (2026-10-24). Each test targets one independently
+// reproduced finding from the second review. Written before the fix.
+// ===========================================================================
+
+const PJ = { 'deploy-pages.yml': ['deploy'] }
+
+// --- R2-A1: branch-policy template containment bypass -----------------------
+// The signature used to be matched by CONTAINMENT, so a dead string (echo)
+// or extra statements satisfied the gate without executing it.
+const V2_SIGNATURE_AS_STRING = GOOD_CI_V2.replace(
+  /        run: \|\n[\s\S]*?          fi\n/,
+  `        run: echo 'if [[ "$EVENT_NAME" == "pull_request" && "$BASE_REF" == "main" ]]; then [[ "$HEAD_REF" == "dev" && "$HEAD_REPOSITORY" == "$BASE_REPOSITORY" ]] || exit 1; fi'\n`)
+const V2_WITH_EXTRA_STATEMENT = GOOD_CI_V2.replace(
+  '          if [[ "$EVENT_NAME"',
+  '          echo "starting gate"\n          if [[ "$EVENT_NAME"')
+
+test('R2-A1: signature inside a dead string does not satisfy the gate', () => {
+  const codes = auditWorkflow(V2_SIGNATURE_AS_STRING, 'ci.yml').map((v) => v.code)
+  // The template-equality rule must reject the dead-string form; the exact
+  // diagnostic code (WEAKENED when gate fragments are recognizable,
+  // UNRECOGNIZED otherwise) is secondary — both are fail-closed violations.
+  assert.ok(
+    codes.includes('BRANCH_POLICY_WEAKENED') || codes.includes('BRANCH_POLICY_UNRECOGNIZED'),
+    `expected a BRANCH_POLICY_ violation, got ${codes}`)
+})
+
+test('R2-A1: extra statements around the v2 script fail closed', () => {
+  const codes = auditWorkflow(V2_WITH_EXTRA_STATEMENT, 'ci.yml').map((v) => v.code)
+  assert.ok(codes.some((c) => c.startsWith('BRANCH_POLICY_')), `got ${codes}`)
+})
+
+test('R2-A1: a job-level if that can skip the gate on PRs to main is rejected', () => {
+  const codes = auditWorkflow(GOOD_CI_V2.replace(
+    '  branch-policy:\n    name: Branch policy\n    runs-on: ubuntu-latest',
+    "  branch-policy:\n    name: Branch policy\n    if: github.event_name == 'push'\n    runs-on: ubuntu-latest"), 'ci.yml').map((v) => v.code)
+  assert.ok(codes.includes('BRANCH_POLICY_NOT_GATED'), `expected BRANCH_POLICY_NOT_GATED, got ${codes}`)
+})
+
+// --- R2-A2: swallowed failures ----------------------------------------------
+const STEP_COE = GOOD_CI_V2.replace(
+  '      - name: Enforce same-repository dev promotion when targeting main',
+  '      - name: Enforce same-repository dev promotion when targeting main\n        continue-on-error: true')
+const GOV_COE = GOOD_CI.replace(
+  '  governance:\n    name: Governance\n    runs-on: ubuntu-latest',
+  '  governance:\n    name: Governance\n    continue-on-error: true\n    runs-on: ubuntu-latest')
+const VERIFY_OR_TRUE = GOOD_DEPLOY.replace('      - run: npm run verify', '      - run: npm run verify || true')
+const VERIFY_COE = GOOD_DEPLOY.replace(
+  '  verify:\n    runs-on: ubuntu-latest',
+  '  verify:\n    continue-on-error: true\n    runs-on: ubuntu-latest')
+
+test('R2-A2: continue-on-error on the branch-policy step is rejected', () => {
+  const codes = auditWorkflow(STEP_COE, 'ci.yml').map((v) => v.code)
+  assert.ok(codes.includes('FAILURE_SWALLOWED'), `expected FAILURE_SWALLOWED, got ${codes}`)
+})
+
+test('R2-A2: continue-on-error on the Governance job is rejected', () => {
+  const codes = auditWorkflow(GOV_COE, 'ci.yml').map((v) => v.code)
+  assert.ok(codes.includes('FAILURE_SWALLOWED'), `expected FAILURE_SWALLOWED, got ${codes}`)
+})
+
+test('R2-A2: "|| true" on the publish-chain verify step is rejected', () => {
+  const codes = auditWorkflow(VERIFY_OR_TRUE, 'deploy-pages.yml', { pagesJobs: PJ }).map((v) => v.code)
+  assert.ok(codes.includes('FAILURE_SWALLOWED'), `expected FAILURE_SWALLOWED, got ${codes}`)
+})
+
+test('R2-A2: continue-on-error on the deploy verify job is rejected', () => {
+  const codes = auditWorkflow(VERIFY_COE, 'deploy-pages.yml', { pagesJobs: PJ }).map((v) => v.code)
+  assert.ok(codes.includes('FAILURE_SWALLOWED'), `expected FAILURE_SWALLOWED, got ${codes}`)
+})
+
+test('R2-A2: benign continue-on-error outside gate/publish files stays accepted', () => {
+  const codes = auditWorkflow(PR_TARGET_SAFE, 'pr-governance.yml').map((v) => v.code)
+  assert.ok(!codes.includes('FAILURE_SWALLOWED'), `unexpected ${codes}`)
+})
+
+// --- R2-A3: duplicate keys, dynamic names, flow mappings --------------------
+const DUP_TOP = GOOD_CI.replace('permissions:\n  contents: read', 'permissions:\n  contents: write\npermissions:\n  contents: read')
+const DUP_JOB = GOOD_DEPLOY.replace('  deploy:\n    needs: verify', '  deploy:\n    needs: verify\n  deploy:\n    needs: verify')
+const FLOW_JOBS = `name: Flow\n\non:\n  workflow_dispatch:\n\npermissions:\n  contents: read\n\njobs: {verify: {runs-on: ubuntu-latest, steps: [{run: echo hi}]}}\n`
+const FLOW_JOB_ENTRY = GOOD_DEPLOY.replace('  verify:\n    runs-on: ubuntu-latest', '  verify: {runs-on: ubuntu-latest}\n    runs-on: ubuntu-latest')
+const DYNAMIC_NAME = GOOD_CI.replace('    name: Branch policy', '    name: ${{ matrix.policy-name }}')
+
+test('R2-A3: duplicate top-level keys are flagged', () => {
+  const codes = auditWorkflow(DUP_TOP, 'ci.yml').map((v) => v.code)
+  assert.ok(codes.includes('YAML_DUPLICATE_KEY'), `expected YAML_DUPLICATE_KEY, got ${codes}`)
+})
+
+test('R2-A3: duplicate job ids are flagged', () => {
+  const codes = auditWorkflow(DUP_JOB, 'deploy-pages.yml', { pagesJobs: PJ }).map((v) => v.code)
+  assert.ok(codes.includes('YAML_DUPLICATE_KEY'), `expected YAML_DUPLICATE_KEY, got ${codes}`)
+})
+
+test('R2-A3: flow-mapping jobs blocks fail closed', () => {
+  const codes = auditWorkflow(FLOW_JOBS, 'flow.yml').map((v) => v.code)
+  assert.ok(codes.includes('UNSUPPORTED_YAML_CONSTRUCT'), `expected UNSUPPORTED_YAML_CONSTRUCT, got ${codes}`)
+})
+
+test('R2-A3: flow-mapping job entries fail closed', () => {
+  const codes = auditWorkflow(FLOW_JOB_ENTRY, 'deploy-pages.yml', { pagesJobs: PJ }).map((v) => v.code)
+  assert.ok(codes.includes('UNSUPPORTED_YAML_CONSTRUCT'), `expected UNSUPPORTED_YAML_CONSTRUCT, got ${codes}`)
+})
+
+test('R2-A3: dynamic job display names are flagged (check-name integrity)', () => {
+  const codes = auditWorkflow(DYNAMIC_NAME, 'ci.yml').map((v) => v.code)
+  assert.ok(codes.includes('JOB_NAME_DYNAMIC'), `expected JOB_NAME_DYNAMIC, got ${codes}`)
+})
+
+// --- R2-A4: untrusted pull_request_target inputs ----------------------------
+const RUN_TITLE = PR_TARGET_SAFE.replace(
+  '          persist-credentials: false\n',
+  '          persist-credentials: false\n      - name: announce\n        run: echo "\${{ github.event.pull_request.title }}"\n')
+const SCRIPT_BODY = PR_TARGET_SAFE.replace(
+  '          persist-credentials: false\n',
+  '          persist-credentials: false\n      - uses: actions/github-script@v7\n        with:\n          script: console.log("\${{ github.event.pull_request.body }}")\n')
+const WITH_TITLE = PR_TARGET_SAFE.replace(
+  '          persist-credentials: false\n',
+  '          persist-credentials: false\n      - uses: actions/upload-artifact@v4\n        with:\n          name: report-\${{ github.event.pull_request.title }}\n')
+
+test('R2-A4: run scripts interpolating pull_request.title are rejected', () => {
+  const codes = auditWorkflow(RUN_TITLE, 'pr-governance.yml').map((v) => v.code)
+  assert.ok(codes.includes('PR_TARGET_UNTRUSTED_INPUT'), `expected PR_TARGET_UNTRUSTED_INPUT, got ${codes}`)
+})
+
+test('R2-A4: github-script interpolating pull_request.body is rejected', () => {
+  const codes = auditWorkflow(SCRIPT_BODY, 'pr-governance.yml').map((v) => v.code)
+  assert.ok(codes.includes('PR_TARGET_UNTRUSTED_INPUT'), `expected PR_TARGET_UNTRUSTED_INPUT, got ${codes}`)
+})
+
+test('R2-A4: with: inputs carrying pull_request.title are rejected', () => {
+  const codes = auditWorkflow(WITH_TITLE, 'pr-governance.yml').map((v) => v.code)
+  assert.ok(codes.includes('PR_TARGET_UNTRUSTED_INPUT'), `expected PR_TARGET_UNTRUSTED_INPUT, got ${codes}`)
+})
+
+test('R2-A4: pull_request.number and base.* stay allowed (trusted inputs)', () => {
+  const okText = PR_TARGET_SAFE.replace(
+    '          persist-credentials: false\n',
+    '          persist-credentials: false\n      - name: label\n        run: echo "PR \${{ github.event.pull_request.number }} base \${{ github.event.pull_request.base.sha }}"\n')
+  const codes = auditWorkflow(okText, 'pr-governance.yml').map((v) => v.code)
+  assert.ok(!codes.includes('PR_TARGET_UNTRUSTED_INPUT'), `unexpected ${codes}`)
+})
+
+// --- R2-A5: deploy permissions allowlist, needs, failure finality -----------
+const DEPLOY_CONTENTS_WRITE = GOOD_DEPLOY.replace(
+  '    permissions:\n      contents: read\n      pages: write',
+  '    permissions:\n      contents: write\n      pages: write')
+const DEPLOY_NO_NEEDS = GOOD_DEPLOY.replace('    needs: verify\n', '')
+const DEPLOY_NEEDS_PHANTOM = GOOD_DEPLOY.replace('    needs: verify', '    needs: [verify, phantom]')
+const DEPLOY_IF_ALWAYS = GOOD_DEPLOY.replace(
+  '  deploy:\n    needs: verify',
+  '  deploy:\n    if: always()\n    needs: verify')
+
+test('R2-A5: deploy job with contents: write is rejected (permission allowlist)', () => {
+  const codes = auditWorkflow(DEPLOY_CONTENTS_WRITE, 'deploy-pages.yml', { pagesJobs: PJ }).map((v) => v.code)
+  assert.ok(codes.includes('DEPLOY_PERMISSIONS_UNEXPECTED'), `expected DEPLOY_PERMISSIONS_UNEXPECTED, got ${codes}`)
+})
+
+test('R2-A5: deploy job without needs is rejected', () => {
+  const codes = auditWorkflow(DEPLOY_NO_NEEDS, 'deploy-pages.yml', { pagesJobs: PJ }).map((v) => v.code)
+  assert.ok(codes.includes('DEPLOY_NEEDS_MISSING'), `expected DEPLOY_NEEDS_MISSING, got ${codes}`)
+})
+
+test('R2-A5: deploy needs referencing an unknown job is rejected', () => {
+  const codes = auditWorkflow(DEPLOY_NEEDS_PHANTOM, 'deploy-pages.yml', { pagesJobs: PJ }).map((v) => v.code)
+  assert.ok(codes.includes('DEPLOY_NEEDS_UNKNOWN'), `expected DEPLOY_NEEDS_UNKNOWN, got ${codes}`)
+})
+
+test('R2-A5: deploy job running on failure (if: always()) is rejected', () => {
+  const codes = auditWorkflow(DEPLOY_IF_ALWAYS, 'deploy-pages.yml', { pagesJobs: PJ }).map((v) => v.code)
+  assert.ok(codes.includes('DEPLOY_FAILURE_FINALITY'), `expected DEPLOY_FAILURE_FINALITY, got ${codes}`)
 })
