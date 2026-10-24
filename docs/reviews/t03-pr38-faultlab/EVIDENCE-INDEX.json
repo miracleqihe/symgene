@@ -37,7 +37,7 @@
     "enforced": "every published file was re-scanned after sanitization; any surviving hit aborts the package build"
   },
   "totals": {
-    "files": 224,
+    "files": 225,
     "experimentRounds": 121,
     "workPackages": {
       "A": 46,
@@ -5623,6 +5623,15 @@
       ],
       "fullyPublic": true,
       "kind": "regression-log"
+    },
+    {
+      "file": "evidence/integrity-after.json",
+      "originalSha256": "621d7c113cc4b4bf1522633dcf010955a0da78bec4f6cb25ec964751d0666f8c",
+      "publicSha256": "621d7c113cc4b4bf1522633dcf010955a0da78bec4f6cb25ec964751d0666f8c",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "r1.1-integrity-verification"
     },
     {
       "file": "evidence/integrity-before-2af0d2e.json",
