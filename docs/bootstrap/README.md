@@ -12,12 +12,28 @@
 | [S0-FREEZE.patch](S0-FREEZE.patch) | 工作包 B:生产冻结补丁(base 22eb347,仅 deploy-pages.yml 移除 push 触发) |
 | [S1-TRUSTED-BOOTSTRAP.patch](S1-TRUSTED-BOOTSTRAP.patch) | 工作包 B:可信治理 bootstrap(base 22eb347,审计库 + 测试 + CI Governance 检查)——**原始形态,R1 整改前** |
 | [S1R-REMEDIATION.patch](S1R-REMEDIATION.patch) | R1 审查整改(commit 989fb7b):审计器缺陷修复 + 新增负向测试(现状即 原始补丁 + 本补丁) |
+| [S1R2-REMEDIATION.patch](S1R2-REMEDIATION.patch) | R2 审查整改(commit 3588967):审计器二轮加固 + #39 兼容(现状 = 原始补丁 + R1 + R2) |
+| [S1-FINAL.patch](S1-FINAL.patch) | **合并替代**:自基准 22eb347 一步复现最终 .github 状态(= S0+S1+S1R+S1R2 的并集;与逐段补丁二选一,不得叠加使用) |
 | [verification/VERIFICATION-LOG.md](verification/VERIFICATION-LOG.md) | 补丁 apply/rollback 往返矩阵、测试明细、dev 分支前瞻性审计证据 |
 | [RULESET-MIGRATION-PLAN.md](RULESET-MIGRATION-PLAN.md) | 工作包 C:逐项可行性矩阵(支持/套餐/权限/check 存在/阶段/死锁/恢复)、ruleset JSON、死锁目录 D1–D6 |
 | [REQUIRED-CHECKS-MATRIX.md](REQUIRED-CHECKS-MATRIX.md) | 工作包 C:必需检查矩阵(真实 check 名与证据、可否必需、严格模式交互) |
 | [PLATFORM-NEGATIVE-TESTS/](PLATFORM-NEGATIVE-TESTS/README.md) | 工作包 D:11 个负向场景 + 12 个带守卫脚本(生产仓硬拒绝),真实平台裁决项全部标 PENDING |
 | [MAIN-BOOTSTRAP-RUNBOOK.md](MAIN-BOOTSTRAP-RUNBOOK.md) | 工作包 E:阶段 0–7 操作手册(每步含权限/前态/预期/验证/恢复/独立 Review/部署风险) |
 | [OWNER-ACTIONS.md](OWNER-ACTIONS.md) | Owner 专属步骤抽取与排序 |
+
+## 补丁链与应用顺序(R2 定稿)
+
+自基准 `22eb347edf3056955d6437c7eb951b63c28f76e0` 复现本分支 `.github/` 最终状态的两种方式(二选一):
+
+**方式 A(逐段,可核对各轮整改)**:
+1. `git apply S0-FREEZE.patch`(base 22eb347;对应分支 commit `d6fb5fd`)
+2. `git apply S1-TRUSTED-BOOTSTRAP.patch`(对应 `7a58407`)
+3. `git apply S1R-REMEDIATION.patch`(989fb7b;基于 S0+S1 之后的 .github 状态)
+4. `git apply S1R2-REMEDIATION.patch`(3588967;R2 加固)
+
+**方式 B(单补丁)**:`git apply S1-FINAL.patch`(= 上述并集;**不得与方式 A 叠加**)。
+
+SHA 校验:`git fetch origin review/t03-main-bootstrap-s0-s1 && git log --oneline 22eb347..FETCH_HEAD` 应依次为 d6fb5fd、7a58407、82b05e5、989fb7b、0ec15ed、d814f3c、3588967、(R2 文档提交);每步 `git apply --check` 必须先通过;最终 `node --test .github/tests/*.test.mjs` 应为 63/63。测试计数沿革:20(R1 初版)→ 42(R1 整改)→ 63(R2 加固),历史记录见 verification/VERIFICATION-LOG.md。
 
 ## 当前状态一句话
 

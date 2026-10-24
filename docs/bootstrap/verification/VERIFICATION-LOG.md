@@ -15,7 +15,7 @@
 | 4 | apply S1(raw base) | PASS |
 | 5 | S1 单独状态下运行治理测试 | 19 pass / 1 fail(预期:仓库状态审计报 `DEPLOY_TRIGGER_PUSH`,提示 S0 未应用) |
 | 6 | 在 S1 之上叠加 apply S0 | PASS |
-| 7 | S0+S1 叠加状态下运行全部测试 | 20 pass / 0 fail |
+| 7 | S0+S1 叠加状态下运行全部测试 | 20 pass / 0 fail(R1 时点值;现行计数见文末 R1/R2 记录) |
 | 8 | `git apply -R --check S1`(叠加状态) | PASS |
 | 9 | `git apply -R --check S0`(叠加状态) | PASS |
 
@@ -90,3 +90,42 @@ governance audit: 2 violation(s)
 
 - 全部平台负向场景的真实裁决(NEG-01..11)仍需 `*-sec-lab` 测试仓;skipped/neutral 对必需检查的平台语义(NEG-05 case A)是其中最关键的一项。
 - Governance 在真实 PR 上的红/绿以 GitHub CI 为准(见 PR #40 的 check 列表)。
+
+
+---
+
+# R2 独立 Review 整改记录(2026-10-24,commit 3588967 起)
+
+## 复现结论(21 项对抗断言)
+
+- **19 项确认为真实缺陷**(先红后绿):内联 permissions、flow 映射权限、死字符串绕过 Branch policy 签名、多余语句绕过、job 级 if 跳过门禁、continue-on-error 吞失败(门禁与发布链)、`|| true` 吞失败、重复键无警觉、flow jobs 静默跳过 job 级检查、动态 job 名逃逸同名检测、PR title/body 插值注入、`with:` 携带 title、deploy job 权限白名单缺失、needs 缺失、needs 幽灵引用、`if: always()` 绕过 verify 失败。
+- **2 项为对照确认**(预期即绿):可信输入(number/base.*)不被误拒;pr-governance 的合法 continue-on-error 不受新规则影响。
+- 无"未能复现、提供反证"的 Finding;R1 遗留的 2 项误报性表述(顶层纯 read 声明、GOOD_CI env 硬编码 fixture)已在 R1 内修正。
+
+## 关键修复
+
+1. Branch policy:模板**全等**(提取 run 块脚本,空白规范化后 == v1/v2 规范模板)取代包含匹配 —— 死字符串/多余语句/非执行分支不再能伪装;job 级 if 仅允许 v1 的 main 门控形态;step 级条件拒绝。
+2. 发布链:deploy job 权限白名单(write 仅 pages/id-token;read 仅 contents/actions)、needs 必含 verify 且不得引用未知 job、deploy job 禁止 job 级 if(always()/!cancelled() 绕过 verify 失败)。
+3. pull_request_target:仅 `pull_request.number` 与 `pull_request.base.*` 可插值;title/body/labels/head.* 进入 run/script/with 即 PR_TARGET_UNTRUSTED_INPUT。
+4. 吞失败:FAILURE_SWALLOWED 拒绝门禁与发布链内的 continue-on-error:true / `|| true` / `set +e`(pr-governance 的合法用途不受影响)。
+5. YAML 边界:重复键 YAML_DUPLICATE_KEY(扫描器 last-wins 与 YAML 语义一致,标记属 fail-closed 卫生措施)、flow jobs 拒绝、动态 job 名 JOB_NAME_DYNAMIC。
+
+## 解析器与可信签名评估(任务书要求)
+
+结论:维持"受限子集 + fail-closed + 模板全等",不引入第三方 YAML 解析器。理由:(a) 治理测试在 `npm ci` 之前运行,零依赖是其抗篡改属性;(b) 内置解析器会把审计面扩大到解析器自身与依赖链;(c) 子集外的任何语法一律显式失败(UNSUPPORTED_*/UNPARSEABLE/UNRECOGNIZED),不存在静默漏报通道;(d) Branch policy 的模板全等即轻量"可信工作流签名":新门禁变体必须经审查显式扩充模板表。若未来工作流语法复杂度超出子集,Owner 可评估引入 actionlint 或 vendored 解析器 —— 属独立决策,当前不必要。
+
+## 官方语义查证(NEG-05)
+
+docs.github.com "Status checks":*"A job that is skipped will report its status as 'Success'. It will not prevent a pull request from merging, even if it is a required check."*;"About protected branches":必需检查以 successful/skipped/neutral 即满足。**R1 文档"skipped 阻塞合并"的推测错误,已更正**;项目安全要求改为:门禁不可跳过(审计器强制)+ 必需集只含无条件 job。NEG-05 改为平台行为测量(MEASURED),不再以"阻塞"为 PASS 条件。
+
+## 平台测试框架(R2-B)
+
+- 身份绑定:GH_<N>_TOKEN + GH_<N>_USER 双变量,`assert_identity` 校验 token 确以该用户认证;git 操作经 `authed_url`(禁用本地默认凭据);NEG-03 增加最后推送者 API 证据(last commit author.login == GH_A_USER)与正向对照(B 批准 → 合并成功)。
+- 逐场景归因:NEG-01 差分法(基线阻塞 → 批准 → 放行 → 撤销批准 → 再阻塞);NEG-04/11 等待 head 检查真绿后再尝试(排除 pending 检查干扰);NEG-06/07 以 Governance/Branch policy 的 job 日志证据为 PASS 条件(非仅合并阻塞);NEG-09 修复 dispatch 参数(移除畸形 client_payload)并要求失败 job 日志含 environment 拒绝文本 + 该 SHA 零 Deployment;NEG-08 全部 push 走 GH_A 认证 URL 且先验证非 admin。
+- 判定:PASS/FAIL/BLOCKED 不变;新增 expect_accepted(正向控制)与 MEASURED(平台测量);模拟模式只打印计划,永不冒充平台证据。
+
+## 全量复测(R2 收口时点)
+
+- `node --test .github/tests/*.test.mjs`(node v22.23.4):**63 tests / 63 pass / 0 fail**(R1 末 42 → R2 63,新增 21 项对抗/对照断言;零断言删除或放宽)。
+- 兼容:PR #37(`a799746`)+ PR #39(`a7ca006`)双实测 PASS,含保留属性断言(身份/工程终判/生产授权/digest 绑定/run-attempt 绑定;#39 更名与 legacy 完整性策略不被旧阻断覆盖)。
+- `git diff --check` clean;`npm ci && npm run verify` 全绿;12 个平台脚本模拟模式通过;`git apply --check` 补丁链(S0→S1→S1R→S1R2)与合并版 S1-FINAL 全通过。

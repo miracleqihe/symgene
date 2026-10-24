@@ -68,7 +68,7 @@
   git checkout -b bootstrap/main-sec-22eb347 22eb347edf3056955d6437c7eb951b63c28f76e0
   git apply S0-FREEZE.patch && git commit -m "S0: freeze Pages auto-publish entry (base 22eb347)"
   git apply S1-TRUSTED-BOOTSTRAP.patch && git commit -m "S1: trusted governance bootstrap (base 22eb347)"
-  node --test .github/tests/*.test.mjs   # 必须 20 pass / 0 fail
+  node --test .github/tests/*.test.mjs   # 必须 63 pass / 0 fail(R2 后;补丁链与各时点计数见 verification/VERIFICATION-LOG.md)
   git push origin bootstrap/main-sec-22eb347
   gh pr create --repo miracleqihe/symgene --base main --head bootstrap/main-sec-22eb347 \
     --title "main security bootstrap: S0 freeze + S1 governance" \

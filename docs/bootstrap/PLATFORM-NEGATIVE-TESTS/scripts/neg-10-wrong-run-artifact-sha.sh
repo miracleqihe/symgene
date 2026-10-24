@@ -1,24 +1,27 @@
 #!/usr/bin/env bash
 # NEG-10 — wrong run / artifact / SHA reaching the publish step.
 #
-# The production publish chain is: verify job builds 'site-dist' in run R ->
-# deploy job downloads 'site-dist' FROM THE SAME RUN -> uploads to Pages.
-# Threats:
-#   T1 cross-run artifact: deploy job adds run-id: to download-artifact and
-#      pulls an artifact built from a different SHA. Blocked in-repo by the
-#      S1 audit (CROSS_RUN_ARTIFACT) — this script exercises that layer.
-#   T2 stale artifact: download-artifact without run-id defaults to the same
-#      workflow run; nothing to exploit — assert production file pins this.
+# R2: the two layers are now EXPLICITLY separated:
+#   T1 (STATIC, executable today): the S1R2 auditor rejects cross-run
+#      artifact pulls (run-id:) in the deploy job — this is a local audit
+#      mutation test, not a platform verdict.
+#   T2 (STATIC, executable today): production deploy job must consume the
+#      same-run artifact (no run-id:) — covered by the S1R2 suite.
+#   T3 (DYNAMIC, PENDING lab): REAL artifact/SHA publish-binding verification
+#      using #37's deploy chain in the lab: the deploy job asserts
+#      needs.verify.outputs.artifact_id/digest and AUTHORIZED_SHA; the lab
+#      run must fail with a binding error when the artifact is tampered with
+#      or the authorized sha diverges. Requires the lab repo to run #37's
+#      hardened deploy-pages.yml. PENDING — never simulated as a pass.
 set -euo pipefail
 . "$(dirname "$0")/lib.sh"
 
-metadata "NEG-10" "wrong run / artifact / SHA" "PENDING / IN-REPO-ENFORCED (T1), SIMULATED-VERIFIED (T2)"
+metadata "NEG-10" "wrong run / artifact / SHA" "T1/T2 IN-REPO-ENFORCED (static); T3 PENDING (lab)"
 require_test_repo && LIVE_MODE=1 || LIVE_MODE=0
 
-plan "T1: craft a deploy-pages.yml copy in the lab with run-id: on download-artifact"
-plan "  expected: node --test .github/tests/*.test.mjs fails with CROSS_RUN_ARTIFACT (lab copy of S1 suite)"
-plan "T2: static assertion against production content (read-only): deploy job's download-artifact step contains no run-id and uses name: site-dist"
-plan "  verified in-package via the S1 audit fixtures; re-run locally against any future change"
+plan "T1 (static, local): mutate deploy-pages.yml with run-id: on download-artifact; node --test must fail with CROSS_RUN_ARTIFACT; restore"
+plan "T2 (static, local): production file pinned: same-run artifact only (S1R2 suite green)"
+plan "T3 (dynamic, PENDING lab): craft digest/sha mismatch against #37's binding chain; expect DEPLOY_APPROVAL_MISSING/binding failure; never simulated"
 
 if [[ "$LIVE_MODE" == "1" ]]; then
   LAB_DIR="${LAB_DIR:?LIVE=1 requires LAB_DIR pointing at the lab clone}"
@@ -31,9 +34,10 @@ if [[ "$LIVE_MODE" == "1" ]]; then
   set -e
   mv "$LAB_DIR/.github/workflows/deploy-pages.yml.bak" "$LAB_DIR/.github/workflows/deploy-pages.yml"
   if [[ $rc -eq 0 ]]; then
-    echo "RESULT: REJECTED-AS-EXPECTED — S1 audit flagged CROSS_RUN_ARTIFACT"
+    echo "RESULT: PASS (T1 static) — S1R2 audit flagged CROSS_RUN_ARTIFACT"
   else
-    echo "RESULT: UNEXPECTED — S1 audit did not flag the cross-run artifact" >&2
-    exit 1
+    echo "RESULT: FAIL — S1R2 audit did not flag the cross-run artifact" >&2
+    exit $EXIT_FAIL
   fi
+  echo "T3: PENDING — real artifact/SHA binding verification needs the lab run of #37's deploy chain; not simulated here"
 fi

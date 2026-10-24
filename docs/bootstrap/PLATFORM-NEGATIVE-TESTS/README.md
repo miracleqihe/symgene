@@ -13,6 +13,10 @@
 | `SIMULATED-VERIFIED` | 脚本的参数/流程/守卫逻辑已在本地用模拟输入验证 |
 | `IN-REPO-ENFORCED` | 同一威胁已有仓内强制层(S1 Governance 检查)拦截,平台测试是二道防线 |
 
+## 裁决语义(R2 修订)
+
+补充(R2-B):**禁止以模拟成功冒充平台验证** —— 所有未在真实平台执行的场景保持 PENDING;官方文档语义(如 NEG-05 的 skipped/neutral)作为"语义已定"单独标注,与"实测证据"区分。多账号身份采用 GH_<N>_TOKEN + GH_<N>_USER 双变量,`assert_identity` 校验 token 确以该用户身份认证;git 操作一律经 `authed_url`(禁用本地默认凭据)。
+
 ## 裁决语义(2026-10-24 R1 修订)
 
 | 裁决 | 判定条件 |
@@ -46,7 +50,7 @@
 | NEG-02 | 作者自我批准 | `POST /pulls/{n}/reviews event=APPROVE` → 403 "Can not approve your own pull request" | PENDING / LIVE-TEST-REPO |
 | NEG-03 | 最新推送者自我批准 | require_last_push_approval=on 时,last-pusher 的批准不满足要求,合并仍 BLOCKED | PENDING / LIVE-TEST-REPO |
 | NEG-04 | 旧 SHA 审核残留 | dismiss_stale_reviews_on_push=on 时,push 后旧批准自动 dismissed;旧 SHA 的成功 check 不满足必需检查(合并 BLOCKED) | PENDING / LIVE-TEST-REPO |
-| NEG-05 | CI skipped / neutral 绕过 | Job 条件跳过**会**产生 skipped check-run(平台对 skipped 是否满足必需检查 → 待实测);Workflow 过滤跳过无 check-run → 必需名缺席即 BLOCKED;neutral ≠ success | PENDING / LIVE-TEST-REPO |
+| NEG-05 | CI skipped / neutral(R2:官方语义已查证) | 官方文档:skipped/neutral **均满足**必需检查并放行合并 → 场景改为平台行为测量(MEASURED);本项目安全要求 = 门禁不可跳过,由 S1R2 审计器强制 | PENDING(lab 测量);语义已定 |
 | NEG-06 | 同名 check 冒充 | 同仓新增同名"Branch policy"假 job 可满足同名必需检查(规则集层面的已知限制)→ 以 ruleset integration_id 绑定 + S1 `CHECK_NAME_COLLISION` 审计拦截;fork 来源的同名 check 不被采纳(预期) | PENDING / **IN-REPO-ENFORCED** |
 | NEG-07 | 非 dev 晋级 | feature→main 的 PR 上 `Branch policy` 失败,合并 BLOCKED | PENDING / LIVE-TEST-REPO + S1 BRANCH_POLICY_* 审计 |
 | NEG-08 | 直接 push / force push | push main → remote rejected;force push → 被 non_fast_forward 规则拒绝 | PENDING / LIVE-TEST-REPO |

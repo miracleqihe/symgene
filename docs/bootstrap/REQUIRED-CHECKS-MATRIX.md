@@ -48,17 +48,24 @@
 - 风险:main 活跃期间晋级 PR 需反复"update branch + 重跑",可能饥饿。建议:**main 先不开严格模式,dev 开;两周稳定后再对 main 开启**(见 RUNBOOK 步骤 7)。
 - 注意:`Branch policy` 有 `if:` 条件(仅 PR→main 运行)。在 main 上以 rulesets 要求它时,PR→main 场景它总会运行,无 skipped 风险;但若未来有人把该 job 的 `if` 改宽/改窄,Governance 审计(BRANCH_POLICY_NOT_GATED)会报警。
 
-### 1.4 CI skipped / neutral 语义(2026-10-24 修订;平台裁决仍 PENDING)
+### 1.4 CI skipped / neutral 语义(R2 修订:官方语义已查证,不再 PENDING)
 
-三种"没跑"必须区分:
+**官方文档结论(docs.github.com "Status checks" 参考;R2 已核对原文):**
 
-| 形态 | 平台行为 | 对必需检查的影响 |
+> "A job that is skipped will report its status as 'Success'. **It will not prevent a pull request from merging, even if it is a required check.**"
+> "About protected branches":必需检查以 `successful`、`skipped` 或 `neutral` 状态即可满足。
+
+即:**平台把 skipped 与 neutral 都视为满足必需检查** —— 本文件 R1 时点"skipped 会阻塞合并"的推测是错误的,在此更正。三种形态:
+
+| 形态 | 平台行为 | 本项目的安全要求 |
 |------|----------|------------------|
-| **Job 条件跳过**(`if: false` 或条件不满足) | **会**产生 conclusion=`skipped` 的 check-run(修正本文件早前"不产生 check-run"的错误表述) | skipped ≠ success;是否放行合并属平台语义,legacy 与 rulesets 可能不同 → **PENDING**,NEG-05 case A 实测 |
-| **Workflow 过滤跳过**(branches/paths 过滤、workflow 级 `if`) | 该 ref 上**不产生** run 与 check-run | 必需名称缺席 → 合并被拒(高置信,仍以 NEG-05 case B 实测为准) |
-| **neutral 结论**(check-run 存在但 conclusion=neutral) | 非 success | 不满足必需检查 → 合并被拒(高置信,NEG-05 case C 实测) |
+| **Job 条件跳过**(`if: false`/条件不满足) | 产生 conclusion=`skipped` 的 check-run,**且满足必需检查、放行合并** | **禁止**:门禁 job 不得有 step 条件/continue-on-error —— S1R2 审计器已强制(BRANCH_POLICY_STEP_CONDITION、FAILURE_SWALLOWED);必需集只允许无条件 job |
+| **Workflow 过滤跳过**(branches/paths 过滤、workflow 级 `if`) | 该 ref 上不产生 run,必需名**缺席**(社区文档记录为长期 pending/阻塞,官方无放行语义) | 必需集只包含在目标事件上必然运行的工作流;不以带过滤器的 workflow 承载门禁 |
+| **neutral 结论** | 官方:视同 success | 与上同:必需 job 必须以显式失败(exit 1)表达违规,不可能 neutral |
 
-**严格 Engineering gate 原则**:门禁 job 必须"总是运行、违规即 exit 1 失败",不得依赖 skip 语义;`Branch policy` 就是该模式。任何必需检查若可能被 skip,须在 ruleset/legacy 配置中验证 skipped 的处理,或改写为无条件运行 + 显式失败。
+**严格 Engineering gate 原则(由此从建议升级为强制)**:门禁 job 必须"无条件运行、违规即 exit 1 失败";本仓 `Branch policy`(条件恒真于 PR→main)、`Governance`、`Verify` 均满足;S1R2 审计器保证该性质不被后续修改。NEG-05 相应改为平台行为测量(见 PLATFORM-NEGATIVE-TESTS)。
+
+来源:docs.github.com/en/pull-requests/reference/status-checks;docs.github.com/repositories/.../about-protected-branches;orgs/community discussions #142210/#44490(过滤型跳过长期 pending 的已知限制)。
 - neutral(conclusion=neutral)仅在 check suites 层面出现;对分支保护,未列入必需名单的 neutral check 不影响合并。同名 check 冒充风险见 NEG-06(必需检查绑定 integration_id 可限定来源,legacy 检查名绑定则不能 —— 这是以 rulesets 取代 legacy 的主要安全理由)。
 
 ## 2. 数据仓(私有)
@@ -86,7 +93,7 @@
 
 ## 3. 名称与接线核对清单(Owner 应用前过一遍)
 
-1. 必需检查名**逐字符**录入:`Branch policy`、`Verify`、`Promotion PR policy`、`Governance`、`Publication approval`。
+1. 必需检查名**逐字符**录入:`Branch policy`、`Verify`、`Promotion PR policy`、`Governance`。(`Publication integrity` 是否设必需属 Owner 独立决策,本包不推荐;旧 `Publication approval` 门禁已随 #39 撤销,不得恢复。)
 2. 每新增一个必需检查,先确认它在目标分支的 PR 上**至少真实运行过一次**(看 PR checks 页),再勾选必需。
 3. merge 方式:晋级模板要求 **Create a merge commit**;rulesets 的 `allowed_merge_methods` 应包含 merge、禁用 rebase/squash(与模板一致,保证 main 历史可回滚定位)。
 4. S1 合入后若 Governance 未出现在 PR checks:检查 ci.yml 的 `governance` job 是否被合并冲突丢弃,或 Actions 是否被禁用。
@@ -102,5 +109,6 @@
 | 同名 Check 冒充 | 新增与必需检查同名的假 job | `CHECK_NAME_COLLISION` 审计直接打红;fork 来源 check 不被采纳 | ruleset `integration_id` 无法区分 Actions 内部工作流(平台限制)→ 靠审计 + CODEOWNERS;NEG-06 |
 | Governance 被当作授权 | 以 Governance 绿灯替代 Owner 审核直接合并 | 本文件明示其候选定位;晋级模板要求人工批准 | 流程纪律:任何"检查全绿"的 PR 仍需 Owner 批准 |
 | 检查结果复用 | 旧 SHA 的绿色结果被当作新 head 的结果 | dismiss stale + (后置)strict 模式 | NEG-04/NEG-11 实测 |
+| CODEOWNERS 语义误解 | 把 CODEOWNERS 当作自动强制 | **平台事实:CODEOWNERS 本身不阻断任何合并**;只有 branch protection/rulesets 勾选 "Require review from Code Owners" 后才生效;且唯一 Owner 无法自审自己的 PR(D2 死锁);Copilot/AI review 不构成批准 | 启用顺序:先以 PR 加入第二 Owner → 再开启 require_code_owner_review;OWNER-ACTIONS S3-2/S3-3 顺序不可换 |
 
 落地提醒:在 rulesets 尚未启用、Governance 尚未设为必需之前,以上防线只有 CODEOWNERS 与人工审核 —— 这正是本包要求分阶段启用保护的原因。

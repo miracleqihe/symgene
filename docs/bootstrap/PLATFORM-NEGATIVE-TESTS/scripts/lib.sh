@@ -85,32 +85,86 @@ require_test_repo() {
   return 0
 }
 
-# Every listed identity must have a token (GH_<NAME>) when running live.
-# A missing account BLOCKS the scenario instead of running it under one
-# identity and misreading the result.
+# Every listed identity must be fully configured (GH_<N>_TOKEN + GH_<N>_USER)
+# when running live, and the token must actually authenticate AS that user
+# (assert_identity). A missing or misbound account BLOCKS the scenario
+# instead of running it under the wrong/default identity.
 require_identity() {
   if [[ "${LIVE:-0}" == "1" ]]; then
-    local who token_var
+    local who
     for who in "$@"; do
-      token_var="GH_${who}"
-      if [[ -z "${!token_var:-}" ]]; then
-        echo "VERDICT: BLOCKED — identity GH_${who} is not configured; this scenario needs distinct accounts and refuses to run under a single identity" >&2
+      if [[ -z "$(identity_var "$who" TOKEN)" || -z "$(identity_var "$who" USER)" ]]; then
+        echo "VERDICT: BLOCKED — identity GH_${who} needs both GH_${who}_TOKEN and GH_${who}_USER; this scenario refuses to run under a single/default identity" >&2
         exit $EXIT_BLOCKED_IDENTITY
       fi
     done
+    local who2
+    for who2 in "$@"; do assert_identity "$who2"; done
   fi
+}
+
+identity_var() {
+  # GH_A -> GH_A_TOKEN / GH_A_USER (legacy GH_A token accepted)
+  local who="$1" kind="$2" legacy="GH_${who}" v="GH_${who}_${kind}"
+  if [[ -n "${!v:-}" ]]; then printf '%s' "${!v}"
+  elif [[ "$kind" == "TOKEN" && -n "${!legacy:-}" ]]; then printf '%s' "${!legacy}"
+  fi
+}
+
+assert_identity() {
+  local who="$1" expected want got
+  expected=$(identity_var "$who" USER)
+  want="GH_${who}_USER=${expected}"
+  got=$(GH_TOKEN="$(identity_var "$who" TOKEN)" gh api user --jq .login 2>/dev/null) || {
+    echo "VERDICT: BLOCKED — token for GH_${who} could not authenticate" >&2
+    exit $EXIT_BLOCKED_AUTH
+  }
+  if [[ "$got" != "$expected" ]]; then
+    echo "VERDICT: BLOCKED — identity misbinding for GH_${who}: token authenticates as '${got}', expected '${expected}' (${want})" >&2
+    exit $EXIT_BLOCKED_IDENTITY
+  fi
+  echo "[live] identity GH_${who} verified as ${got}"
+}
+
+# Authenticated push/pull URL for an identity: git operations in the
+# scenarios MUST use this, never the local default credentials.
+authed_url() {
+  local who="$1" repo="$2"
+  printf 'https://x-access-token:%s@github.com/%s.git' "$(identity_var "$who" TOKEN)" "$repo"
+}
+
+# Positive control: the command is EXPECTED to succeed. Success -> PASS;
+# failure -> FAIL (the gate under test is over-blocking or another gate
+# interferes); harness problems -> BLOCKED.
+expect_accepted() {
+  local desc="$1"; shift
+  local out rc
+  out=$("$@" 2>&1)
+  rc=$?
+  if [[ $rc -eq 0 ]]; then
+    echo "VERDICT: PASS (positive control) — ${desc}"
+    return 0
+  fi
+  if printf '%s' "$out" | grep -Eqi "$DISTRESS_RE"; then
+    echo "VERDICT: BLOCKED — ${desc} failed for a harness/permission reason:" >&2
+    printf '%s\n' "$out" | head -5 >&2
+    return $EXIT_BLOCKED_AUTH
+  fi
+  echo "VERDICT: FAIL — positive control failed: ${desc}; another gate is interfering with attribution:" >&2
+  printf '%s\n' "$out" | head -5 >&2
+  return $EXIT_FAIL
 }
 
 # Some scenarios are only meaningful as a non-admin collaborator (admin
 # bypass would fake the result). Verifies the acting identity's permission.
 require_actor_not_admin() {
   if [[ "${LIVE:-0}" == "1" ]]; then
-    local repo="$1" who="${ACTOR:-A}" token_var="GH_${who}" login perm
-    login=$(GH_TOKEN="${!token_var}" gh api user --jq .login) || {
+    local repo="$1" who="${ACTOR:-A}" login perm
+    login=$(GH_TOKEN="$(identity_var "$who" TOKEN)" gh api user --jq .login) || {
       echo "VERDICT: BLOCKED — cannot resolve actor identity GH_${who}" >&2
       exit $EXIT_BLOCKED_AUTH
     }
-    perm=$(GH_TOKEN="${!token_var}" gh api "repos/${repo}/collaborators/${login}/permission" --jq .permission) || {
+    perm=$(GH_TOKEN="$(identity_var "$who" TOKEN)" gh api "repos/${repo}/collaborators/${login}/permission" --jq .permission) || {
       echo "VERDICT: BLOCKED — cannot read the actor's permission on ${repo}" >&2
       exit $EXIT_BLOCKED_AUTH
     }
@@ -126,8 +180,8 @@ require_actor_not_admin() {
 # missing token is a hard BLOCKED, never a silent fallback.
 gh_as() {
   local who="$1"; shift
-  local token_var="GH_${who}"
-  local token="${!token_var:-}"
+  local token
+  token=$(identity_var "$who" TOKEN)
   if [[ -n "$token" ]]; then
     GH_TOKEN="$token" gh "$@"
   elif [[ "${LIVE:-0}" == "1" ]]; then
@@ -136,6 +190,15 @@ gh_as() {
   else
     echo "[warn] GH_${who} not set; simulate mode: would call gh $*" >&2
   fi
+}
+
+# git -C <clone> with the author/committer identity of <who> bound to the
+# authenticated push URL. Never uses the local default credentials.
+git_as() {
+  local who="$1" dir="$2"; shift 2
+  local user
+  user=$(identity_var "$who" USER)
+  git -C "$dir" -c user.name="$user" -c user.email="${user}@users.noreply.github.com" "$@"
 }
 
 # expect_protected_rejection <desc> <protection-pattern> -- cmd [args...]

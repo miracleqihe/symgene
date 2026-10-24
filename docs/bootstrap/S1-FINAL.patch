@@ -1,0 +1,1512 @@
+diff --git a/.github/tests/governance-library.test.mjs b/.github/tests/governance-library.test.mjs
+new file mode 100644
+index 0000000..d65414c
+--- /dev/null
++++ b/.github/tests/governance-library.test.mjs
+@@ -0,0 +1,697 @@
++// Local negative tests for the governance audit library.
++//
++// These fixtures exercise the audit rules themselves: GOOD shapes must pass
++// clean, BAD shapes must produce the specific violation. They run anywhere
++// (no repository state needed) and guard the auditor against silent
++// weakening — if someone relaxes a rule, the BAD fixture starts failing.
++import test from 'node:test'
++import assert from 'node:assert/strict'
++
++import {
++  auditWorkflow,
++  auditCodeowners,
++  auditRepository,
++  triggerKeys,
++  topLevelBlocks,
++} from './lib/audit-governance.mjs'
++
++const GOOD_DEPLOY = `name: Deploy to GitHub Pages
++
++on:
++  workflow_dispatch:
++
++permissions:
++  contents: read
++
++concurrency:
++  group: pages-production
++  cancel-in-progress: true
++
++jobs:
++  verify:
++    runs-on: ubuntu-latest
++    permissions:
++      contents: read
++    steps:
++      - uses: actions/checkout@v4
++      - run: npm run verify
++
++  deploy:
++    needs: verify
++    permissions:
++      contents: read
++      pages: write
++      id-token: write
++    environment:
++      name: github-pages
++      url: https://example.invalid
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/deploy-pages@v4
++`
++
++const DEPLOY_WITH_PUSH = GOOD_DEPLOY.replace(
++  'on:\n  workflow_dispatch:',
++  'on:\n  push:\n    branches: [main]\n  workflow_dispatch:',
++)
++const DEPLOY_WITH_SCHEDULE = GOOD_DEPLOY.replace(
++  'on:\n  workflow_dispatch:',
++  'on:\n  schedule:\n    - cron: "0 3 * * *"\n  workflow_dispatch:',
++)
++const DEPLOY_WITHOUT_ENV = GOOD_DEPLOY.replace(
++  '    environment:\n      name: github-pages\n      url: https://example.invalid\n',
++  '',
++)
++const DEPLOY_WITHOUT_ID_TOKEN = GOOD_DEPLOY.replace('      id-token: write\n', '')
++const DEPLOY_WITH_WIDENED_VERIFY = GOOD_DEPLOY.replace(
++  `  verify:
++    runs-on: ubuntu-latest
++    permissions:
++      contents: read
++`,
++  `  verify:
++    runs-on: ubuntu-latest
++    permissions:
++      contents: read
++      id-token: write
++`,
++)
++const DEPLOY_WITH_CHANGED_CONCURRENCY = GOOD_DEPLOY.replace(
++  'group: pages-production',
++  'group: pages-build',
++)
++const DEPLOY_WITH_WIDE_TOP = GOOD_DEPLOY.replace(
++  'permissions:\n  contents: read',
++  'permissions:\n  contents: write',
++)
++const DEPLOY_WITHOUT_TOP_PERMISSIONS = GOOD_DEPLOY.replace(
++  'permissions:\n  contents: read\n\n',
++  '',
++)
++const DEPLOY_WITH_CROSS_RUN_ARTIFACT = GOOD_DEPLOY.replace(
++  '      - uses: actions/deploy-pages@v4\n',
++  '      - uses: actions/download-artifact@v4\n        with:\n          name: site-dist\n          path: dist\n          run-id: ${{ github.run_id }}\n',
++)
++
++const GOOD_CI = `name: CI
++
++on:
++  pull_request:
++    branches: [dev, main]
++
++permissions:
++  contents: read
++
++jobs:
++  branch-policy:
++    name: Branch policy
++    if: github.event_name == 'pull_request' && github.base_ref == 'main'
++    runs-on: ubuntu-latest
++    steps:
++      - name: Require same-repository dev promotion for main
++        env:
++          BASE_REF: \${{ github.base_ref }}
++          HEAD_REF: \${{ github.head_ref }}
++          BASE_REPOSITORY: \${{ github.repository }}
++          HEAD_REPOSITORY: \${{ github.event.pull_request.head.repo.full_name }}
++        run: |
++          if [[ "$BASE_REF" == "main" ]] && \\
++             [[ "$HEAD_REF" != "dev" || "$HEAD_REPOSITORY" != "$BASE_REPOSITORY" ]]; then
++            echo "Pull requests to main must promote the dev branch from this repository."
++            echo "Received: $HEAD_REPOSITORY:$HEAD_REF -> $BASE_REPOSITORY:$BASE_REF"
++            exit 1
++          fi
++
++  governance:
++    name: Governance
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++        with:
++          persist-credentials: false
++      - run: node --test .github/tests/*.test.mjs
++`
++
++const WEAKENED_CI = GOOD_CI.replace(
++  '[[ "$HEAD_REF" != "dev" || "$HEAD_REPOSITORY" != "$BASE_REPOSITORY" ]]',
++  '[[ "$HEAD_REF" != "dev" ]]',
++)
++const MISSING_POLICY_CI = GOOD_CI.replace(/  branch-policy:[\s\S]*$/, '')
++
++const PR_TARGET_SAFE = `name: PR governance
++
++on:
++  pull_request_target:
++    branches: [main]
++
++permissions:
++  contents: read
++
++jobs:
++  promotion-pr-policy:
++    permissions:
++      contents: read
++      issues: write
++      pull-requests: write
++    steps:
++      - uses: actions/checkout@v4
++        with:
++          ref: \${{ github.event.pull_request.base.sha }}
++          persist-credentials: false
++`
++
++const PR_TARGET_UNSAFE = PR_TARGET_SAFE.replace(
++  'ref: \${{ github.event.pull_request.base.sha }}',
++  'ref: \${{ github.event.pull_request.head.sha }}',
++)
++
++const GOOD_CODEOWNERS = `* @miracleqihe
++/.github/ @miracleqihe
++`
++const UNOWNED_CODEOWNERS = `* @miracleqihe
++`
++
++test('good deploy workflow passes clean', () => {
++  assert.deepEqual(auditWorkflow(GOOD_DEPLOY, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }), [])
++})
++
++test('push trigger on deploy workflow is rejected (S0 invariant)', () => {
++  const codes = auditWorkflow(DEPLOY_WITH_PUSH, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }).map((v) => v.code)
++  assert.ok(codes.includes('DEPLOY_TRIGGER_PUSH'), `expected DEPLOY_TRIGGER_PUSH, got ${codes}`)
++  assert.ok(codes.includes('DEPLOY_TRIGGER_NOT_DISPATCH_ONLY'), `expected DEPLOY_TRIGGER_NOT_DISPATCH_ONLY, got ${codes}`)
++})
++
++test('schedule trigger on deploy workflow is rejected', () => {
++  const codes = auditWorkflow(DEPLOY_WITH_SCHEDULE, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }).map((v) => v.code)
++  assert.ok(codes.includes('DEPLOY_TRIGGER_SCHEDULE'))
++})
++
++test('deploy job publishing outside the github-pages environment is rejected', () => {
++  const codes = auditWorkflow(DEPLOY_WITHOUT_ENV, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }).map((v) => v.code)
++  assert.ok(codes.includes('DEPLOY_ENV_NOT_PAGES'))
++})
++
++test('deploy job without id-token: write is rejected (publish integrity)', () => {
++  const codes = auditWorkflow(DEPLOY_WITHOUT_ID_TOKEN, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }).map((v) => v.code)
++  assert.ok(codes.includes('DEPLOY_PERMISSIONS_MISSING'))
++})
++
++test('non-deploy job with id-token: write is rejected (privilege escalation)', () => {
++  const codes = auditWorkflow(DEPLOY_WITH_WIDENED_VERIFY, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }).map((v) => v.code)
++  assert.ok(codes.includes('JOB_PRIVILEGE_ESCALATION'))
++})
++
++test('changed deploy concurrency group is rejected', () => {
++  const codes = auditWorkflow(DEPLOY_WITH_CHANGED_CONCURRENCY, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }).map((v) => v.code)
++  assert.ok(codes.includes('DEPLOY_CONCURRENCY_GROUP_CHANGED'))
++})
++
++test('widened top-level permissions are rejected', () => {
++  const codes = auditWorkflow(DEPLOY_WITH_WIDE_TOP, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }).map((v) => v.code)
++  assert.ok(codes.includes('TOP_PERMISSIONS_NOT_LEAST_PRIVILEGE'))
++})
++
++test('missing top-level permissions are rejected', () => {
++  const codes = auditWorkflow(DEPLOY_WITHOUT_TOP_PERMISSIONS, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }).map((v) => v.code)
++  assert.ok(codes.includes('TOP_PERMISSIONS_MISSING'))
++})
++
++test('good CI branch policy passes clean', () => {
++  assert.deepEqual(auditWorkflow(GOOD_CI, 'ci.yml'), [])
++})
++
++test('weakened branch policy is rejected', () => {
++  const codes = auditWorkflow(WEAKENED_CI, 'ci.yml').map((v) => v.code)
++  assert.ok(codes.includes('BRANCH_POLICY_WEAKENED'))
++})
++
++test('removed branch policy is rejected', () => {
++  const codes = auditWorkflow(MISSING_POLICY_CI, 'ci.yml').map((v) => v.code)
++  assert.ok(codes.includes('BRANCH_POLICY_JOB_MISSING'))
++})
++
++test('pull_request_target on the trusted base commit passes clean', () => {
++  assert.deepEqual(auditWorkflow(PR_TARGET_SAFE, 'pr-governance.yml'), [])
++})
++
++test('pull_request_target resolving the PR head is rejected', () => {
++  const codes = auditWorkflow(PR_TARGET_UNSAFE, 'pr-governance.yml').map((v) => v.code)
++  assert.ok(codes.includes('PR_TARGET_HEAD_CHECKOUT'))
++})
++
++test('deploy job consuming a cross-run artifact is rejected (wrong-SHA publish input)', () => {
++  const codes = auditWorkflow(DEPLOY_WITH_CROSS_RUN_ARTIFACT, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }).map((v) => v.code)
++  assert.ok(codes.includes('CROSS_RUN_ARTIFACT'))
++})
++
++test('repository audit flags duplicate check-run names (impersonation surface)', () => {
++  const fake = GOOD_CI.replace(
++    '  branch-policy:',
++    '  impostor:\n    name: Branch policy\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo ok\n\n  branch-policy:',
++  )
++  const violations = auditRepository([
++    { path: '.github/workflows/ci.yml', text: fake },
++    { path: '.github/CODEOWNERS', text: GOOD_CODEOWNERS },
++  ])
++  assert.ok(
++    violations.some((v) => v.code === 'CHECK_NAME_COLLISION' && v.message.includes('"Branch policy"')),
++    `expected CHECK_NAME_COLLISION, got ${violations.map((v) => v.code)}`,
++  )
++})
++
++test('CODEOWNERS without /.github/ coverage is rejected', () => {
++  const codes = auditCodeowners(UNOWNED_CODEOWNERS).map((v) => v.code)
++  assert.ok(codes.includes('GOVERNANCE_PATH_UNOWNED'))
++  assert.deepEqual(auditCodeowners(GOOD_CODEOWNERS), [])
++})
++
++test('repository audit rejects a checkout missing CODEOWNERS', () => {
++  const violations = auditRepository([{ path: '.github/workflows/ci.yml', text: GOOD_CI }])
++  assert.ok(violations.some((v) => v.code === 'GOVERNANCE_PATH_UNOWNED'))
++})
++
++test('scanner handles the YAML 1.1 on-block and inline trigger forms', () => {
++  const blocks = topLevelBlocks(GOOD_DEPLOY)
++  assert.deepEqual(triggerKeys(blocks.get('on')), ['workflow_dispatch'])
++  assert.deepEqual(triggerKeys(topLevelBlocks('on: [push, workflow_dispatch]\n').get('on')), ['push', 'workflow_dispatch'])
++  assert.deepEqual(triggerKeys(topLevelBlocks('on: push\n').get('on')), ['push'])
++})
++
++// ===========================================================================
++// Remediation round 2026-10-24 (review findings 1-3).
++// New fixtures for YAML expression forms, signature-based branch policy
++// validation, and fail-closed parsing boundaries. Written before the fix;
++// every test here must be red first, then green after the auditor update.
++// ===========================================================================
++
++const GOOD_DEPLOY_PAGESJOBS = { 'deploy-pages.yml': ['deploy'] }
++
++// --- F1: job-level inline permissions -------------------------------------
++const JOB_INLINE_WRITE_ALL = GOOD_DEPLOY.replace(
++  '  verify:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n',
++  '  verify:\n    runs-on: ubuntu-latest\n    permissions: write-all\n',
++)
++const JOB_INLINE_FLOW_PAGES = GOOD_DEPLOY.replace(
++  '  verify:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n',
++  '  verify:\n    runs-on: ubuntu-latest\n    permissions: { contents: read, pages: write }\n',
++)
++const JOB_INLINE_READ_ALL = GOOD_DEPLOY.replace(
++  '  verify:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n',
++  '  verify:\n    runs-on: ubuntu-latest\n    permissions: read-all\n',
++)
++const JOB_INLINE_UNPARSEABLE = GOOD_DEPLOY.replace(
++  '  verify:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n',
++  '  verify:\n    runs-on: ubuntu-latest\n    permissions: contents:read\n',
++)
++const JOB_INVALID_VALUE = GOOD_DEPLOY.replace('      id-token: write', '      id-token: Write')
++
++test('F1: inline write-all job permissions are rejected (were silently ignored)', () => {
++  const codes = auditWorkflow(JOB_INLINE_WRITE_ALL, 'deploy-pages.yml', { pagesJobs: GOOD_DEPLOY_PAGESJOBS }).map((v) => v.code)
++  assert.ok(codes.includes('JOB_PRIVILEGE_ESCALATION'), `expected JOB_PRIVILEGE_ESCALATION, got ${codes}`)
++})
++
++test('F1: inline flow-mapping job permissions granting pages: write are rejected', () => {
++  const codes = auditWorkflow(JOB_INLINE_FLOW_PAGES, 'deploy-pages.yml', { pagesJobs: GOOD_DEPLOY_PAGESJOBS }).map((v) => v.code)
++  assert.ok(codes.includes('JOB_PRIVILEGE_ESCALATION'), `expected JOB_PRIVILEGE_ESCALATION, got ${codes}`)
++})
++
++test('F1: inline read-all job permissions remain acceptable', () => {
++  const codes = auditWorkflow(JOB_INLINE_READ_ALL, 'deploy-pages.yml', { pagesJobs: GOOD_DEPLOY_PAGESJOBS }).map((v) => v.code)
++  assert.ok(!codes.some((c) => c.includes('PERMISSION')), `unexpected ${codes}`)
++})
++
++test('F1: unparseable inline job permissions fail closed', () => {
++  const codes = auditWorkflow(JOB_INLINE_UNPARSEABLE, 'deploy-pages.yml', { pagesJobs: GOOD_DEPLOY_PAGESJOBS }).map((v) => v.code)
++  assert.ok(codes.includes('JOB_PERMISSIONS_UNPARSEABLE'), `expected JOB_PERMISSIONS_UNPARSEABLE, got ${codes}`)
++})
++
++test('F1: permission values outside the read/write/none enum fail closed', () => {
++  const codes = auditWorkflow(JOB_INVALID_VALUE, 'deploy-pages.yml', { pagesJobs: GOOD_DEPLOY_PAGESJOBS }).map((v) => v.code)
++  assert.ok(codes.includes('JOB_PERMISSIONS_VALUE_INVALID'), `expected JOB_PERMISSIONS_VALUE_INVALID, got ${codes}`)
++})
++
++// --- F2: signature-based branch policy validation --------------------------
++// Verbatim shape of PR #37 (codex/t03-website-security) branch-policy job.
++const GOOD_CI_V2 = `name: CI
++
++on:
++  pull_request:
++    branches: [dev, main]
++
++permissions:
++  contents: read
++
++jobs:
++  branch-policy:
++    name: Branch policy
++    runs-on: ubuntu-latest
++    timeout-minutes: 5
++    steps:
++      - name: Enforce same-repository dev promotion when targeting main
++        env:
++          EVENT_NAME: \${{ github.event_name }}
++          BASE_REF: \${{ github.base_ref }}
++          HEAD_REF: \${{ github.head_ref }}
++          BASE_REPOSITORY: \${{ github.repository }}
++          HEAD_REPOSITORY: \${{ github.event.pull_request.head.repo.full_name }}
++        run: |
++          if [[ "$EVENT_NAME" == "pull_request" && "$BASE_REF" == "main" ]]; then
++            [[ "$HEAD_REF" == "dev" && "$HEAD_REPOSITORY" == "$BASE_REPOSITORY" ]] || exit 1
++          fi
++`
++const V2_CONSTRAINT_REMOVED = GOOD_CI_V2.replace(
++  '            [[ "$HEAD_REF" == "dev" && "$HEAD_REPOSITORY" == "$BASE_REPOSITORY" ]] || exit 1\n', '')
++const V2_REPO_CLAUSE_DROPPED = GOOD_CI_V2.replace(
++  '[[ "$HEAD_REF" == "dev" && "$HEAD_REPOSITORY" == "$BASE_REPOSITORY" ]] || exit 1',
++  '[[ "$HEAD_REF" == "dev" ]] || exit 1')
++const V2_ENV_HARDWIRED = GOOD_CI_V2.replace(
++  'HEAD_REPOSITORY: \${{ github.event.pull_request.head.repo.full_name }}',
++  'HEAD_REPOSITORY: miracleqihe/symgene')
++const V3_UNRECOGNIZED = GOOD_CI_V2.replace(
++  /            \[\[ "\$HEAD_REF".*\n(.*\n)?/m,
++  '            echo "reviewed manually, trust me"\n')
++
++test('F2: PR #37 style branch policy (positive gate + exit 1) passes clean', () => {
++  assert.deepEqual(auditWorkflow(GOOD_CI_V2, 'ci.yml'), [])
++})
++
++test('F2: removing the v2 enforcement line fails', () => {
++  const codes = auditWorkflow(V2_CONSTRAINT_REMOVED, 'ci.yml').map((v) => v.code)
++  assert.ok(codes.some((c) => c.startsWith('BRANCH_POLICY_')), `expected a BRANCH_POLICY_ violation, got ${codes}`)
++})
++
++test('F2: dropping the same-repository clause from v2 fails', () => {
++  const codes = auditWorkflow(V2_REPO_CLAUSE_DROPPED, 'ci.yml').map((v) => v.code)
++  assert.ok(codes.includes('BRANCH_POLICY_WEAKENED'), `expected BRANCH_POLICY_WEAKENED, got ${codes}`)
++})
++
++test('F2: hard-wiring the env context instead of interpolating it fails', () => {
++  const codes = auditWorkflow(V2_ENV_HARDWIRED, 'ci.yml').map((v) => v.code)
++  assert.ok(codes.includes('BRANCH_POLICY_ENV_BINDING_WEAKENED'), `expected BRANCH_POLICY_ENV_BINDING_WEAKENED, got ${codes}`)
++})
++
++test('F2: an unrecognized gate implementation fails closed', () => {
++  const codes = auditWorkflow(V3_UNRECOGNIZED, 'ci.yml').map((v) => v.code)
++  assert.ok(codes.includes('BRANCH_POLICY_UNRECOGNIZED'), `expected BRANCH_POLICY_UNRECOGNIZED, got ${codes}`)
++})
++
++// --- F3: parsing boundaries ------------------------------------------------
++const FLOW_CHECKOUT_PR_TARGET = PR_TARGET_SAFE.replace(
++  '      - uses: actions/checkout@v4\n        with:\n          ref: \${{ github.event.pull_request.base.sha }}\n          persist-credentials: false\n',
++  '      - { uses: actions/checkout@v4, with: { ref: \${{ github.event.pull_request.head.sha }}, persist-credentials: false } }\n')
++const RUN_HEAD_USE_PR_TARGET = PR_TARGET_SAFE.replace(
++  '          persist-credentials: false\n',
++  '          persist-credentials: false\n      - name: report\n        run: echo "\${{ github.event.pull_request.head.sha }}"\n')
++const ANCHORED_WORKFLOW = `name: Anchored
++
++on:
++  workflow_dispatch:
++
++permissions:
++  contents: read
++
++jobs:
++  first: &shared-job
++    runs-on: ubuntu-latest
++    steps:
++      - run: echo hi
++  second: *shared-job
++`
++const MULTIDOC_WORKFLOW = '---\n' + GOOD_CI
++const TABBED_WORKFLOW = GOOD_CI.replace('  branch-policy:', '\tbranch-policy:')
++const WORKFLOW_RUN_TRIGGER = `name: Wrapped
++
++on:
++  workflow_run:
++    workflows: [CI]
++    types: [completed]
++
++permissions:
++  contents: read
++
++jobs:
++  after:
++    runs-on: ubuntu-latest
++    steps:
++      - run: echo ok
++`
++const DYNAMIC_ENV_DEPLOY = GOOD_DEPLOY.replace('      name: github-pages', '      name: \${{ env.PAGES_ENV }}')
++const ALT_PAGES_WORKFLOW = GOOD_DEPLOY.replace("name: Deploy to GitHub Pages", "name: Alt publisher")
++
++test('F3: pull_request_target head checkout via flow mapping is rejected', () => {
++  const codes = auditWorkflow(FLOW_CHECKOUT_PR_TARGET, 'pr-governance.yml').map((v) => v.code)
++  assert.ok(codes.includes('PR_TARGET_HEAD_CHECKOUT'), `expected PR_TARGET_HEAD_CHECKOUT, got ${codes}`)
++})
++
++test('F3: pull_request_target run scripts consuming head.sha are rejected', () => {
++  const codes = auditWorkflow(RUN_HEAD_USE_PR_TARGET, 'pr-governance.yml').map((v) => v.code)
++  assert.ok(codes.includes('PR_TARGET_HEAD_REFERENCE'), `expected PR_TARGET_HEAD_REFERENCE, got ${codes}`)
++})
++
++test('F3: YAML anchors and aliases fail closed', () => {
++  const codes = auditWorkflow(ANCHORED_WORKFLOW, 'anchored.yml').map((v) => v.code)
++  assert.ok(codes.includes('UNSUPPORTED_YAML_CONSTRUCT'), `expected UNSUPPORTED_YAML_CONSTRUCT, got ${codes}`)
++})
++
++test('F3: multi-document YAML streams fail closed', () => {
++  const codes = auditWorkflow(MULTIDOC_WORKFLOW, 'multi.yml').map((v) => v.code)
++  assert.ok(codes.includes('UNSUPPORTED_YAML_CONSTRUCT'), `expected UNSUPPORTED_YAML_CONSTRUCT, got ${codes}`)
++})
++
++test('F3: tab indentation fails closed', () => {
++  const codes = auditWorkflow(TABBED_WORKFLOW, 'tabbed.yml').map((v) => v.code)
++  assert.ok(codes.includes('UNSUPPORTED_YAML_CONSTRUCT'), `expected UNSUPPORTED_YAML_CONSTRUCT, got ${codes}`)
++})
++
++test('F3: unrecognized triggers (workflow_run) fail closed', () => {
++  const codes = auditWorkflow(WORKFLOW_RUN_TRIGGER, 'wrapped.yml').map((v) => v.code)
++  assert.ok(codes.includes('TRIGGER_UNRECOGNIZED'), `expected TRIGGER_UNRECOGNIZED, got ${codes}`)
++})
++
++test('F3: an alternative Pages publishing workflow is rejected', () => {
++  const violations = auditRepository([
++    { path: '.github/workflows/deploy-pages.yml', text: GOOD_DEPLOY },
++    { path: '.github/workflows/deploy-alt.yml', text: ALT_PAGES_WORKFLOW },
++    { path: '.github/CODEOWNERS', text: GOOD_CODEOWNERS },
++  ])
++  assert.ok(violations.some((v) => v.code === 'JOB_PRIVILEGE_ESCALATION' && v.file === 'deploy-alt.yml'),
++    `expected escalation on deploy-alt.yml, got ${violations.map((v) => v.code)}`)
++})
++
++test('F3: deleting deploy-pages.yml fails closed at repository level', () => {
++  const violations = auditRepository([
++    { path: '.github/workflows/ci.yml', text: GOOD_CI },
++    { path: '.github/CODEOWNERS', text: GOOD_CODEOWNERS },
++  ])
++  assert.ok(violations.some((v) => v.code === 'PAGES_ENTRY_WORKFLOW_MISSING'),
++    `expected PAGES_ENTRY_WORKFLOW_MISSING, got ${violations.map((v) => v.code)}`)
++})
++
++test('F3: dynamic environment name in the deploy job fails closed (regression guard)', () => {
++  const codes = auditWorkflow(DYNAMIC_ENV_DEPLOY, 'deploy-pages.yml', { pagesJobs: GOOD_DEPLOY_PAGESJOBS }).map((v) => v.code)
++  assert.ok(codes.includes('DEPLOY_ENV_NOT_PAGES'), `expected DEPLOY_ENV_NOT_PAGES, got ${codes}`)
++})
++
++// --- F10 follow-up: value-aware top-level permissions -----------------------
++// Read-only top-level declarations (any scopes, read/none values) are
++// least-privilege compliant; only write values escalate. Discovered via the
++// #37 compatibility test (publication-policy.yml declares four read scopes).
++const TOP_READ_SCOPES = GOOD_DEPLOY.replace(
++  'permissions:\n  contents: read\n\n',
++  'permissions:\n  contents: read\n  pull-requests: read\n  actions: read\n\n',
++)
++const TOP_READ_ALL = GOOD_DEPLOY.replace(
++  'permissions:\n  contents: read\n\n',
++  'permissions: read-all\n',
++)
++const TOP_WRITE_SCOPE = GOOD_DEPLOY.replace(
++  'permissions:\n  contents: read\n\n',
++  'permissions:\n  contents: read\n  deployments: write\n\n',
++)
++
++test('F1: read-only top-level scopes beyond contents are acceptable', () => {
++  const codes = auditWorkflow(TOP_READ_SCOPES, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }).map((v) => v.code)
++  assert.ok(!codes.some((c) => c.startsWith('TOP_PERMISSIONS')), `unexpected ${codes}`)
++})
++
++test('F1: inline read-all top-level permissions are acceptable', () => {
++  const codes = auditWorkflow(TOP_READ_ALL, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }).map((v) => v.code)
++  assert.ok(!codes.some((c) => c.startsWith('TOP_PERMISSIONS')), `unexpected ${codes}`)
++})
++
++test('F1: any write value at top level is rejected', () => {
++  const codes = auditWorkflow(TOP_WRITE_SCOPE, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }).map((v) => v.code)
++  assert.ok(codes.includes('TOP_PERMISSIONS_NOT_LEAST_PRIVILEGE'), `expected TOP_PERMISSIONS_NOT_LEAST_PRIVILEGE, got ${codes}`)
++})
++
++// ===========================================================================
++// R2 adversarial round (2026-10-24). Each test targets one independently
++// reproduced finding from the second review. Written before the fix.
++// ===========================================================================
++
++const PJ = { 'deploy-pages.yml': ['deploy'] }
++
++// --- R2-A1: branch-policy template containment bypass -----------------------
++// The signature used to be matched by CONTAINMENT, so a dead string (echo)
++// or extra statements satisfied the gate without executing it.
++const V2_SIGNATURE_AS_STRING = GOOD_CI_V2.replace(
++  /        run: \|\n[\s\S]*?          fi\n/,
++  `        run: echo 'if [[ "$EVENT_NAME" == "pull_request" && "$BASE_REF" == "main" ]]; then [[ "$HEAD_REF" == "dev" && "$HEAD_REPOSITORY" == "$BASE_REPOSITORY" ]] || exit 1; fi'\n`)
++const V2_WITH_EXTRA_STATEMENT = GOOD_CI_V2.replace(
++  '          if [[ "$EVENT_NAME"',
++  '          echo "starting gate"\n          if [[ "$EVENT_NAME"')
++
++test('R2-A1: signature inside a dead string does not satisfy the gate', () => {
++  const codes = auditWorkflow(V2_SIGNATURE_AS_STRING, 'ci.yml').map((v) => v.code)
++  // The template-equality rule must reject the dead-string form; the exact
++  // diagnostic code (WEAKENED when gate fragments are recognizable,
++  // UNRECOGNIZED otherwise) is secondary — both are fail-closed violations.
++  assert.ok(
++    codes.includes('BRANCH_POLICY_WEAKENED') || codes.includes('BRANCH_POLICY_UNRECOGNIZED'),
++    `expected a BRANCH_POLICY_ violation, got ${codes}`)
++})
++
++test('R2-A1: extra statements around the v2 script fail closed', () => {
++  const codes = auditWorkflow(V2_WITH_EXTRA_STATEMENT, 'ci.yml').map((v) => v.code)
++  assert.ok(codes.some((c) => c.startsWith('BRANCH_POLICY_')), `got ${codes}`)
++})
++
++test('R2-A1: a job-level if that can skip the gate on PRs to main is rejected', () => {
++  const codes = auditWorkflow(GOOD_CI_V2.replace(
++    '  branch-policy:\n    name: Branch policy\n    runs-on: ubuntu-latest',
++    "  branch-policy:\n    name: Branch policy\n    if: github.event_name == 'push'\n    runs-on: ubuntu-latest"), 'ci.yml').map((v) => v.code)
++  assert.ok(codes.includes('BRANCH_POLICY_NOT_GATED'), `expected BRANCH_POLICY_NOT_GATED, got ${codes}`)
++})
++
++// --- R2-A2: swallowed failures ----------------------------------------------
++const STEP_COE = GOOD_CI_V2.replace(
++  '      - name: Enforce same-repository dev promotion when targeting main',
++  '      - name: Enforce same-repository dev promotion when targeting main\n        continue-on-error: true')
++const GOV_COE = GOOD_CI.replace(
++  '  governance:\n    name: Governance\n    runs-on: ubuntu-latest',
++  '  governance:\n    name: Governance\n    continue-on-error: true\n    runs-on: ubuntu-latest')
++const VERIFY_OR_TRUE = GOOD_DEPLOY.replace('      - run: npm run verify', '      - run: npm run verify || true')
++const VERIFY_COE = GOOD_DEPLOY.replace(
++  '  verify:\n    runs-on: ubuntu-latest',
++  '  verify:\n    continue-on-error: true\n    runs-on: ubuntu-latest')
++
++test('R2-A2: continue-on-error on the branch-policy step is rejected', () => {
++  const codes = auditWorkflow(STEP_COE, 'ci.yml').map((v) => v.code)
++  assert.ok(codes.includes('FAILURE_SWALLOWED'), `expected FAILURE_SWALLOWED, got ${codes}`)
++})
++
++test('R2-A2: continue-on-error on the Governance job is rejected', () => {
++  const codes = auditWorkflow(GOV_COE, 'ci.yml').map((v) => v.code)
++  assert.ok(codes.includes('FAILURE_SWALLOWED'), `expected FAILURE_SWALLOWED, got ${codes}`)
++})
++
++test('R2-A2: "|| true" on the publish-chain verify step is rejected', () => {
++  const codes = auditWorkflow(VERIFY_OR_TRUE, 'deploy-pages.yml', { pagesJobs: PJ }).map((v) => v.code)
++  assert.ok(codes.includes('FAILURE_SWALLOWED'), `expected FAILURE_SWALLOWED, got ${codes}`)
++})
++
++test('R2-A2: continue-on-error on the deploy verify job is rejected', () => {
++  const codes = auditWorkflow(VERIFY_COE, 'deploy-pages.yml', { pagesJobs: PJ }).map((v) => v.code)
++  assert.ok(codes.includes('FAILURE_SWALLOWED'), `expected FAILURE_SWALLOWED, got ${codes}`)
++})
++
++test('R2-A2: benign continue-on-error outside gate/publish files stays accepted', () => {
++  const codes = auditWorkflow(PR_TARGET_SAFE, 'pr-governance.yml').map((v) => v.code)
++  assert.ok(!codes.includes('FAILURE_SWALLOWED'), `unexpected ${codes}`)
++})
++
++// --- R2-A3: duplicate keys, dynamic names, flow mappings --------------------
++const DUP_TOP = GOOD_CI.replace('permissions:\n  contents: read', 'permissions:\n  contents: write\npermissions:\n  contents: read')
++const DUP_JOB = GOOD_DEPLOY.replace('  deploy:\n    needs: verify', '  deploy:\n    needs: verify\n  deploy:\n    needs: verify')
++const FLOW_JOBS = `name: Flow\n\non:\n  workflow_dispatch:\n\npermissions:\n  contents: read\n\njobs: {verify: {runs-on: ubuntu-latest, steps: [{run: echo hi}]}}\n`
++const FLOW_JOB_ENTRY = GOOD_DEPLOY.replace('  verify:\n    runs-on: ubuntu-latest', '  verify: {runs-on: ubuntu-latest}\n    runs-on: ubuntu-latest')
++const DYNAMIC_NAME = GOOD_CI.replace('    name: Branch policy', '    name: ${{ matrix.policy-name }}')
++
++test('R2-A3: duplicate top-level keys are flagged', () => {
++  const codes = auditWorkflow(DUP_TOP, 'ci.yml').map((v) => v.code)
++  assert.ok(codes.includes('YAML_DUPLICATE_KEY'), `expected YAML_DUPLICATE_KEY, got ${codes}`)
++})
++
++test('R2-A3: duplicate job ids are flagged', () => {
++  const codes = auditWorkflow(DUP_JOB, 'deploy-pages.yml', { pagesJobs: PJ }).map((v) => v.code)
++  assert.ok(codes.includes('YAML_DUPLICATE_KEY'), `expected YAML_DUPLICATE_KEY, got ${codes}`)
++})
++
++test('R2-A3: flow-mapping jobs blocks fail closed', () => {
++  const codes = auditWorkflow(FLOW_JOBS, 'flow.yml').map((v) => v.code)
++  assert.ok(codes.includes('UNSUPPORTED_YAML_CONSTRUCT'), `expected UNSUPPORTED_YAML_CONSTRUCT, got ${codes}`)
++})
++
++test('R2-A3: flow-mapping job entries fail closed', () => {
++  const codes = auditWorkflow(FLOW_JOB_ENTRY, 'deploy-pages.yml', { pagesJobs: PJ }).map((v) => v.code)
++  assert.ok(codes.includes('UNSUPPORTED_YAML_CONSTRUCT'), `expected UNSUPPORTED_YAML_CONSTRUCT, got ${codes}`)
++})
++
++test('R2-A3: dynamic job display names are flagged (check-name integrity)', () => {
++  const codes = auditWorkflow(DYNAMIC_NAME, 'ci.yml').map((v) => v.code)
++  assert.ok(codes.includes('JOB_NAME_DYNAMIC'), `expected JOB_NAME_DYNAMIC, got ${codes}`)
++})
++
++// --- R2-A4: untrusted pull_request_target inputs ----------------------------
++const RUN_TITLE = PR_TARGET_SAFE.replace(
++  '          persist-credentials: false\n',
++  '          persist-credentials: false\n      - name: announce\n        run: echo "\${{ github.event.pull_request.title }}"\n')
++const SCRIPT_BODY = PR_TARGET_SAFE.replace(
++  '          persist-credentials: false\n',
++  '          persist-credentials: false\n      - uses: actions/github-script@v7\n        with:\n          script: console.log("\${{ github.event.pull_request.body }}")\n')
++const WITH_TITLE = PR_TARGET_SAFE.replace(
++  '          persist-credentials: false\n',
++  '          persist-credentials: false\n      - uses: actions/upload-artifact@v4\n        with:\n          name: report-\${{ github.event.pull_request.title }}\n')
++
++test('R2-A4: run scripts interpolating pull_request.title are rejected', () => {
++  const codes = auditWorkflow(RUN_TITLE, 'pr-governance.yml').map((v) => v.code)
++  assert.ok(codes.includes('PR_TARGET_UNTRUSTED_INPUT'), `expected PR_TARGET_UNTRUSTED_INPUT, got ${codes}`)
++})
++
++test('R2-A4: github-script interpolating pull_request.body is rejected', () => {
++  const codes = auditWorkflow(SCRIPT_BODY, 'pr-governance.yml').map((v) => v.code)
++  assert.ok(codes.includes('PR_TARGET_UNTRUSTED_INPUT'), `expected PR_TARGET_UNTRUSTED_INPUT, got ${codes}`)
++})
++
++test('R2-A4: with: inputs carrying pull_request.title are rejected', () => {
++  const codes = auditWorkflow(WITH_TITLE, 'pr-governance.yml').map((v) => v.code)
++  assert.ok(codes.includes('PR_TARGET_UNTRUSTED_INPUT'), `expected PR_TARGET_UNTRUSTED_INPUT, got ${codes}`)
++})
++
++test('R2-A4: pull_request.number and base.* stay allowed (trusted inputs)', () => {
++  const okText = PR_TARGET_SAFE.replace(
++    '          persist-credentials: false\n',
++    '          persist-credentials: false\n      - name: label\n        run: echo "PR \${{ github.event.pull_request.number }} base \${{ github.event.pull_request.base.sha }}"\n')
++  const codes = auditWorkflow(okText, 'pr-governance.yml').map((v) => v.code)
++  assert.ok(!codes.includes('PR_TARGET_UNTRUSTED_INPUT'), `unexpected ${codes}`)
++})
++
++// --- R2-A5: deploy permissions allowlist, needs, failure finality -----------
++const DEPLOY_CONTENTS_WRITE = GOOD_DEPLOY.replace(
++  '    permissions:\n      contents: read\n      pages: write',
++  '    permissions:\n      contents: write\n      pages: write')
++const DEPLOY_NO_NEEDS = GOOD_DEPLOY.replace('    needs: verify\n', '')
++const DEPLOY_NEEDS_PHANTOM = GOOD_DEPLOY.replace('    needs: verify', '    needs: [verify, phantom]')
++const DEPLOY_IF_ALWAYS = GOOD_DEPLOY.replace(
++  '  deploy:\n    needs: verify',
++  '  deploy:\n    if: always()\n    needs: verify')
++
++test('R2-A5: deploy job with contents: write is rejected (permission allowlist)', () => {
++  const codes = auditWorkflow(DEPLOY_CONTENTS_WRITE, 'deploy-pages.yml', { pagesJobs: PJ }).map((v) => v.code)
++  assert.ok(codes.includes('DEPLOY_PERMISSIONS_UNEXPECTED'), `expected DEPLOY_PERMISSIONS_UNEXPECTED, got ${codes}`)
++})
++
++test('R2-A5: deploy job without needs is rejected', () => {
++  const codes = auditWorkflow(DEPLOY_NO_NEEDS, 'deploy-pages.yml', { pagesJobs: PJ }).map((v) => v.code)
++  assert.ok(codes.includes('DEPLOY_NEEDS_MISSING'), `expected DEPLOY_NEEDS_MISSING, got ${codes}`)
++})
++
++test('R2-A5: deploy needs referencing an unknown job is rejected', () => {
++  const codes = auditWorkflow(DEPLOY_NEEDS_PHANTOM, 'deploy-pages.yml', { pagesJobs: PJ }).map((v) => v.code)
++  assert.ok(codes.includes('DEPLOY_NEEDS_UNKNOWN'), `expected DEPLOY_NEEDS_UNKNOWN, got ${codes}`)
++})
++
++test('R2-A5: deploy job running on failure (if: always()) is rejected', () => {
++  const codes = auditWorkflow(DEPLOY_IF_ALWAYS, 'deploy-pages.yml', { pagesJobs: PJ }).map((v) => v.code)
++  assert.ok(codes.includes('DEPLOY_FAILURE_FINALITY'), `expected DEPLOY_FAILURE_FINALITY, got ${codes}`)
++})
+diff --git a/.github/tests/governance.test.mjs b/.github/tests/governance.test.mjs
+new file mode 100644
+index 0000000..2c87438
+--- /dev/null
++++ b/.github/tests/governance.test.mjs
+@@ -0,0 +1,49 @@
++// Governance audit of the actual repository state.
++//
++// This is the enforcement layer. It fails when the repository deviates from
++// the trusted-governance invariants:
++//   - the Pages deploy workflow publishes via workflow_dispatch only (S0);
++//   - every workflow declares least-privilege permissions;
++//   - pull_request_target never acts on the pull request head;
++//   - CI keeps the same-repository dev -> main promotion policy;
++//   - CODEOWNERS keeps /.github/ under explicit owner review.
++//
++// If DEPLOY_TRIGGER_PUSH is reported, S0-FREEZE.patch has not been applied
++// (or a change re-introduced the push trigger). Restore the freeze before
++// merging anything else.
++import test from 'node:test'
++import assert from 'node:assert/strict'
++import fs from 'node:fs'
++import path from 'node:path'
++import { fileURLToPath } from 'node:url'
++
++import { auditRepository, formatViolations } from './lib/audit-governance.mjs'
++
++const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..')
++const workflowsDir = path.join(repoRoot, '.github', 'workflows')
++
++function loadFiles() {
++  const files = []
++  for (const entry of fs.readdirSync(workflowsDir).sort()) {
++    if (!/\.ya?ml$/.test(entry)) continue
++    files.push({
++      path: `.github/workflows/${entry}`,
++      text: fs.readFileSync(path.join(workflowsDir, entry), 'utf8'),
++    })
++  }
++  const codeowners = path.join(repoRoot, '.github', 'CODEOWNERS')
++  if (fs.existsSync(codeowners)) {
++    files.push({ path: '.github/CODEOWNERS', text: fs.readFileSync(codeowners, 'utf8') })
++  }
++  return files
++}
++
++test('repository satisfies the governance invariants', () => {
++  const violations = auditRepository(loadFiles())
++  assert.equal(
++    violations.length,
++    0,
++    `governance violations found:\n${formatViolations(violations)}\n` +
++      'Hint: [DEPLOY_TRIGGER_PUSH] means S0-FREEZE.patch is missing or has been reverted.\n',
++  )
++})
+diff --git a/.github/tests/lib/audit-governance.mjs b/.github/tests/lib/audit-governance.mjs
+new file mode 100644
+index 0000000..3f5fe98
+--- /dev/null
++++ b/.github/tests/lib/audit-governance.mjs
+@@ -0,0 +1,712 @@
++// Governance audit library for the symgene website repository.
++//
++// Structural audits over the workflow YAML files. Deliberately dependency
++// free (node stdlib only) so CI can run it before `npm ci` and nobody can
++// tamper with it through package installs. It scans a deliberately small
++// YAML subset (2-space indentation, block maps, plain scalars, flow
++// mappings in permission values). Anything outside that subset that matters
++// is a violation by construction (fail closed): UNSUPPORTED_YAML_CONSTRUCT
++// and the *_UNPARSEABLE / *_UNRECOGNIZED codes below exist so that syntax
++// this auditor cannot reliably understand is reported, never ignored.
++
++const WRITABLE_SCOPES = new Set([
++  'contents', 'pages', 'id-token', 'deployments', 'actions', 'checks',
++  'packages', 'administration', 'environments', 'statuses',
++  'security-events', 'attestations', 'models', 'members', 'organization-projects',
++])
++
++// Job-level write widenings considered acceptable for commenting/reporting
++// bots. Anything else with a write value must be added deliberately.
++const KNOWN_WRITE_SCOPES = new Set(['issues', 'pull-requests'])
++
++const PERM_VALUES = new Set(['read', 'write', 'none'])
++
++const KNOWN_TRIGGERS = new Set([
++  'push', 'pull_request', 'pull_request_target', 'workflow_dispatch',
++  'schedule', 'workflow_call',
++])
++
++// Canonical branch-policy gate scripts. Matching is TEMPLATE EQUALITY of the
++// whitespace-normalized script (not containment): a signature appearing in a
++// dead string, behind extra statements, or inside another branch of control
++// flow does not prove execution semantics. New gate variants require a
++// deliberate, reviewed extension of this list.
++const V1_CANONICAL = `if [[ "$BASE_REF" == "main" ]] && \
++[[ "$HEAD_REF" != "dev" || "$HEAD_REPOSITORY" != "$BASE_REPOSITORY" ]]; then
++echo "Pull requests to main must promote the dev branch from this repository."
++echo "Received: $HEAD_REPOSITORY:$HEAD_REF -> $BASE_REPOSITORY:$BASE_REF"
++exit 1
++fi`
++
++const V2_CANONICAL = `if [[ "$EVENT_NAME" == "pull_request" && "$BASE_REF" == "main" ]]; then
++[[ "$HEAD_REF" == "dev" && "$HEAD_REPOSITORY" == "$BASE_REPOSITORY" ]] || exit 1
++fi`
++
++function normalizeText(s) {
++  return s.replace(/\\\r?\n/g, ' ').replace(/\s+/g, '')
++}
++const V1_TEMPLATE = normalizeText(V1_CANONICAL)
++const V2_TEMPLATE = normalizeText(V2_CANONICAL)
++
++// Duplicate keys are valid YAML (last wins — the scanner's Maps behave the
++// same, so conclusions stay consistent), but they are a classic parser-
++// confusion foot-gun: flag them for deliberate review.
++export function findDuplicateKeys(text) {
++  const dups = []
++  const seenTop = new Set()
++  let inJobs = false
++  const seenJobs = new Set()
++  for (const raw of text.split('\n')) {
++    const line = stripComments(raw)
++    if (!line.trim()) continue
++    const m = line.match(/^([A-Za-z_][A-Za-z0-9_-]*|"[^"]+"):\s*(.*)$/)
++    if (m) {
++      if (seenTop.has(m[1])) dups.push({ scope: '(top level)', key: m[1] })
++      seenTop.add(m[1])
++      inJobs = m[1] === 'jobs'
++      continue
++    }
++    if (inJobs) {
++      const j = line.match(/^ {2}([A-Za-z_][A-Za-z0-9_-]*):\s*(.*)$/)
++      if (j) {
++        if (seenJobs.has(j[1])) dups.push({ scope: 'jobs', key: j[1] })
++        seenJobs.add(j[1])
++      }
++    }
++  }
++  return dups
++}
++
++// continue-on-error / "|| true" / "set +e" swallow failures that gate and
++// publish chains depend on. Scoped to the jobs whose result is security
++// relevant; reporting bots elsewhere keep their legitimate usage.
++function auditSwallowedFailures(jobs, guardedJobIds, add) {
++  for (const [jobId, jobBlock] of jobs) {
++    if (!guardedJobIds.includes(jobId)) continue
++    for (const raw of jobBlock.lines) {
++      const line = stripComments(raw)
++      if (/^\s*continue-on-error:\s*true/i.test(line)) {
++        add('FAILURE_SWALLOWED', `job "${jobId}" sets continue-on-error: true; its failure would not fail the required check`)
++      }
++      if (/\|\|\s*(true|:)\b/.test(line)) {
++        add('FAILURE_SWALLOWED', `job "${jobId}" swallows a failure with "|| true"; gate and publish steps must fail loudly`)
++      }
++      if (/\bset\s+\+e\b/.test(line)) {
++        add('FAILURE_SWALLOWED', `job "${jobId}" disables errexit (set +e); failures would be swallowed`)
++      }
++    }
++  }
++}
++
++export function stripComments(line) {
++  if (line.trimStart().startsWith('#')) return ''
++  const hash = line.indexOf(' #')
++  return hash === -1 ? line : line.slice(0, hash)
++}
++
++// Split a document into top-level `key:` blocks (column 0).
++export function topLevelBlocks(text) {
++  const lines = text.split('\n')
++  const blocks = new Map()
++  let current = null
++  for (const raw of lines) {
++    const line = stripComments(raw)
++    if (!line.trim()) continue
++    const match = line.match(/^([A-Za-z_][A-Za-z0-9_-]*|"[^"]+"):\s*(.*)$/)
++    if (match) {
++      const key = match[1].replace(/"/g, '')
++      current = { inline: match[2].trim(), lines: [] }
++      blocks.set(key, current)
++    } else if (current) {
++      current.lines.push(raw)
++    }
++  }
++  return blocks
++}
++
++// Keys at exactly `indent` spaces inside a block, with their body lines.
++export function subBlocks(blockLines, indent) {
++  const result = new Map()
++  const prefix = ' '.repeat(indent)
++  let current = null
++  for (const raw of blockLines) {
++    const line = stripComments(raw)
++    if (!line.trim()) continue
++    if (line.startsWith(prefix) && !line.startsWith(prefix + ' ')) {
++      const rest = line.slice(prefix.length).replace(/^ +/, '')
++      const match = rest.match(/^([A-Za-z_][A-Za-z0-9_-]*|"[^"]+"):\s*(.*)$/)
++      if (match) {
++        const key = match[1].replace(/"/g, '')
++        current = { inline: match[2].trim(), lines: [] }
++        result.set(key, current)
++        continue
++      }
++    }
++    if (current) current.lines.push(raw)
++  }
++  return result
++}
++
++// `key: value` entries at any indentation within a small block. Only safe on
++// dedicated scalar blocks (permissions, environment, concurrency, env).
++export function parseScalarEntries(blockLines) {
++  const entries = new Map()
++  for (const raw of blockLines) {
++    const line = stripComments(raw)
++    if (!line.trim()) continue
++    const match = line.trim().match(/^([A-Za-z_][A-Za-z0-9_.-]+):\s*(.*)$/)
++    if (match) entries.set(match[1], match[2].trim())
++  }
++  return entries
++}
++
++// Split a flow-collection body on `sep`, respecting quotes and nesting.
++function splitFlow(input, sep) {
++  const parts = []
++  let depth = 0
++  let quote = null
++  let current = ''
++  for (const ch of input) {
++    if (quote) {
++      current += ch
++      if (ch === quote) quote = null
++      continue
++    }
++    if (ch === '"' || ch === "'") { quote = ch; current += ch; continue }
++    if (ch === '{' || ch === '[') { depth++; current += ch; continue }
++    if (ch === '}' || ch === ']') { depth--; current += ch; continue }
++    if (ch === sep && depth === 0) { parts.push(current); current = ''; continue }
++    current += ch
++  }
++  if (current.trim()) parts.push(current)
++  return parts.map((p) => p.trim()).filter(Boolean)
++}
++
++// Parse a permissions value in any valid YAML expression form:
++//   read-all | write-all | { scope: value, ... } | block map (already parsed)
++// Anything the auditor cannot reliably interpret is returned as __unparsed
++// so the caller can fail closed.
++export function parseInlinePermissions(inline) {
++  const t = inline.trim()
++  if (t === 'read-all' || t === 'write-all') return new Map([['__mode', t]])
++  const flow = t.match(/^\{(.*)\}$/s)
++  if (flow) {
++    const entries = new Map()
++    for (const part of splitFlow(flow[1], ',')) {
++      const m = part.match(/^([A-Za-z0-9_-]+)\s*:\s*(.*?)\s*$/)
++      if (!m) return new Map([['__unparsed', t]])
++      entries.set(m[1], m[2])
++    }
++    return entries
++  }
++  return new Map([['__unparsed', t]])
++}
++
++export function triggerKeys(onBlock) {
++  if (!onBlock) return []
++  if (onBlock.inline) {
++    if (onBlock.inline.startsWith('[')) {
++      return [...onBlock.inline.matchAll(/([A-Za-z_][A-Za-z0-9_-]*)/g)].map((m) => m[1])
++    }
++    return [onBlock.inline]
++  }
++  return [...subBlocks(onBlock.lines, 2).keys()]
++}
++
++function parsePermissionsBlock(block) {
++  if (!block) return null
++  if (block.inline) return parseInlinePermissions(block.inline)
++  return parseScalarEntries(block.lines)
++}
++
++export function jobPermissions(jobBlockLines) {
++  // job bodies are declared at 4-space absolute indent (jobs at 2-space)
++  return parsePermissionsBlock(subBlocks(jobBlockLines, 4).get('permissions'))
++}
++
++function formatPermissions(map) {
++  return [...map.entries()].filter(([k]) => !k.startsWith('__')).map(([k, v]) => `${k}: ${v}`)
++}
++
++// Shared permission-map audit. Read/none values are benign at any scope;
++// write values are escalated only on the sanctioned scopes.
++function auditPermissionMap(perm, { isPagesJob, jobId, add }) {
++  if (!perm) return
++  if (perm.get('__mode') === 'write-all') {
++    add('JOB_PRIVILEGE_ESCALATION', `job "${jobId}" grants permissions: write-all (inline form); every scope is writable`)
++    return
++  }
++  if (perm.get('__unparsed')) {
++    add('JOB_PERMISSIONS_UNPARSEABLE', `job "${jobId}" has a permissions value the auditor cannot reliably interpret: "${perm.get('__unparsed')}"`)
++    return
++  }
++  for (const [scope, value] of perm) {
++    if (scope.startsWith('__')) continue
++    if (!PERM_VALUES.has(value)) {
++      add('JOB_PERMISSIONS_VALUE_INVALID', `job "${jobId}" grants ${scope}: ${value}; allowed values are read/write/none`)
++      continue
++    }
++    if (value !== 'write') continue
++    if (isPagesJob) continue
++    if (WRITABLE_SCOPES.has(scope)) {
++      add('JOB_PRIVILEGE_ESCALATION', `job "${jobId}" grants "${scope}: write"; only the sanctioned publishing job may hold production permissions`)
++    } else if (!KNOWN_WRITE_SCOPES.has(scope)) {
++      add('JOB_PERMISSION_UNRECOGNIZED', `job "${jobId}" grants unrecognized write scope "${scope}: write"; extend the audit allowlist deliberately if this is intended`)
++    }
++  }
++}
++
++// Fail-closed scan for YAML constructs outside the auditor's supported
++// subset: multi-document streams, tab indentation, anchors/aliases, and
++// unrecognized event triggers (workflow_run etc. need deliberate sanction).
++function auditSyntaxSubset(text, triggers, add) {
++  if (/^---\s*$/m.test(text) || /^\.\.\.\s*$/m.test(text)) {
++    add('UNSUPPORTED_YAML_CONSTRUCT', 'multi-document YAML stream; the auditor parses exactly one document')
++  }
++  if (/^\t+/m.test(text)) {
++    add('UNSUPPORTED_YAML_CONSTRUCT', 'tab indentation; the supported subset is space-indented YAML')
++  }
++  if (/(?:^|[\s:[{,])&[A-Za-z0-9_-]/.test(text)) {
++    add('UNSUPPORTED_YAML_CONSTRUCT', 'YAML anchor (&name); anchors can restructure the document outside the parsed subset')
++  }
++  if (/(?:^|[\s:[{,])\*[A-Za-z0-9_-]/.test(text)) {
++    add('UNSUPPORTED_YAML_CONSTRUCT', 'YAML alias (*name); aliases can duplicate structure outside the parsed subset')
++  }
++  for (const t of triggers) {
++    if (!KNOWN_TRIGGERS.has(t)) {
++      add('TRIGGER_UNRECOGNIZED', `trigger "${t}" is outside the sanctioned set (push, pull_request, pull_request_target, workflow_dispatch, schedule, workflow_call); workflow_run and similar need deliberate allowlisting`)
++    }
++  }
++}
++
++// Audit one workflow file. `pagesJobs` maps file name -> job ids allowed to
++// carry the production publishing permissions (pages: write / id-token: write).
++export function auditWorkflow(text, fileName, { pagesJobs = {} } = {}) {
++  const violations = []
++  const add = (code, message) => violations.push({ file: fileName, code, message })
++  const blocks = topLevelBlocks(text)
++  const allowedPagesJobs = pagesJobs[fileName] ?? []
++
++  const onBlock = blocks.get('on')
++  const triggers = triggerKeys(onBlock)
++  auditSyntaxSubset(text, triggers, add)
++
++  for (const d of findDuplicateKeys(text)) {
++    add('YAML_DUPLICATE_KEY', `duplicate key "${d.key}" in ${d.scope}; last-wins is consistent here but duplicate keys are a parser-confusion foot-gun`)
++  }
++  const jobsBlock = blocks.get('jobs')
++  if (jobsBlock && jobsBlock.inline) {
++    add('UNSUPPORTED_YAML_CONSTRUCT', 'jobs declared as a flow mapping; the auditor only parses block-form jobs and fails closed otherwise')
++  }
++
++  // Top level must be read-only (any read/none scopes, declared explicitly):
++  // write values belong in job-level blocks where they can be sanctioned.
++  const topPermBlock = blocks.get('permissions')
++  if (!topPermBlock) {
++    add('TOP_PERMISSIONS_MISSING', 'workflow has no top-level permissions block; jobs inherit the repository default instead of least privilege')
++  } else {
++    const topPerm = topPermBlock.inline
++      ? parseInlinePermissions(topPermBlock.inline)
++      : parseScalarEntries(topPermBlock.lines)
++    if (topPerm.get('__mode') === 'write-all') {
++      add('TOP_PERMISSIONS_NOT_LEAST_PRIVILEGE', 'top-level permissions: write-all grants every scope writable at the top level')
++    } else if (topPerm.get('__unparsed')) {
++      add('TOP_PERMISSIONS_UNPARSEABLE', `top-level permissions value the auditor cannot reliably interpret: "${topPerm.get('__unparsed')}"`)
++    } else if (topPerm.size === 0) {
++      add('TOP_PERMISSIONS_NOT_LEAST_PRIVILEGE', 'top-level permissions is empty; jobs would inherit the repository default instead of least privilege')
++    } else {
++      for (const [scope, value] of topPerm) {
++        if (scope.startsWith('__')) continue
++        if (!PERM_VALUES.has(value)) {
++          add('TOP_PERMISSIONS_VALUE_INVALID', `top-level permissions ${scope}: ${value}; allowed values are read/write/none`)
++        } else if (value === 'write') {
++          add('TOP_PERMISSIONS_NOT_LEAST_PRIVILEGE', `top-level permissions grants "${scope}: write"; the top level must be read-only (jobs declare their own widening)`)
++        }
++      }
++    }
++  }
++
++  const jobs = subBlocks(blocks.get('jobs')?.lines ?? [], 2)
++  for (const [jobId, jobBlock] of jobs) {
++    if (jobBlock.inline) {
++      add('UNSUPPORTED_YAML_CONSTRUCT', `job "${jobId}" uses a flow mapping; the auditor only parses block-form jobs and fails closed otherwise`)
++      continue
++    }
++    const nameEntry = subBlocks(jobBlock.lines, 4).get('name')
++    if (nameEntry && (nameEntry.inline || '').includes('${{')) {
++      add('JOB_NAME_DYNAMIC', `job "${jobId}" has a dynamic display name; check-run names must be static for impersonation detection`)
++    }
++    const perm = jobPermissions(jobBlock.lines)
++    const isPagesJob = allowedPagesJobs.includes(jobId)
++    auditPermissionMap(perm, { isPagesJob, jobId, add })
++
++    // pull_request_target is the one trigger that gets a write-capable token
++    // for the base branch: it must never act on attacker-controlled PR input.
++    if (triggers.includes('pull_request_target')) {
++      auditPullRequestTargetJob(jobBlock, jobId, add)
++    }
++  }
++
++  if (fileName === 'deploy-pages.yml') {
++    auditSwallowedFailures(jobs, [...jobs.keys()], add)
++    violations.push(...auditDeployWorkflow(blocks, fileName))
++  }
++  if (fileName === 'ci.yml') {
++    auditSwallowedFailures(jobs, ['branch-policy', 'governance'], add)
++    violations.push(...auditBranchPolicy(blocks, fileName))
++  }
++  return violations
++}
++
++// pull_request_target jobs get a write-capable token for the base branch.
++// Interpolation of attacker-controlled PR fields into scripts or step inputs
++// is code injection; only pull_request.number (integer) and pull_request.base.*
++// (trusted base) may be interpolated. head.sha|ref additionally must never
++// reach ref/repository (checkout) or any executed/input position. Display
++// `name:` labels stay exempt.
++const PR_TRUSTED_FIELDS = /^(number|base\.)/
++
++function auditUntrustedInterpolation(text, jobId, where, add) {
++  for (const m of text.matchAll(/\$\{\{\s*([^}]+?)\s*\}\}/g)) {
++    const expr = m[1].replace(/\s+/g, '')
++    const pm = expr.match(/^github\.event\.pull_request\.(.+)$/)
++    if (!pm) continue
++    const field = pm[1]
++    if (PR_TRUSTED_FIELDS.test(field)) continue
++    if (/^head\.(sha|ref)\b/.test(field)) {
++      add('PR_TARGET_HEAD_REFERENCE', `job "${jobId}" ${where} consumes pull_request.head.sha/ref; head-controlled input must not reach executed scripts or step inputs`)
++    } else {
++      add('PR_TARGET_UNTRUSTED_INPUT', `job "${jobId}" ${where} interpolates attacker-controlled pull_request.${field}; only pull_request.number and pull_request.base.* may be interpolated`)
++    }
++  }
++}
++
++function auditPullRequestTargetJob(jobBlock, jobId, add) {
++  let blockIndent = null // tracks run:| / script:| block scalars
++  let withIndent = null // tracks with: blocks (inputs, not display labels)
++  for (const raw of jobBlock.lines) {
++    const line = stripComments(raw)
++    if (!line.trim()) continue
++    const indent = line.length - line.trimStart().length
++    if (blockIndent !== null && indent <= blockIndent) blockIndent = null
++    if (withIndent !== null && indent <= withIndent) withIndent = null
++
++    if (/(^|[\s{[])(ref|repository)\s*:\s*.*pull_request\.head/.test(line)) {
++      add('PR_TARGET_HEAD_CHECKOUT', `job "${jobId}" resolves ref/repository from pull_request.head; pull_request_target workflows must only use the trusted base commit`)
++      continue
++    }
++
++    const blockStart = line.match(/^\s*(?:-\s+)?(run|script):\s*(.*)$/)
++    if (blockStart) {
++      auditUntrustedInterpolation(blockStart[2], jobId, `${blockStart[1]} script`, add)
++      if (/[|>]\s*$/.test(blockStart[2])) blockIndent = indent
++      continue
++    }
++    if (blockIndent !== null) {
++      auditUntrustedInterpolation(line, jobId, 'script', add)
++      continue
++    }
++
++    if (/^\s*with:\s*$/.test(line)) {
++      withIndent = indent
++      continue
++    }
++    if (withIndent !== null) {
++      auditUntrustedInterpolation(line, jobId, 'with input', add)
++      continue
++    }
++
++    const kv = line.match(/^\s*([A-Za-z_-]+):\s*(.+)$/)
++    if (kv && !['name', 'uses', 'if', 'needs', 'runs-on', 'timeout-minutes', 'shell', 'working-directory'].includes(kv[1])) {
++      auditUntrustedInterpolation(kv[2], jobId, `input "${kv[1]}"`, add)
++    }
++  }
++}
++
++function auditDeployWorkflow(blocks, fileName) {
++  const violations = []
++  const add = (code, message) => violations.push({ file: fileName, code, message })
++
++  const triggers = triggerKeys(blocks.get('on'))
++  if (triggers.includes('push')) {
++    add('DEPLOY_TRIGGER_PUSH', 'deploy-pages.yml still auto-publishes on push to main; apply S0-FREEZE.patch (publishing must be workflow_dispatch only)')
++  }
++  if (triggers.includes('schedule')) {
++    add('DEPLOY_TRIGGER_SCHEDULE', 'deploy-pages.yml must never publish on a schedule')
++  }
++  if (!triggers.includes('workflow_dispatch') || triggers.length !== 1) {
++    add('DEPLOY_TRIGGER_NOT_DISPATCH_ONLY', `deploy-pages.yml triggers are [${triggers}], expected exactly [workflow_dispatch]`)
++  }
++
++  const jobs = subBlocks(blocks.get('jobs')?.lines ?? [], 2)
++  const deploy = jobs.get('deploy')
++  if (!deploy) {
++    add('DEPLOY_JOB_MISSING', 'deploy-pages.yml has no "deploy" job')
++  } else {
++    // The publish job must only consume the artifact produced by the same
++    // run: cross-run artifact pulls (run-id:) would let a wrong-SHA payload
++    // reach production.
++    for (const raw of deploy.lines) {
++      if (/^\s*run-id:\s*\S/.test(stripComments(raw))) {
++        add('CROSS_RUN_ARTIFACT', 'deploy job pulls an artifact from another run (run-id:); publish input must be the same-run verify artifact')
++      }
++    }
++
++    const env = subBlocks(deploy.lines, 4).get('environment')
++    const envName = env ? (env.inline || parseScalarEntries(env.lines).get('name')) : null
++    if (envName !== 'github-pages') {
++      add('DEPLOY_ENV_NOT_PAGES', `deploy job publishes to environment "${envName ?? '(none)'}"; expected "github-pages" (the environment whose branch policy pins ref main)`)
++    }
++    const perm = jobPermissions(deploy.lines)
++    if (!perm) {
++      add('DEPLOY_PERMISSIONS_MISSING', 'deploy job has no permissions block; it needs pages: write and id-token: write to publish')
++    } else {
++      if (perm.get('pages') !== 'write') add('DEPLOY_PERMISSIONS_MISSING', 'deploy job must declare pages: write (publish integrity)')
++      if (perm.get('id-token') !== 'write') add('DEPLOY_PERMISSIONS_MISSING', 'deploy job must declare id-token: write (OIDC integrity)')
++      // Allowlist: write only for the publishing scopes; read only for the
++      // scopes the chain legitimately needs (contents, actions).
++      for (const [scope, value] of perm) {
++        if (scope.startsWith('__')) continue
++        if (value === 'write' && !['pages', 'id-token'].includes(scope)) {
++          add('DEPLOY_PERMISSIONS_UNEXPECTED', `deploy job grants unexpected "${scope}: write"; the publishing allowlist is pages/id-token write only`)
++        }
++        if (value === 'read' && !['contents', 'actions'].includes(scope)) {
++          add('DEPLOY_PERMISSIONS_UNEXPECTED', `deploy job grants unexpected "${scope}: read"; the allowlist is contents/actions read`)
++        }
++      }
++    }
++
++    // The deploy job must depend on the verification chain and run only after
++    // its needs succeed: no needs, unknown needs, or an always()-style if
++    // would let an unverified or failed run reach production.
++    const needsEntry = subBlocks(deploy.lines, 4).get('needs')
++    let needsList = []
++    if (needsEntry) {
++      if (needsEntry.inline) {
++        needsList = needsEntry.inline.replace(/[[\]]/g, '').split(',').map((s) => s.trim()).filter(Boolean)
++      } else {
++        needsList = needsEntry.lines.map((l) => stripComments(l).trim().replace(/^-\s*/, '').trim()).filter(Boolean)
++      }
++    }
++    if (!needsList.includes('verify')) {
++      add('DEPLOY_NEEDS_MISSING', `deploy job needs [${needsList}] does not include "verify"; publish must depend on the verification chain`)
++    }
++    for (const n of needsList) {
++      if (n !== 'verify' && !jobs.has(n)) {
++        add('DEPLOY_NEEDS_UNKNOWN', `deploy job needs unknown job "${n}"`)
++      }
++    }
++    if (subBlocks(deploy.lines, 4).get('if')) {
++      add('DEPLOY_FAILURE_FINALITY', 'deploy job has a job-level if; it must run unconditionally after its needs succeed (always()/!cancelled() would bypass verify failures)')
++    }
++  }
++
++  const concurrency = blocks.get('concurrency')
++  if (concurrency) {
++    const entries = parseScalarEntries(concurrency.lines)
++    if (entries.get('group') !== 'pages-production') {
++      add('DEPLOY_CONCURRENCY_GROUP_CHANGED', `deploy concurrency group is "${entries.get('group')}", expected "pages-production" (single-flight production deploys)`)
++    }
++  } else {
++    add('DEPLOY_CONCURRENCY_GROUP_CHANGED', 'deploy-pages.yml has no concurrency group; expected "pages-production"')
++  }
++  return violations
++}
++
++// Branch policy validation is signature-based, not verbatim: any accepted
++// implementation must (a) map the gate env vars to the real GitHub contexts,
++// (b) deny-by-default when the head is not same-repository dev, and (c) reach
++// exit 1 on violation. Two signatures are accepted:
++//   v1 (base 22eb347): job `if` gates on main; script denies via !=/||.
++//   v2 (PR #37): script gates on EVENT_NAME+BASE_REF; script denies via a
++//     positive [[ ... == dev && ... == ... ]] || exit 1.
++// Anything else fails closed (BRANCH_POLICY_WEAKENED when recognizable
++// fragments exist, BRANCH_POLICY_UNRECOGNIZED otherwise).
++const REQUIRED_ENV_BINDINGS = {
++  BASE_REF: '${{github.base_ref}}',
++  HEAD_REF: '${{github.head_ref}}',
++  HEAD_REPOSITORY: '${{github.event.pull_request.head.repo.full_name}}',
++  BASE_REPOSITORY: '${{github.repository}}',
++}
++
++function collectStepEnv(blockLines) {
++  const env = new Map()
++  let envIndent = null
++  for (const raw of blockLines) {
++    const line = stripComments(raw)
++    if (!line.trim()) continue
++    const indent = line.length - line.trimStart().length
++    if (envIndent !== null) {
++      if (indent > envIndent) {
++        const m = line.trim().match(/^([A-Za-z_][A-Za-z0-9_]*):\s*(.*)$/)
++        if (m) env.set(m[1], m[2].replace(/\s+/g, ''))
++        continue
++      }
++      envIndent = null
++    }
++    if (/^\s*env:\s*$/.test(line)) envIndent = indent
++  }
++  return env
++}
++
++// Extract exactly the run-block script text (the block scalar after
++// `run: |`, or the inline value) so template equality applies to the
++// executed script alone, not to the surrounding job metadata.
++function extractRunScript(blockLines) {
++  const lines = blockLines.map(stripComments)
++  for (let i = 0; i < lines.length; i++) {
++    const m = lines[i].match(/^\s*(?:-\s+)?run:\s*(.*)$/)
++    if (!m) continue
++    const value = m[1]
++    if (!/^[|>]\s*$/.test(value)) return normalizeText(value)
++    const indent = lines[i].length - lines[i].trimStart().length
++    const body = []
++    for (let j = i + 1; j < lines.length; j++) {
++      const l = lines[j]
++      if (!l.trim()) { body.push(''); continue }
++      const li = l.length - l.trimStart().length
++      if (li <= indent) break
++      body.push(l)
++    }
++    return normalizeText(body.join('\n'))
++  }
++  return ''
++}
++
++export function auditBranchPolicy(blocks, fileName) {
++  const violations = []
++  const add = (code, message) => violations.push({ file: fileName, code, message })
++
++  const jobs = subBlocks(blocks.get('jobs')?.lines ?? [], 2)
++  const policy = jobs.get('branch-policy')
++  if (!policy) {
++    add('BRANCH_POLICY_JOB_MISSING', 'ci.yml has no "branch-policy" job; promotion from dev to main is no longer enforced in CI')
++    return violations
++  }
++
++  const env = collectStepEnv(policy.lines)
++  for (const [key, expected] of Object.entries(REQUIRED_ENV_BINDINGS)) {
++    if (env.get(key) !== expected) {
++      add('BRANCH_POLICY_ENV_BINDING_WEAKENED',
++        `branch-policy env var ${key} must interpolate the real context ${expected}; found ${env.get(key) ? `"${env.get(key)}"` : 'nothing'} (hard-wired values make the gate vacuous)`)
++    }
++  }
++  const event = env.get('EVENT_NAME')
++  if (event && event !== '${{github.event_name}}') {
++    add('BRANCH_POLICY_ENV_BINDING_WEAKENED', `branch-policy env var EVENT_NAME must interpolate \${{ github.event_name }}; found "${event}"`)
++  }
++
++  const jobIf = subBlocks(policy.lines, 4).get('if')
++  const jobIfText = jobIf ? (jobIf.inline || jobIf.lines.join(' ')) : ''
++  const script = extractRunScript(policy.lines)
++
++  // Template equality (not containment): the normalized script must be
++  // exactly an accepted gate. Containment allowed the signature to hide in
++  // dead strings, extra statements, or non-executed branches.
++  const sigV1 = script === V1_TEMPLATE
++  const sigV2 = script === V2_TEMPLATE
++
++  // A job-level if is allowed only when it gates the job onto PRs to main
++  // (v1 form). Anything else can skip the gate exactly when it must run.
++  const jobIfOk = !jobIfText || jobIfText.includes("github.base_ref == 'main'")
++
++  // Step-level conditions on the enforcement step are rejected: the gate
++  // must not be conditional.
++  for (const raw of policy.lines) {
++    if (/^\s{6,}if:/.test(stripComments(raw))) {
++      add('BRANCH_POLICY_STEP_CONDITION', 'branch-policy steps must not be conditional; the gate has to execute on every PR to main')
++      break
++    }
++  }
++
++  if (!jobIfOk || !(sigV1 || sigV2)) {
++    if (!jobIfOk) {
++      add('BRANCH_POLICY_NOT_GATED', `branch-policy job-level if "${jobIfText}" can skip the gate on pull_request to main; only a main-gating condition or no if is accepted`)
++    }
++    if (!(sigV1 || sigV2)) {
++      const recognizable = script.includes('HEAD_REF') && /dev/.test(script) && script.includes('exit1')
++      if (recognizable) {
++        add('BRANCH_POLICY_WEAKENED', 'branch-policy script resembles a gate but does not equal an accepted template; a constraint was likely removed, weakened, or wrapped')
++      } else {
++        add('BRANCH_POLICY_UNRECOGNIZED', 'branch-policy script does not equal an accepted gate template (v1 deny-by-default, v2 positive-gate); extend the auditor deliberately before trusting it')
++      }
++    }
++  }
++  return violations
++}
++
++export function auditCodeowners(text, fileName = '.github/CODEOWNERS') {
++  const violations = []
++  const lines = text.split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#'))
++  if (!lines.some((l) => l === '*' || l.startsWith('* '))) {
++    violations.push({ file: fileName, code: 'DEFAULT_OWNER_RULE_MISSING', message: 'CODEOWNERS has no default "*" owner rule' })
++  }
++  if (!lines.some((l) => /^\/\.github\/(\s|$)/.test(l) && l.includes('@'))) {
++    violations.push({ file: fileName, code: 'GOVERNANCE_PATH_UNOWNED', message: 'CODEOWNERS does not place /.github/ under explicit owner review' })
++  }
++  return violations
++}
++
++// Audit a whole repository checkout: files = [{ path, text }] with paths
++// relative to the repository root.
++export function auditRepository(files) {
++  const pagesJobs = { 'deploy-pages.yml': ['deploy'] }
++  const violations = []
++  const workflowFiles = files.filter((f) => f.path.startsWith('.github/workflows/'))
++  for (const file of workflowFiles) {
++    const name = file.path.replace(/^\.github\/workflows\//, '')
++    violations.push(...auditWorkflow(file.text, name, { pagesJobs }))
++  }
++  if (!workflowFiles.some((f) => f.path === '.github/workflows/deploy-pages.yml')) {
++    violations.push({
++      file: '.github/workflows/',
++      code: 'PAGES_ENTRY_WORKFLOW_MISSING',
++      message: 'deploy-pages.yml is absent; the sanctioned Pages publish entry must exist for its dispatch-only and least-privilege invariants to be enforced',
++    })
++  }
++
++  // Required status checks match check-run names exactly: two jobs sharing
++  // one display name means a required check can be satisfied by whichever
++  // workflow happens to run (impersonation surface).
++  const names = new Map()
++  for (const file of workflowFiles) {
++    const wfName = file.path.replace(/^\.github\/workflows\//, '')
++    const jobs = subBlocks(topLevelBlocks(file.text).get('jobs')?.lines ?? [], 2)
++    for (const [jobId, jobBlock] of jobs) {
++      const nameEntry = subBlocks(jobBlock.lines, 4).get('name')
++      const display = nameEntry ? (nameEntry.inline || null) : jobId
++      if (!display || display.includes('${{')) continue
++      if (!names.has(display)) names.set(display, [])
++      names.get(display).push(`${wfName}:${jobId}`)
++    }
++  }
++  for (const [display, owners] of names) {
++    if (owners.length > 1) {
++      violations.push({
++        file: '.github/workflows/',
++        code: 'CHECK_NAME_COLLISION',
++        message: `check-run name "${display}" is produced by ${owners.join(', ')}; a required check with this name can be satisfied by any of them`,
++      })
++    }
++  }
++
++  const codeowners = files.find((f) => f.path === '.github/CODEOWNERS')
++  if (codeowners) violations.push(...auditCodeowners(codeowners.text))
++  else violations.push({ file: '.github/CODEOWNERS', code: 'GOVERNANCE_PATH_UNOWNED', message: 'CODEOWNERS file is missing entirely' })
++  return violations
++}
++
++export function formatViolations(violations) {
++  if (violations.length === 0) return 'governance audit: clean'
++  const byFile = new Map()
++  for (const v of violations) {
++    if (!byFile.has(v.file)) byFile.set(v.file, [])
++    byFile.get(v.file).push(v)
++  }
++  const lines = [`governance audit: ${violations.length} violation(s)`]
++  for (const [file, items] of byFile) {
++    lines.push(`  ${file}`)
++    for (const v of items) lines.push(`    [${v.code}] ${v.message}`)
++  }
++  return lines.join('\n')
++}
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index 9ffc415..ad20c18 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -45,3 +45,13 @@ jobs:
+           cache: npm
+       - run: npm ci
+       - run: npm run verify
++
++  governance:
++    name: Governance
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++        with:
++          persist-credentials: false
++      - name: Audit workflows and repository governance
++        run: node --test .github/tests/*.test.mjs
+diff --git a/.github/workflows/deploy-pages.yml b/.github/workflows/deploy-pages.yml
+index f62227c..48f4573 100644
+--- a/.github/workflows/deploy-pages.yml
++++ b/.github/workflows/deploy-pages.yml
+@@ -1,8 +1,11 @@
+ name: Deploy to GitHub Pages
+ 
+ on:
+-  push:
+-    branches: [main]
++  # S0 freeze (base 22eb347): the automatic publish-on-push trigger to main
++  # has been removed. Publishing is manual-only via workflow_dispatch and
++  # stays gated by the github-pages environment branch policy (ref main).
++  # Restoring the push trigger requires a reviewed pull request to this
++  # file; do not re-enable this workflow expecting push events to deploy.
+   workflow_dispatch:
+ 
+ permissions:

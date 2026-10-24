@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
-# NEG-08 — direct push and force push to protected branches must be rejected.
+# NEG-08 — direct push / force push / deletion of protected branches must be
+# rejected, executed under a VERIFIED non-admin identity.
+#
+# Identity binding: every git push goes through authed_url(GH_A) — the
+# token is asserted to authenticate as GH_A_USER first; the local default
+# credentials are never used (a default admin credential would fake the
+# result or hide it).
 set -euo pipefail
 . "$(dirname "$0")/lib.sh"
 
@@ -8,16 +14,21 @@ require_test_repo && LIVE_MODE=1 || LIVE_MODE=0
 require_identity A
 require_actor_not_admin "$TEST_REPO"
 
-plan "case 1: git push origin HEAD:main (no PR) -> expected remote rejected 'protected branch hook declined'"
-plan "case 2: git push --force origin HEAD:main -> expected rejected by non_fast_forward ruleset rule"
-plan "case 3: git push origin :main (delete) -> expected rejected by deletion ruleset rule"
-plan "case 4 (control): same three operations against dev with dev-minimum ruleset -> also rejected"
-plan "all cases run as a write-only collaborator (GH_A); an admin bypass result would be a finding"
+plan "case 1: git push origin HEAD:main via GH_A authed URL -> rejected (protected branch)"
+plan "case 2: git push --force origin HEAD:main -> rejected (non_fast_forward rule)"
+plan "case 3: git push origin :main -> rejected (deletion rule)"
+plan "case 4 (control): same operations against dev with dev-minimum -> also rejected"
+plan "identity evidence: assert_identity A runs before any push"
 
 if [[ "$LIVE_MODE" == "1" ]]; then
   LAB_DIR="${LAB_DIR:?LIVE=1 requires LAB_DIR pointing at the lab clone}"
-  expect_protected_rejection "direct push to main" 'protected branch hook declined|remote rejected|protected' git -C "$LAB_DIR" push origin HEAD:main
-  expect_protected_rejection "force push to main" 'non-fast-forward|remote rejected|protected' git -C "$LAB_DIR" push --force origin HEAD:main
-  expect_protected_rejection "delete main" 'remote rejected|protected|deletion' git -C "$LAB_DIR" push origin :main
-  expect_protected_rejection "force push to dev" 'non-fast-forward|remote rejected|protected' git -C "$LAB_DIR" push --force origin HEAD:dev
+  URL=$(authed_url A "$TEST_REPO")
+  expect_protected_rejection "direct push to main" 'protected branch hook declined|remote rejected|protected' \
+    git_as A "$LAB_DIR" push "$URL" HEAD:main
+  expect_protected_rejection "force push to main" 'non-fast-forward|remote rejected|protected' \
+    git_as A "$LAB_DIR" push --force "$URL" HEAD:main
+  expect_protected_rejection "delete main" 'remote rejected|protected|deletion' \
+    git_as A "$LAB_DIR" push "$URL" :main
+  expect_protected_rejection "force push to dev" 'non-fast-forward|remote rejected|protected' \
+    git_as A "$LAB_DIR" push --force "$URL" HEAD:dev
 fi

@@ -11,7 +11,7 @@
 | 分支 | 目标 |
 |------|------|
 | 网站 dev | PR-only + `Verify`(后加 `Governance`)+ 关闭强推/删除;审核要求最低 1 |
-| 网站 main | PR-only + `Branch policy` + `Verify` + `Promotion PR policy`(后加 `Governance`、`Publication approval`)+ 1 项批准 + CODEOWNERS(`/.github/`)+ 最新推送独立批准 + 审核过期失效 + 会话全解决 + 关闭强推/删除;严格模式后置 |
+| 网站 main | PR-only + `Branch policy` + `Verify` + `Promotion PR policy`(后加 `Governance`)+ 1 项批准 + CODEOWNERS(`/.github/`)+ 最新推送独立批准 + 审核过期失效 + 会话全解决 + 关闭强推/删除;严格模式后置。**不恢复旧 `Publication approval` 内容审读门禁**(#39 已撤销;legacy 发布资格与 T02 授权分离) |
 | 数据仓 dev/main | 受套餐阻塞;就绪后与网站 dev 同构,外加收紧 `ci.yml` 的 pull_request 触发范围 |
 
 实现载体:网站仓直接用 **rulesets**(public 仓全功能、可 API 管理、可绑定 integration_id);传统 branch protection 仅作为 Stage 0 备份对象。数据仓在解除套餐限制后用同一套 ruleset JSON。
@@ -24,8 +24,8 @@
 |---|------|-------------|--------|--------|--------------------------|----------|----------|----------|
 | 1 | dev 最低保护(关闭直接 push、关闭强推/删除、必需 `Verify`) | ✅ rulesets:pull_request + required_status_checks + non_fast_forward + deletion | 可;需 Owner | ❌ 套餐阻塞(403 实证) | `Verify` 在 dev 已运行(dev 头证据) | W1 | 低:dev 上 write 协作者都能互相审批 | ruleset enforcement 改 `disabled` 或直接停用规则集 |
 | 2 | main 最低保护(同上 + `Branch policy` + `Promotion PR policy`) | ✅ 同上 | 可;需 Owner | ❌ 同上 | 三 check 已在 main 时代运行(22eb347 证据) | W2 | 低 | 同上 |
-| 3 | 完整强制审核规则(批准数≥1、dismissible 配置) | ✅ rulesets `pull_request.required_approving_review_count` | 可;需 Owner | ❌ | 不依赖 check | W3 | 中:见 §4 死锁 D1(自批准) | 临时把 count 降为 0 或将 Owner 加入 bypass(需记录原因) |
-| 4 | Code Owner 规则(`/.github/` 必须 Owner 审) | ✅ `require_code_owner_review` + CODEOWNERS(已存在) | 可;需 Owner | CODEOWNERS 文件本身可用,但"必需审核"属保护功能 → ❌ | 不依赖 check | W4 | **高:见 §4 D2(唯一 Owner 自审)** | 把 `*` 规则临时从 `@miracleqihe` 改为 `@miracleqihe @y4ho0` 的 PR;或该次 PR 用 admin bypass(审计日志留痕) |
+| 3 | 完整强制审核规则(批准数≥1、dismissible 配置) | ✅ rulesets `pull_request.required_approving_review_count` | 可;需 Owner | ❌ | 不依赖 check | W3 | 中:见 §4 死锁 D1(自批准) | 紧急绕过仅限§4.1 纪律:time-box ≤24h + 变更日志 + 到期即恢复并复核 |
+| 4 | Code Owner 规则(`/.github/` 必须 Owner 审) | ✅ `require_code_owner_review` + CODEOWNERS(已存在) | 可;需 Owner | CODEOWNERS 文件本身可用,但"必需审核"属保护功能 → ❌ | 不依赖 check | W4 | **高:见 §4 D2(唯一 Owner 自审)** | 预防优先:W4 前先以 PR 加入第二 Owner;紧急绕过仅限§4.1 纪律 |
 | 5 | 最新推送独立批准(require_last_push_approval) | ✅ rulesets `pull_request.require_last_push_approval` | 可;需 Owner | ❌ | 不依赖 check | W4 | 中:见 §4 D3 | 重新 push 一次(非本人)或临时关闭该参数 |
 | 6 | 审核过期失效(dismiss stale on push) | ✅ `dismiss_stale_reviews_on_push` | 可;需 Owner | ❌ | 不依赖 check | W3 | 低:表现为重新排队审批,不会永久卡死 | — |
 | 7 | Review Thread 解决(必需) | ✅ `required_review_thread_resolution` | 可;需 Owner | ❌ | 不依赖 check | W3 | 低(与 D1/D2 叠加时放大) | 解决/关闭线程 |
@@ -42,10 +42,10 @@
 ## 2. 阶段化启用(W1–W5,对应 RUNBOOK 步骤)
 
 - **W1(一次 PR,无行为变化):** S0+S1 经 PR 进入 main(Owner 审核)。此阶段不开任何新保护,验证 Governance 检查绿。
-- **W2(main 最低):** 建 ruleset `main-minimum`:target `~DEFAULT_BRANCH`;开 deletion、non_fast_forward;required_status_checks = [Branch policy, Verify, Promotion PR policy](strict off)。
+- **W2(main 最低,无空窗纪律):** 建 ruleset `main-minimum`;**顺序不可逆:先创建并激活 ruleset → 验证 enforcement 生效 → 最后才删除 legacy 保护;回滚时先恢复 legacy 再禁用 ruleset —— 任何时刻 main/dev 不得同时失去两类保护**:target `~DEFAULT_BRANCH`;开 deletion、non_fast_forward;required_status_checks = [Branch policy, Verify, Promotion PR policy](strict off)。
 - **W3(审核强度):** 同一 ruleset 追加 pull_request:approve≥1、dismiss_stale、thread resolution。
 - **W4(完整审核):** 追加 `require_last_push_approval`、`require_code_owner_review`;CODEOWNERS 增加 `/.github/` 第二 Owner(`@y4ho0`)以解 D2 —— 该 CODEOWNERS 修改本身走 PR。
-- **W5(严格模式):** 观察两周后开启 strict;随后把 `Publication approval` 加入必需(M3)。
+- **W5(严格模式):** 观察两周后开启 strict。不设置旧 Publication approval 类必需检查(M3 已撤销)。
 - **dev 侧(D1–D2):** ruleset `dev-minimum`(target `dev`):deletion、non_fast_forward、pull_request approve≥1、required_status_checks=[Verify];S1 进 dev 后加 `Governance`。
 - 每一步的预期响应、验证与回滚命令见 `MAIN-BOOTSTRAP-RUNBOOK.md`;Owner 专属步骤另列 `OWNER-ACTIONS.md`。
 
@@ -95,7 +95,14 @@
 | D3 | 最新推送者=唯一可批准者 | require_last_push_approval + 单人仓 | 自推自批被拒,PR 卡死 | 其他人 push 一次空提交;或临时关闭该参数 |
 | D4 | 严格模式 + 高频 main | strict + 必需 checks | 晋级 PR 反复过期,合并饥饿 | 关 strict(保留 checks);或降低 main 推进频率窗口 |
 | D5 | 必需 check 名拼写错误/大小写不符 | `verify` vs `Verify` | 该 check 永不出现,合并永久阻塞 | 逐字符核对 REQUIRED-CHECKS-MATRIX §3;移除错误项 |
-| D6 | 双重保护叠加 | legacy 旧规则未清理 + 新 ruleset | 两套"并集"条件互相拉扯 | Stage 0 先备份并**删除** legacy main/dev 保护,再启用 ruleset(单一事实源) |
+| D6 | 双重保护叠加 | legacy 旧规则未清理 + 新 ruleset | 两套"并集"条件互相拉扯 | Stage 0 备份 legacy;按无空窗顺序切换:ruleset 激活并验证 → 才删 legacy;恢复时反向(先 legacy 后 ruleset) |
+
+### 4.1 紧急绕过纪律(所有"临时"手段的统一约束)
+
+1. 任何绕过(bypass 名单、临时降参数、临时 enforcement=disabled)必须:**time-box ≤24 小时**、在变更日志记录原因/范围/恢复条件、由第二人知情;
+2. 到期立即恢复并复核(恢复动作本身要留下 API 响应证据);
+3. 禁止把绕过状态带入任何晋升/晋级操作(绕过期间禁止合并进 main);
+4. 「回滚 = 重新部署上一个已知好 SHA」属生产发布动作,仅限 RUNBOOK S7-3 的受控发布流程,不得作为常规回滚手段使用。
 
 ## 5. 数据仓专项
 
@@ -110,5 +117,5 @@
 ## 6. 验证与回滚
 
 - 每个阶段完成后:`gh api repos/miracleqihe/symgene/rulesets` 应且仅应列出预期 ruleset;`GET /branches/main` 仍 protected=true(legacy 与 rulesets 并存时该字段为真,来源以 rulesets 列表为准)。
-- 回滚:单个 ruleset `PATCH enforcement: disabled`,或 `DELETE`;legacy 恢复:用 Stage 0 的 backup JSON `PUT /branches/{branch}/protection`。
+- 回滚顺序(无空窗):先 `PUT /branches/{branch}/protection` 恢复 legacy(用 Stage 0 backup JSON),确认 protected=true 后,再 `PATCH enforcement: disabled` 或 `DELETE` 该 ruleset。禁止先禁用 ruleset 造成双失。
 - 平台行为实测(拒绝合并、自批准 403 等)全部在测试仓执行,见 `PLATFORM-NEGATIVE-TESTS/`;生产仓只做正向验证。
