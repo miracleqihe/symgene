@@ -1,0 +1,38 @@
+From 649b71dfbc6d5a8838b4d97709e9fe3ea52ed024 Mon Sep 17 00:00:00 2001
+From: symgene-bootstrap <bootstrap@symgene.invalid>
+Date: Sat, 24 Oct 2026 08:46:19 -0700
+Subject: [PATCH] S0: freeze Pages auto-publish entry (base 22eb347)
+
+Remove the push trigger from deploy-pages.yml so that re-enabling the
+workflow (currently disabled_manually at platform level) cannot restore
+automatic publishing to production. Publishing stays manual-only via
+workflow_dispatch and remains gated by the github-pages environment
+branch policy (ref: main).
+
+Base SHA: 22eb347edf3056955d6437c7eb951b63c28f76e0
+Rollback: git apply -R S0-FREEZE.patch
+---
+ .github/workflows/deploy-pages.yml | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/.github/workflows/deploy-pages.yml b/.github/workflows/deploy-pages.yml
+index f62227c..48f4573 100644
+--- a/.github/workflows/deploy-pages.yml
++++ b/.github/workflows/deploy-pages.yml
+@@ -1,8 +1,11 @@
+ name: Deploy to GitHub Pages
+ 
+ on:
+-  push:
+-    branches: [main]
++  # S0 freeze (base 22eb347): the automatic publish-on-push trigger to main
++  # has been removed. Publishing is manual-only via workflow_dispatch and
++  # stays gated by the github-pages environment branch policy (ref main).
++  # Restoring the push trigger requires a reviewed pull request to this
++  # file; do not re-enable this workflow expecting push events to deploy.
+   workflow_dispatch:
+ 
+ permissions:
+-- 
+2.50.1 (Apple Git-155)
+
