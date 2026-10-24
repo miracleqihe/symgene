@@ -1,0 +1,1 @@
+{"scenario":"child-fail-with-error","workerStatus":"FAIL","isWorkerSuccess":false,"workerError":{"code":"T02_PROBE_SNAPSHOT_INVALID"},"exitCode":0,"reportValid":false}

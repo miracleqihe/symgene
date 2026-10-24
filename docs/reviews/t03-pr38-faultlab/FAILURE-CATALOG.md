@@ -75,5 +75,5 @@ R1 对账(见 `A11-RECONCILIATION.md` 与 `evidence/A11-ATTEMPTS.json`):A11 全�
 ## 五、机器与环境备注
 
 - Node v25.8.0 是本机默认,但被测代码硬性要求 Node 22(`T02_PROBE_NODE22_REQUIRED`),所有实验用 `node@22 v22.23.4`(`brew install node@22`,仓库 `.nvmrc` 锚定 22.23.3,patch 版差异)。
-- 实验期间机器有无关系统负载(ApplicationsStorageExtension ~117% CPU,loadavg 峰值 33),时间敏感实验(A11 频率)的数字应在该背景下解读。
+- 实验期间机器有无关系统负载(ApplicationsStorageExtension ~117% CPU)。**R1.1 口径:不同指标与窗口不混用**——R0 会话早段的 uptime 读数为 15 分钟均值 ~33;正式 A11 五轮自身审计记录的 **1 分钟均值为 80–105**;run2 窗口的 1 分钟均值 ≈14–15。所有 A11 有效样本都处于高负载,时间敏感数字不作正常负载推断。
 - 早期 harness 自身缺陷(B8 的 release Promise 误用、A14 的 close 事件竞态、playwright 导入路径)已修正并重跑;其造成的中间证据已作废并覆盖,不影响上述任何结论。

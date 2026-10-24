@@ -1,0 +1,99 @@
+{
+  "id": "R11B-EXP3-close-decomposition-flagged",
+  "title": "Product close() with a held uchg flag: B9R2b reproduction for duration attribution",
+  "expect": "RECORDED",
+  "rounds": [
+    {
+      "id": "R11B-EXP3-close-decomposition-flagged",
+      "title": "Product close() with a held uchg flag: B9R2b reproduction for duration attribution",
+      "round": 1,
+      "expect": "RECORDED",
+      "observed": {
+        "verdict": "RECORDED",
+        "flagMode": "held",
+        "rejected": {
+          "name": "Error",
+          "code": "EPERM",
+          "cleanupIncomplete": false
+        },
+        "closeMs": 6776,
+        "endpointOpenAfterClose": false,
+        "cacheRetained": true,
+        "depsOptimized": true,
+        "flaggedFile": "deps/<first-file>"
+      },
+      "durationMs": 24031,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "RECORDED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "R11B-EXP3-close-decomposition-flagged",
+      "title": "Product close() with a held uchg flag: B9R2b reproduction for duration attribution",
+      "round": 2,
+      "expect": "RECORDED",
+      "observed": {
+        "verdict": "RECORDED",
+        "flagMode": "held",
+        "rejected": {
+          "name": "Error",
+          "code": "EPERM",
+          "cleanupIncomplete": false
+        },
+        "closeMs": 6805,
+        "endpointOpenAfterClose": false,
+        "cacheRetained": true,
+        "depsOptimized": true,
+        "flaggedFile": "deps/<first-file>"
+      },
+      "durationMs": 24271,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "RECORDED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "R11B-EXP3-close-decomposition-flagged",
+      "title": "Product close() with a held uchg flag: B9R2b reproduction for duration attribution",
+      "round": 3,
+      "expect": "RECORDED",
+      "observed": {
+        "verdict": "RECORDED",
+        "flagMode": "held",
+        "rejected": {
+          "name": "Error",
+          "code": "EPERM",
+          "cleanupIncomplete": false
+        },
+        "closeMs": 6730,
+        "endpointOpenAfterClose": false,
+        "cacheRetained": true,
+        "depsOptimized": true,
+        "flaggedFile": "deps/<first-file>"
+      },
+      "durationMs": 23634,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "RECORDED",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

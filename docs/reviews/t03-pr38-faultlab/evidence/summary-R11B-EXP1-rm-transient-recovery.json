@@ -1,0 +1,81 @@
+{
+  "id": "R11B-EXP1-rm-transient-recovery",
+  "title": "Node rm() contract: uchg flag cleared at +3.5s inside a 15s backoff window - success at >3.5s proves real re-attempts",
+  "expect": "RM-RETRIES-PROVEN",
+  "rounds": [
+    {
+      "id": "R11B-EXP1-rm-transient-recovery",
+      "title": "Node rm() contract: uchg flag cleared at +3.5s inside a 15s backoff window - success at >3.5s proves real re-attempts",
+      "round": 1,
+      "expect": "RM-RETRIES-PROVEN",
+      "observed": {
+        "verdict": "RM-RETRIES-PROVEN",
+        "rejected": null,
+        "durationMs": 6008,
+        "flagClearedAtMs": 3515,
+        "dirRemoved": true,
+        "labCleanupOk": true
+      },
+      "durationMs": 6115,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "RM-RETRIES-PROVEN",
+      "matchesExpectation": true
+    },
+    {
+      "id": "R11B-EXP1-rm-transient-recovery",
+      "title": "Node rm() contract: uchg flag cleared at +3.5s inside a 15s backoff window - success at >3.5s proves real re-attempts",
+      "round": 2,
+      "expect": "RM-RETRIES-PROVEN",
+      "observed": {
+        "verdict": "RM-RETRIES-PROVEN",
+        "rejected": null,
+        "durationMs": 6007,
+        "flagClearedAtMs": 3510,
+        "dirRemoved": true,
+        "labCleanupOk": true
+      },
+      "durationMs": 6103,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "RM-RETRIES-PROVEN",
+      "matchesExpectation": true
+    },
+    {
+      "id": "R11B-EXP1-rm-transient-recovery",
+      "title": "Node rm() contract: uchg flag cleared at +3.5s inside a 15s backoff window - success at >3.5s proves real re-attempts",
+      "round": 3,
+      "expect": "RM-RETRIES-PROVEN",
+      "observed": {
+        "verdict": "RM-RETRIES-PROVEN",
+        "rejected": null,
+        "durationMs": 6008,
+        "flagClearedAtMs": 3507,
+        "dirRemoved": true,
+        "labCleanupOk": true
+      },
+      "durationMs": 6109,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "RM-RETRIES-PROVEN",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

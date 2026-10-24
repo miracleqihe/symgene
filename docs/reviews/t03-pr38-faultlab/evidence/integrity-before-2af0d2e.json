@@ -1,0 +1,30 @@
+{
+  "verifiedAt": "2026-10-24T18:58:25.079Z",
+  "headCommit": "2af0d2edbead10039706de1384d554e0c9b251ac",
+  "method": "full verification of the git tree at HEAD: every package blob hashed via git cat-file and compared with the index; presence checks both directions (index->tree, tree->index)",
+  "counts": {
+    "actualFilesInPackage": 200,
+    "indexEntries": 198,
+    "missingFilesCount": 1,
+    "unindexedFilesCount": 3,
+    "hashMismatchesCount": 0,
+    "hashVerifiedOkCount": 197
+  },
+  "missingFiles": [
+    "evidence/wpB-b9r2.log"
+  ],
+  "unindexedFiles": [
+    "docs/reviews/t03-pr38-faultlab/ENVIRONMENT.json",
+    "docs/reviews/t03-pr38-faultlab/EVIDENCE-INDEX.json",
+    "docs/reviews/t03-pr38-faultlab/EVIDENCE-INDEX.md"
+  ],
+  "hashMismatches": [],
+  "schema": {
+    "sourceCommitField": "sourceSha256 (MISNAMED: holds commit SHAs, not file hashes)"
+  },
+  "integrityProtection": {
+    "index": "EVIDENCE-INDEX.md records the SHA-256 of EVIDENCE-INDEX.json and ENVIRONMENT.json; the git commit SHA anchors every file, and any later edit of a published file without regenerating the index shows up here as a hash mismatch",
+    "evolution": null
+  },
+  "verdict": "INCONSISTENT"
+}

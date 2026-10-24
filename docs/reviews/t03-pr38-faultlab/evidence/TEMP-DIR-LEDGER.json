@@ -1,6 +1,10 @@
 {
   "scope": "symgene-t02-* directories in the per-user temp root created during the fault-lab session of 2026-10-24",
-  "baselineBeforeLab": { "count": 92, "method": "readdirSync(tmpdir()) filtered by prefix symgene-t02-, recorded in the first osAudit of the session", "note": "leftovers from earlier unrelated sessions; never touched by this lab" },
+  "baselineBeforeLab": {
+    "count": 92,
+    "method": "readdirSync(tmpdir()) filtered by prefix symgene-t02-, recorded in the first osAudit of the session",
+    "note": "leftovers from earlier unrelated sessions; never touched by this lab"
+  },
   "diskCountAfterAllRunsBeforeSweep": 112,
   "diskDeltaAttributedToLab": 20,
   "reconciliation": {
@@ -11,26 +15,325 @@
     "dedupBasis": "the 12 named entries come from disjoint per-round osAudit diffs (one entry per directory name); the 8 anonymous entries cover exactly the runs whose per-round records are unrecoverable (evidence files overwritten by later same-name runs, or processes killed before their audit). No directory can be in both sets: a named record requires a completed round audit, and all completed-round audits that survived are enumerated."
   },
   "entries": [
-    { "id": "F01", "name": "symgene-t02-vite-5cBdrg", "class": "vite-owned-optimizer-cache", "sourceExperiment": "A11-close-during-traffic", "run": "run3-harness-v3", "round": 4, "creatorProcess": "in-process Vite dev server in the lab harness", "residueReason": "close() hit the 15s deadline (T02_CONSUMER_SHUTDOWN_TIMEOUT, cleanupIncomplete); per the PR contract an unjoined writer's cache is retained, not deleted", "recordedIn": "A11-close-during-traffic-r4.json leakCheck.newTempCaches", "cleanup": { "action": "lab sweep after evidence recording", "status": "CLEANED" } },
-    { "id": "F02", "name": "symgene-t02-vite-kkSN1m", "class": "vite-owned-optimizer-cache", "sourceExperiment": "A14-leader-death-orphan-reap", "run": "run3-harness-v3", "round": 1, "creatorProcess": "detached probe worker (forked)", "residueReason": "worker leader SIGKILLed at react-mount; process died before its finally could remove the owned cache", "recordedIn": "A14-leader-death-orphan-reap-r1.json", "cleanup": { "action": "lab sweep", "status": "CLEANED" } },
-    { "id": "F03", "name": "symgene-t02-vite-hq5uEb", "class": "vite-owned-optimizer-cache", "sourceExperiment": "A14-leader-death-orphan-reap", "run": "run3-harness-v3", "round": 2, "creatorProcess": "detached probe worker (forked)", "residueReason": "worker leader SIGKILLed before finally", "recordedIn": "A14-leader-death-orphan-reap-r2.json", "cleanup": { "action": "lab sweep", "status": "CLEANED" } },
-    { "id": "F04", "name": "symgene-t02-vite-cBJbh7", "class": "vite-owned-optimizer-cache", "sourceExperiment": "A14-leader-death-orphan-reap", "run": "run3-harness-v3", "round": 3, "creatorProcess": "detached probe worker (forked)", "residueReason": "worker leader SIGKILLed before finally", "recordedIn": "A14-leader-death-orphan-reap-r3.json", "cleanup": { "action": "lab sweep", "status": "CLEANED" } },
-    { "id": "F05", "name": "symgene-t02-vite-KKB5e6", "class": "vite-owned-optimizer-cache", "sourceExperiment": "A14-leader-death-orphan-reap", "run": "run3-harness-v3", "round": 4, "creatorProcess": "detached probe worker (forked)", "residueReason": "worker leader SIGKILLed before finally", "recordedIn": "A14-leader-death-orphan-reap-r4.json", "cleanup": { "action": "lab sweep", "status": "CLEANED" } },
-    { "id": "F06", "name": "symgene-t02-vite-RIWdMK", "class": "vite-owned-optimizer-cache", "sourceExperiment": "A14-leader-death-orphan-reap", "run": "run3-harness-v3", "round": 5, "creatorProcess": "detached probe worker (forked)", "residueReason": "worker leader SIGKILLed before finally", "recordedIn": "A14-leader-death-orphan-reap-r5.json", "cleanup": { "action": "lab sweep", "status": "CLEANED" } },
-    { "id": "F07", "name": "symgene-t02-probe-O51w8x", "class": "signed-probe-runtime-root", "sourceExperiment": "A9-midstart-shutdown", "run": "run3-harness-v3", "round": 1, "creatorProcess": "detached case worker (forked)", "residueReason": "worker group SIGTERMed at first 'ready'; the signed probe had created its runtime root but never reached its finally", "recordedIn": "A9-midstart-shutdown-r1.json", "cleanup": { "action": "lab sweep", "status": "CLEANED" } },
-    { "id": "F08", "name": "symgene-t02-vite-YITuxZ", "class": "vite-owned-optimizer-cache", "sourceExperiment": "A9-midstart-shutdown", "run": "run3-harness-v3", "round": 1, "creatorProcess": "detached case worker (forked)", "residueReason": "worker group SIGTERMed mid-startup; server cache removal never ran", "recordedIn": "A9-midstart-shutdown-r1.json", "cleanup": { "action": "lab sweep", "status": "CLEANED" } },
-    { "id": "F09", "name": "symgene-t02-probe-O7BZR2", "class": "signed-probe-runtime-root", "sourceExperiment": "A9-midstart-shutdown", "run": "run3-harness-v3", "round": 2, "creatorProcess": "detached case worker (forked)", "residueReason": "same as F07", "recordedIn": "A9-midstart-shutdown-r2.json", "cleanup": { "action": "lab sweep", "status": "CLEANED" } },
-    { "id": "F10", "name": "symgene-t02-vite-PCungi", "class": "vite-owned-optimizer-cache", "sourceExperiment": "A9-midstart-shutdown", "run": "run3-harness-v3", "round": 2, "creatorProcess": "detached case worker (forked)", "residueReason": "same as F08", "recordedIn": "A9-midstart-shutdown-r2.json", "cleanup": { "action": "lab sweep", "status": "CLEANED" } },
-    { "id": "F11", "name": "symgene-t02-probe-Ta04bK", "class": "signed-probe-runtime-root", "sourceExperiment": "A9-midstart-shutdown", "run": "run3-harness-v3", "round": 3, "creatorProcess": "detached case worker (forked)", "residueReason": "same as F07", "recordedIn": "A9-midstart-shutdown-r3.json", "cleanup": { "action": "lab sweep", "status": "CLEANED" } },
-    { "id": "F12", "name": "symgene-t02-vite-YFNh4I", "class": "vite-owned-optimizer-cache", "sourceExperiment": "A9-midstart-shutdown", "run": "run3-harness-v3", "round": 3, "creatorProcess": "detached case worker (forked)", "residueReason": "same as F08", "recordedIn": "A9-midstart-shutdown-r3.json", "cleanup": { "action": "lab sweep", "status": "CLEANED" } },
-    { "id": "U01", "name": null, "class": "vite-owned-optimizer-cache", "sourceExperiment": "A9-midstart-shutdown", "run": "run2-harness-v2", "round": 1, "creatorProcess": "detached case worker (forked)", "residueReason": "worker group SIGTERMed mid-startup (same code path as the named run3 records, which show exactly 2 residues per round)", "identityStatus": "UNVERIFIED-IDENTITY", "identityNote": "the per-round evidence file was overwritten by the same-name run3 file before the residue names were published; attribution to this round is structural (round completed, residue class observed in the surviving twin run), the directory name is unrecoverable", "cleanup": { "action": "lab sweep (date-scoped)", "status": "CLEANED-IDENTITY-UNVERIFIED" } },
-    { "id": "U02", "name": null, "class": "signed-probe-runtime-root", "sourceExperiment": "A9-midstart-shutdown", "run": "run2-harness-v2", "round": 1, "creatorProcess": "detached case worker (forked)", "residueReason": "same as U01", "identityStatus": "UNVERIFIED-IDENTITY", "cleanup": { "action": "lab sweep", "status": "CLEANED-IDENTITY-UNVERIFIED" } },
-    { "id": "U03", "name": null, "class": "vite-owned-optimizer-cache", "sourceExperiment": "A9-midstart-shutdown", "run": "run2-harness-v2", "round": 2, "creatorProcess": "detached case worker (forked)", "residueReason": "same as U01", "identityStatus": "UNVERIFIED-IDENTITY", "cleanup": { "action": "lab sweep", "status": "CLEANED-IDENTITY-UNVERIFIED" } },
-    { "id": "U04", "name": null, "class": "signed-probe-runtime-root", "sourceExperiment": "A9-midstart-shutdown", "run": "run2-harness-v2", "round": 2, "creatorProcess": "detached case worker (forked)", "residueReason": "same as U01", "identityStatus": "UNVERIFIED-IDENTITY", "cleanup": { "action": "lab sweep", "status": "CLEANED-IDENTITY-UNVERIFIED" } },
-    { "id": "U05", "name": null, "class": "vite-owned-optimizer-cache", "sourceExperiment": "A9-midstart-shutdown", "run": "run2-harness-v2", "round": 3, "creatorProcess": "detached case worker (forked)", "residueReason": "same as U01", "identityStatus": "UNVERIFIED-IDENTITY", "cleanup": { "action": "lab sweep", "status": "CLEANED-IDENTITY-UNVERIFIED" } },
-    { "id": "U06", "name": null, "class": "signed-probe-runtime-root", "sourceExperiment": "A9-midstart-shutdown", "run": "run2-harness-v2", "round": 3, "creatorProcess": "detached case worker (forked)", "residueReason": "same as U01", "identityStatus": "UNVERIFIED-IDENTITY", "cleanup": { "action": "lab sweep", "status": "CLEANED-IDENTITY-UNVERIFIED" } },
-    { "id": "U07", "name": null, "class": "vite-owned-optimizer-cache", "sourceExperiment": "A11-close-during-traffic", "run": "run2-harness-v2", "round": 1, "creatorProcess": "in-process Vite dev server in the lab harness", "residueReason": "close() hit the 15s deadline (the round recorded as DIRTY under v2 semantics, behaviorally identical to run3 r4); cache retained per contract", "identityStatus": "UNVERIFIED-IDENTITY", "identityNote": "per-round file overwritten by run3; the dir name is unrecoverable, the attribution follows from the round completing with the deadline signature", "cleanup": { "action": "lab sweep", "status": "CLEANED-IDENTITY-UNVERIFIED" } },
-    { "id": "U08", "name": null, "class": "vite-owned-optimizer-cache", "sourceExperiment": "B8-shutdown-timeout", "run": "stuck-harness-rerun (wpB-run2 attempt)", "round": 1, "creatorProcess": "in-process Vite dev server in the lab harness", "residueReason": "harness defect kept the writer blocked forever; the drill was killed by the operator (TaskStop + direct kill of the lab's own two processes) mid-deadline, so neither the round's rmSync nor the after-audit ever ran", "identityStatus": "UNVERIFIED-IDENTITY", "identityNote": "the round never completed, so no osAudit recorded the name", "cleanup": { "action": "operator killed the lab's own processes; directory removed by the lab sweep", "status": "CLEANED-IDENTITY-UNVERIFIED" } }
+    {
+      "id": "F01",
+      "name": "symgene-t02-vite-5cBdrg",
+      "class": "vite-owned-optimizer-cache",
+      "sourceExperiment": "A11-close-during-traffic",
+      "run": "run3-harness-v3",
+      "round": 4,
+      "creatorProcess": "in-process Vite dev server in the lab harness",
+      "residueReason": "close() hit the 15s deadline (T02_CONSUMER_SHUTDOWN_TIMEOUT, cleanupIncomplete); per the PR contract an unjoined writer's cache is retained, not deleted",
+      "recordedIn": "A11-close-during-traffic-r4.json leakCheck.newTempCaches",
+      "cleanup": {
+        "action": "lab sweep after evidence recording",
+        "status": "CLEANED"
+      }
+    },
+    {
+      "id": "F02",
+      "name": "symgene-t02-vite-kkSN1m",
+      "class": "vite-owned-optimizer-cache",
+      "sourceExperiment": "A14-leader-death-orphan-reap",
+      "run": "run3-harness-v3",
+      "round": 1,
+      "creatorProcess": "detached probe worker (forked)",
+      "residueReason": "worker leader SIGKILLed at react-mount; process died before its finally could remove the owned cache",
+      "recordedIn": "A14-leader-death-orphan-reap-r1.json",
+      "cleanup": {
+        "action": "lab sweep",
+        "status": "CLEANED"
+      }
+    },
+    {
+      "id": "F03",
+      "name": "symgene-t02-vite-hq5uEb",
+      "class": "vite-owned-optimizer-cache",
+      "sourceExperiment": "A14-leader-death-orphan-reap",
+      "run": "run3-harness-v3",
+      "round": 2,
+      "creatorProcess": "detached probe worker (forked)",
+      "residueReason": "worker leader SIGKILLed before finally",
+      "recordedIn": "A14-leader-death-orphan-reap-r2.json",
+      "cleanup": {
+        "action": "lab sweep",
+        "status": "CLEANED"
+      }
+    },
+    {
+      "id": "F04",
+      "name": "symgene-t02-vite-cBJbh7",
+      "class": "vite-owned-optimizer-cache",
+      "sourceExperiment": "A14-leader-death-orphan-reap",
+      "run": "run3-harness-v3",
+      "round": 3,
+      "creatorProcess": "detached probe worker (forked)",
+      "residueReason": "worker leader SIGKILLed before finally",
+      "recordedIn": "A14-leader-death-orphan-reap-r3.json",
+      "cleanup": {
+        "action": "lab sweep",
+        "status": "CLEANED"
+      }
+    },
+    {
+      "id": "F05",
+      "name": "symgene-t02-vite-KKB5e6",
+      "class": "vite-owned-optimizer-cache",
+      "sourceExperiment": "A14-leader-death-orphan-reap",
+      "run": "run3-harness-v3",
+      "round": 4,
+      "creatorProcess": "detached probe worker (forked)",
+      "residueReason": "worker leader SIGKILLed before finally",
+      "recordedIn": "A14-leader-death-orphan-reap-r4.json",
+      "cleanup": {
+        "action": "lab sweep",
+        "status": "CLEANED"
+      }
+    },
+    {
+      "id": "F06",
+      "name": "symgene-t02-vite-RIWdMK",
+      "class": "vite-owned-optimizer-cache",
+      "sourceExperiment": "A14-leader-death-orphan-reap",
+      "run": "run3-harness-v3",
+      "round": 5,
+      "creatorProcess": "detached probe worker (forked)",
+      "residueReason": "worker leader SIGKILLed before finally",
+      "recordedIn": "A14-leader-death-orphan-reap-r5.json",
+      "cleanup": {
+        "action": "lab sweep",
+        "status": "CLEANED"
+      }
+    },
+    {
+      "id": "F07",
+      "name": "symgene-t02-probe-O51w8x",
+      "class": "signed-probe-runtime-root",
+      "sourceExperiment": "A9-midstart-shutdown",
+      "run": "run3-harness-v3",
+      "round": 1,
+      "creatorProcess": "detached case worker (forked)",
+      "residueReason": "worker group SIGTERMed at first 'ready'; the signed probe had created its runtime root but never reached its finally",
+      "recordedIn": "A9-midstart-shutdown-r1.json",
+      "cleanup": {
+        "action": "lab sweep",
+        "status": "CLEANED"
+      }
+    },
+    {
+      "id": "F08",
+      "name": "symgene-t02-vite-YITuxZ",
+      "class": "vite-owned-optimizer-cache",
+      "sourceExperiment": "A9-midstart-shutdown",
+      "run": "run3-harness-v3",
+      "round": 1,
+      "creatorProcess": "detached case worker (forked)",
+      "residueReason": "worker group SIGTERMed mid-startup; server cache removal never ran",
+      "recordedIn": "A9-midstart-shutdown-r1.json",
+      "cleanup": {
+        "action": "lab sweep",
+        "status": "CLEANED"
+      }
+    },
+    {
+      "id": "F09",
+      "name": "symgene-t02-probe-O7BZR2",
+      "class": "signed-probe-runtime-root",
+      "sourceExperiment": "A9-midstart-shutdown",
+      "run": "run3-harness-v3",
+      "round": 2,
+      "creatorProcess": "detached case worker (forked)",
+      "residueReason": "same as F07",
+      "recordedIn": "A9-midstart-shutdown-r2.json",
+      "cleanup": {
+        "action": "lab sweep",
+        "status": "CLEANED"
+      }
+    },
+    {
+      "id": "F10",
+      "name": "symgene-t02-vite-PCungi",
+      "class": "vite-owned-optimizer-cache",
+      "sourceExperiment": "A9-midstart-shutdown",
+      "run": "run3-harness-v3",
+      "round": 2,
+      "creatorProcess": "detached case worker (forked)",
+      "residueReason": "same as F08",
+      "recordedIn": "A9-midstart-shutdown-r2.json",
+      "cleanup": {
+        "action": "lab sweep",
+        "status": "CLEANED"
+      }
+    },
+    {
+      "id": "F11",
+      "name": "symgene-t02-probe-Ta04bK",
+      "class": "signed-probe-runtime-root",
+      "sourceExperiment": "A9-midstart-shutdown",
+      "run": "run3-harness-v3",
+      "round": 3,
+      "creatorProcess": "detached case worker (forked)",
+      "residueReason": "same as F07",
+      "recordedIn": "A9-midstart-shutdown-r3.json",
+      "cleanup": {
+        "action": "lab sweep",
+        "status": "CLEANED"
+      }
+    },
+    {
+      "id": "F12",
+      "name": "symgene-t02-vite-YFNh4I",
+      "class": "vite-owned-optimizer-cache",
+      "sourceExperiment": "A9-midstart-shutdown",
+      "run": "run3-harness-v3",
+      "round": 3,
+      "creatorProcess": "detached case worker (forked)",
+      "residueReason": "same as F08",
+      "recordedIn": "A9-midstart-shutdown-r3.json",
+      "cleanup": {
+        "action": "lab sweep",
+        "status": "CLEANED"
+      }
+    },
+    {
+      "id": "U01",
+      "name": null,
+      "class": "vite-owned-optimizer-cache",
+      "sourceExperiment": "A9-midstart-shutdown",
+      "run": "run2-harness-v2",
+      "round": 1,
+      "creatorProcess": "detached case worker (forked)",
+      "residueReason": "worker group SIGTERMed mid-startup (same code path as the named run3 records, which show exactly 2 residues per round)",
+      "identityStatus": "UNVERIFIED-IDENTITY",
+      "identityNote": "the per-round evidence file was overwritten by the same-name run3 file before the residue names were published; attribution to this round is structural (round completed, residue class observed in the surviving twin run), the directory name is unrecoverable",
+      "cleanup": {
+        "action": "lab sweep (date-scoped)",
+        "status": "CLEANED-IDENTITY-UNVERIFIED"
+      },
+      "attribution": "INFERRED",
+      "attributionBasis": "structural: the run completed or was killed with a residue class matching the named twin records; the directory name itself is unrecoverable"
+    },
+    {
+      "id": "U02",
+      "name": null,
+      "class": "signed-probe-runtime-root",
+      "sourceExperiment": "A9-midstart-shutdown",
+      "run": "run2-harness-v2",
+      "round": 1,
+      "creatorProcess": "detached case worker (forked)",
+      "residueReason": "same as U01",
+      "identityStatus": "UNVERIFIED-IDENTITY",
+      "cleanup": {
+        "action": "lab sweep",
+        "status": "CLEANED-IDENTITY-UNVERIFIED"
+      },
+      "attribution": "INFERRED",
+      "attributionBasis": "structural: the run completed or was killed with a residue class matching the named twin records; the directory name itself is unrecoverable"
+    },
+    {
+      "id": "U03",
+      "name": null,
+      "class": "vite-owned-optimizer-cache",
+      "sourceExperiment": "A9-midstart-shutdown",
+      "run": "run2-harness-v2",
+      "round": 2,
+      "creatorProcess": "detached case worker (forked)",
+      "residueReason": "same as U01",
+      "identityStatus": "UNVERIFIED-IDENTITY",
+      "cleanup": {
+        "action": "lab sweep",
+        "status": "CLEANED-IDENTITY-UNVERIFIED"
+      },
+      "attribution": "INFERRED",
+      "attributionBasis": "structural: the run completed or was killed with a residue class matching the named twin records; the directory name itself is unrecoverable"
+    },
+    {
+      "id": "U04",
+      "name": null,
+      "class": "signed-probe-runtime-root",
+      "sourceExperiment": "A9-midstart-shutdown",
+      "run": "run2-harness-v2",
+      "round": 2,
+      "creatorProcess": "detached case worker (forked)",
+      "residueReason": "same as U01",
+      "identityStatus": "UNVERIFIED-IDENTITY",
+      "cleanup": {
+        "action": "lab sweep",
+        "status": "CLEANED-IDENTITY-UNVERIFIED"
+      },
+      "attribution": "INFERRED",
+      "attributionBasis": "structural: the run completed or was killed with a residue class matching the named twin records; the directory name itself is unrecoverable"
+    },
+    {
+      "id": "U05",
+      "name": null,
+      "class": "vite-owned-optimizer-cache",
+      "sourceExperiment": "A9-midstart-shutdown",
+      "run": "run2-harness-v2",
+      "round": 3,
+      "creatorProcess": "detached case worker (forked)",
+      "residueReason": "same as U01",
+      "identityStatus": "UNVERIFIED-IDENTITY",
+      "cleanup": {
+        "action": "lab sweep",
+        "status": "CLEANED-IDENTITY-UNVERIFIED"
+      },
+      "attribution": "INFERRED",
+      "attributionBasis": "structural: the run completed or was killed with a residue class matching the named twin records; the directory name itself is unrecoverable"
+    },
+    {
+      "id": "U06",
+      "name": null,
+      "class": "signed-probe-runtime-root",
+      "sourceExperiment": "A9-midstart-shutdown",
+      "run": "run2-harness-v2",
+      "round": 3,
+      "creatorProcess": "detached case worker (forked)",
+      "residueReason": "same as U01",
+      "identityStatus": "UNVERIFIED-IDENTITY",
+      "cleanup": {
+        "action": "lab sweep",
+        "status": "CLEANED-IDENTITY-UNVERIFIED"
+      },
+      "attribution": "INFERRED",
+      "attributionBasis": "structural: the run completed or was killed with a residue class matching the named twin records; the directory name itself is unrecoverable"
+    },
+    {
+      "id": "U07",
+      "name": null,
+      "class": "vite-owned-optimizer-cache",
+      "sourceExperiment": "A11-close-during-traffic",
+      "run": "run2-harness-v2",
+      "round": 1,
+      "creatorProcess": "in-process Vite dev server in the lab harness",
+      "residueReason": "close() hit the 15s deadline (the round recorded as DIRTY under v2 semantics, behaviorally identical to run3 r4); cache retained per contract",
+      "identityStatus": "UNVERIFIED-IDENTITY",
+      "identityNote": "per-round file overwritten by run3; the dir name is unrecoverable, the attribution follows from the round completing with the deadline signature",
+      "cleanup": {
+        "action": "lab sweep",
+        "status": "CLEANED-IDENTITY-UNVERIFIED"
+      },
+      "attribution": "INFERRED",
+      "attributionBasis": "structural: the run completed or was killed with a residue class matching the named twin records; the directory name itself is unrecoverable"
+    },
+    {
+      "id": "U08",
+      "name": null,
+      "class": "vite-owned-optimizer-cache",
+      "sourceExperiment": "B8-shutdown-timeout",
+      "run": "stuck-harness-rerun (wpB-run2 attempt)",
+      "round": 1,
+      "creatorProcess": "in-process Vite dev server in the lab harness",
+      "residueReason": "harness defect kept the writer blocked forever; the drill was killed by the operator (TaskStop + direct kill of the lab's own two processes) mid-deadline, so neither the round's rmSync nor the after-audit ever ran",
+      "identityStatus": "UNVERIFIED-IDENTITY",
+      "identityNote": "the round never completed, so no osAudit recorded the name",
+      "cleanup": {
+        "action": "operator killed the lab's own processes; directory removed by the lab sweep",
+        "status": "CLEANED-IDENTITY-UNVERIFIED"
+      },
+      "attribution": "INFERRED",
+      "attributionBasis": "structural: the run completed or was killed with a residue class matching the named twin records; the directory name itself is unrecoverable"
+    }
   ],
   "osSnapshotCapabilityBoundary": {
     "canProve": "process list (pgrep), listening ports (connect probes / lsof), and temp-directory NAMES present at audit instants; per-round newTempCaches diffs name every directory a completed round created and failed to remove",
@@ -46,5 +349,11 @@
     "reverifiedDuringR1": "symgene-t02-* count re-checked at the start of the R1 session: 92; t02-faultlab-* count: 0",
     "nonLabResourcesTouched": 0,
     "note": "the sweep pattern matched only directories with a 2026-10-24 timestamp; the 92 pre-existing directories from earlier sessions were never touched"
+  },
+  "classTotals": {
+    "probeRuntime": 6,
+    "viteCache": 14,
+    "total": 20,
+    "note": "R1.1 recount from the per-entry class fields; supersedes the earlier incorrect 3/17 split"
   }
 }

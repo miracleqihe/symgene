@@ -34,7 +34,7 @@ app.close()  ─┬─ 停止接受新 HTTP 请求(watcher 同步关闭)
 - B2a:close 开始 150ms 后才释放 writer,迟到的写仍落在删除之前。
 - B8:writer 永久阻塞 → 15.4s 拒绝、端口已关、缓存保留。
 - B9:缓存目录只读 → drain 写不进 → 同一有界拒绝路径,缓存保留。
-- A11:真实流量中关闭,7/8 轮 ~6.5s 完成;1/8 轮走满期限且行为符合上述契约(端口关、缓存留、错误可见)。
+- A11:真实流量中关闭(R1.1 统一口径:全部尝试 11 = 3 次 harness 无效 + 8 次有效;有效尝试中 2 次触及 15s 期限、6 次约 6.5s 干净关闭;正式最终语义 5 轮中 1 次触及)。触及期限时行为符合上述契约(端口关、缓存留、错误可见、无假 PASS);全部样本都在高系统负载下取得,不作正常负载概率推断。详见 `A11-RECONCILIATION.md`。
 
 ## 3. 探针级清理核验(probeConsumer finally)
 
@@ -53,7 +53,7 @@ app.close()  ─┬─ 停止接受新 HTTP 请求(watcher 同步关闭)
 
 ## 6. 实验室的自我约束与审计方法
 
-- 每轮前后 `osAudit`:`pgrep -f ms-playwright`(PID + comm)、loadavg、freemem、`$TMPDIR/symgene-t02-*` 目录快照;差值写入 `leakCheck`。33 组 / 103 轮 **零孤儿 Chromium**(`RELIABILITY-MATRIX.json` 的 `resourceLifecycle.orphanChromiumViolations` 为空)。
+- 每轮前后 `osAudit`:`pgrep -f ms-playwright`(PID + comm)、loadavg、freemem、`$TMPDIR/symgene-t02-*` 目录快照;差值写入 `leakCheck`。36 组 / 112 轮(R1.1 口径,含 B9 删除路径补测;另加 C 差分 3 变体 9 轮)**零孤儿 Chromium**(`RELIABILITY-MATRIX.json` 的 `resourceLifecycle.orphanChromiumViolations` 为空)。
 - Chromium 并发上限 4(A6/A7 恰为 4);B/C 分时执行。
 - 每轮 60s 硬期限,超期杀自己启动的进程组并记 THREW;从未触碰非本任务的进程。一次实验室自身缺陷导致的 B8 挂起,其残留进程(2 个,均本实验所属)被点杀并记录。
 - 实验室显式创建的临时资源(warm 缓存目录、synthetic producer、worker 目录、B2b 残留)在记录后由 harness 删除;`$TMPDIR` 中既有的 92 个历史 `symgene-t02-*` 目录属于更早会话,本实验不代删。
@@ -63,6 +63,6 @@ app.close()  ─┬─ 停止接受新 HTTP 请求(watcher 同步关闭)
 监督契约保证的是**无孤儿进程、无存活端口**(A9/A14/B10 证实);它不承诺进程死亡后的临时目录。
 被 SIGTERM/SIGKILL 的 worker 无法执行自己的 finally,其已创建的 `symgene-t02-vite-*`(vite 缓存)与
 `symgene-t02-probe-*`(signed runtime)目录会留下。本实验室测得:A9(中途击杀)+ A14(SIGKILL)+
-B8 一次挂起强杀,共留下 20 个临时目录(3 个 probe-runtime、17 个 vite-cache,均已记录于对应轮次
+B8 一次挂起强杀,共留下 20 个临时目录(R1.1 按 Ledger 重新计类:**6 个 signed-probe-runtime + 14 个 vite-cache**;其中 12 个具名 = 3 probe + 9 vite,8 个匿名 = 3 probe + 5 vite,归属为 INFERRED;均记录于对应轮次
 osAudit 的 `newTempCaches`,并在实验结束后由实验室清理)。这不是 #38 的缺陷——任何进程内清理方案
 都无法清理已死进程;若需更强保证,应由 supervisor 收集并上报子进程的临时路径(属于未来加固,未实施)。

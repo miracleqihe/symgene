@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-24T18:29:31.693Z",
+  "generatedAt": "2026-10-24T19:27:04.782Z",
   "scope": "synthetic loopback only; fictional content; production BLOCKED; evidence-only review package",
   "repository": "miracleqihe/symgene",
   "boundSources": {
@@ -28,7 +28,7 @@
     "cpu": "Apple M2 Pro (arm64, 10 cores)",
     "memory": "16 GB shared with unrelated system load",
     "os": "macOS (darwin arm64)",
-    "loadCaveat": "unrelated system load peaked at loadavg ~33 during runs; timing-sensitive numbers (A11 frequency) should be read with that in mind"
+    "loadCaveat": "R1.1 window-explicit: the 15-min loadavg average was ~33 early in the session (uptime); the five FORMAL A11 rounds recorded 1-min loadavg 80-105 in their own audits (external system load, no lab concurrency verified by artifact timestamps); the run2 window recorded 1-min ~14-15. Metrics and windows are not interchangeable; no normal-load probability claim is made for A11"
   },
   "browserRuntime": "Playwright-managed Chromium (headless), ~/Library/Caches/ms-playwright",
   "chromiumConcurrencyCap": 4,

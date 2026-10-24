@@ -1,0 +1,3 @@
+{"id":"R11B-EXP1-rm-transient-recovery","round":1,"verdict":"RM-RETRIES-PROVEN","expect":"RM-RETRIES-PROVEN","matches":true,"ms":6115}
+{"id":"R11B-EXP1-rm-transient-recovery","round":2,"verdict":"RM-RETRIES-PROVEN","expect":"RM-RETRIES-PROVEN","matches":true,"ms":6103}
+{"id":"R11B-EXP1-rm-transient-recovery","round":3,"verdict":"RM-RETRIES-PROVEN","expect":"RM-RETRIES-PROVEN","matches":true,"ms":6109}

@@ -1,8 +1,34 @@
 {
   "package": "T03 PR #38 concurrency fault laboratory evidence",
+  "packageEvolution": {
+    "metricDefinition": "indexEntries = published files (evidence + top-level deliverables + integrity anchors). Local evidence file counts are a different metric (files in the local evidence directory, including harness-internal ones never published).",
+    "history": [
+      {
+        "phase": "R0 initial package",
+        "localEvidenceFiles": 172,
+        "indexEntries": 181,
+        "prFiles": 184,
+        "note": "prFiles = indexEntries + 3 integrity-anchor files not yet indexed; 13 *.log files needed an explicit force-add against the repo-wide ignore rule"
+      },
+      {
+        "phase": "R1 remediation",
+        "localEvidenceFiles": "grew (A11 ledger, temp-dir ledger, B9R* rounds, logs)",
+        "indexEntries": 198,
+        "prFiles": 200,
+        "note": "same +3 anchor gap; evidence/wpB-b9r2.log was indexed but gitignored -> dangling reference discovered by review"
+      },
+      {
+        "phase": "R1.1 closure",
+        "indexEntries": 201,
+        "prFiles": 201,
+        "note": "zero dangling, zero unindexed; wpB-b9r2.log force-added after rescan"
+      }
+    ]
+  },
   "scopeNote": "Evidence-only package for independent review of PR #38 (9dfc403f89cfe539eb7584c87eddcbda6efe0a89). No production code changes.",
   "integrity": {
     "hashPolicy": "originalSha256 hashes the LOCAL ORIGINAL file; publicSha256 hashes the sanitized copy published here. They intentionally differ wherever redactionRules is non-empty. Historical results were never altered to become PASS; intermediate failures and harness-defect iterations are preserved.",
+    "fieldNaming": "sourceCommits holds git COMMIT SHAs of the tested implementations (new: 9dfc403…, old: 6a3eea2…). The R0/R1 releases misnamed this field sourceSha256; renamed in R1.1. File-level hashes are publicSha256/originalSha256 only.",
     "redaction": [
       "personal-home-path: the personal home prefix (username withheld) was replaced with <redacted-home>",
       "username: standalone occurrences → <redacted-user>",
@@ -11,7 +37,7 @@
     "enforced": "every published file was re-scanned after sanitization; any surviving hit aborts the package build"
   },
   "totals": {
-    "files": 198,
+    "files": 224,
     "experimentRounds": 121,
     "workPackages": {
       "A": 46,
@@ -38,7 +64,7 @@
       "experimentTitle": "One development consumer; cold owned cache, then two warm runs on one explicit cache",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -92,7 +118,7 @@
       "experimentTitle": "One development consumer; cold owned cache, then two warm runs on one explicit cache",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -146,7 +172,7 @@
       "experimentTitle": "One development consumer; cold owned cache, then two warm runs on one explicit cache",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -200,7 +226,7 @@
       "experimentTitle": "Fixed-port conflict then restart on the same port; fictional producer then valid signed probe",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -239,7 +265,7 @@
       "experimentTitle": "Fixed-port conflict then restart on the same port; fictional producer then valid signed probe",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -278,7 +304,7 @@
       "experimentTitle": "Fixed-port conflict then restart on the same port; fictional producer then valid signed probe",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -309,7 +335,7 @@
       "fullyPublic": true,
       "kind": "r1-reconciliation-ledger",
       "implementation": "new+old",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89",
         "old": "6a3eea2f679fa8979c66edcba2724675ee74aa93"
       }
@@ -331,7 +357,7 @@
       "experimentTitle": "app.close() while Chromium is mid-navigation and the optimizer is live",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -369,7 +395,7 @@
       "experimentTitle": "app.close() while Chromium is mid-navigation and the optimizer is live",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -407,7 +433,7 @@
       "experimentTitle": "app.close() while Chromium is mid-navigation and the optimizer is live",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -445,7 +471,7 @@
       "experimentTitle": "app.close() while Chromium is mid-navigation and the optimizer is live",
       "round": 4,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -491,7 +517,7 @@
       "experimentTitle": "app.close() while Chromium is mid-navigation and the optimizer is live",
       "round": 5,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -533,7 +559,7 @@
       "experimentTitle": "Node-side HTTP observed while a module is delayed and React has not mounted",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -587,7 +613,7 @@
       "experimentTitle": "Node-side HTTP observed while a module is delayed and React has not mounted",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -641,7 +667,7 @@
       "experimentTitle": "Node-side HTTP observed while a module is delayed and React has not mounted",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -695,7 +721,7 @@
       "experimentTitle": "A blocked module request must fail the probe and still clean every resource",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -749,7 +775,7 @@
       "experimentTitle": "A blocked module request must fail the probe and still clean every resource",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -803,7 +829,7 @@
       "experimentTitle": "A blocked module request must fail the probe and still clean every resource",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -853,7 +879,7 @@
       "experimentTitle": "SIGKILL the probe worker at react-mount; Chromium orphans must be reaped by the group kill",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -891,7 +917,7 @@
       "experimentTitle": "SIGKILL the probe worker at react-mount; Chromium orphans must be reaped by the group kill",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -929,7 +955,7 @@
       "experimentTitle": "SIGKILL the probe worker at react-mount; Chromium orphans must be reaped by the group kill",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -967,7 +993,7 @@
       "experimentTitle": "SIGKILL the probe worker at react-mount; Chromium orphans must be reaped by the group kill",
       "round": 4,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -1005,7 +1031,7 @@
       "experimentTitle": "SIGKILL the probe worker at react-mount; Chromium orphans must be reaped by the group kill",
       "round": 5,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -1047,7 +1073,7 @@
       "experimentTitle": "One signed consumer on the website-synthetic gateway; cold then warm",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -1102,7 +1128,7 @@
       "experimentTitle": "One signed consumer on the website-synthetic gateway; cold then warm",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -1157,7 +1183,7 @@
       "experimentTitle": "One signed consumer on the website-synthetic gateway; cold then warm",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -1212,7 +1238,7 @@
       "experimentTitle": "Mixed pair starting simultaneously inside one worker; isolated caches",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -1272,7 +1298,7 @@
       "experimentTitle": "Mixed pair starting simultaneously inside one worker; isolated caches",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -1332,7 +1358,7 @@
       "experimentTitle": "Mixed pair starting simultaneously inside one worker; isolated caches",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -1392,7 +1418,7 @@
       "experimentTitle": "Two identical development consumers, simultaneous, one worker",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -1452,7 +1478,7 @@
       "experimentTitle": "Two identical development consumers, simultaneous, one worker",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -1512,7 +1538,7 @@
       "experimentTitle": "Two identical development consumers, simultaneous, one worker",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -1572,7 +1598,7 @@
       "experimentTitle": "Two identical signed consumers, simultaneous, one worker",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -1633,7 +1659,7 @@
       "experimentTitle": "Two identical signed consumers, simultaneous, one worker",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -1694,7 +1720,7 @@
       "experimentTitle": "Two identical signed consumers, simultaneous, one worker",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -1751,7 +1777,7 @@
       "experimentTitle": "Four consumers (2 dev + 2 signed) each in its own supervised worker, simultaneous",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -1808,7 +1834,7 @@
       "experimentTitle": "Four consumers (2 dev + 2 signed) each in its own supervised worker, simultaneous",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -1865,7 +1891,7 @@
       "experimentTitle": "Four consumers (2 dev + 2 signed) each in its own supervised worker, simultaneous",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -1926,7 +1952,7 @@
       "experimentTitle": "Four consumers (2 dev + 2 signed) inside one case worker, simultaneous",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -1987,7 +2013,7 @@
       "experimentTitle": "Four consumers (2 dev + 2 signed) inside one case worker, simultaneous",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2048,7 +2074,7 @@
       "experimentTitle": "Four consumers (2 dev + 2 signed) inside one case worker, simultaneous",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2109,7 +2135,7 @@
       "experimentTitle": "Mixed pair started back-to-back inside one worker",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2169,7 +2195,7 @@
       "experimentTitle": "Mixed pair started back-to-back inside one worker",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2229,7 +2255,7 @@
       "experimentTitle": "Mixed pair started back-to-back inside one worker",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2289,7 +2315,7 @@
       "experimentTitle": "SIGTERM the case worker the moment its first server reports ready",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2335,7 +2361,7 @@
       "experimentTitle": "SIGTERM the case worker the moment its first server reports ready",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2381,7 +2407,7 @@
       "experimentTitle": "SIGTERM the case worker the moment its first server reports ready",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2423,7 +2449,7 @@
       "experimentTitle": "close() must join a writer held for 300ms before removing the cache",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2457,7 +2483,7 @@
       "experimentTitle": "close() must join a writer held for 300ms before removing the cache",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2491,7 +2517,7 @@
       "experimentTitle": "close() must join a writer held for 300ms before removing the cache",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2525,7 +2551,7 @@
       "experimentTitle": "SIGTERM during a live probe: probeConsumer interrupts the browser and the worker must still fail closed",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2563,7 +2589,7 @@
       "experimentTitle": "SIGTERM during a live probe: probeConsumer interrupts the browser and the worker must still fail closed",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2601,7 +2627,7 @@
       "experimentTitle": "SIGTERM during a live probe: probeConsumer interrupts the browser and the worker must still fail closed",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2639,7 +2665,7 @@
       "experimentTitle": "Writer released only after close() began: late write must land inside the drain, before cache removal",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2673,7 +2699,7 @@
       "experimentTitle": "Writer released only after close() began: late write must land inside the drain, before cache removal",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2707,7 +2733,7 @@
       "experimentTitle": "Writer released only after close() began: late write must land inside the drain, before cache removal",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2741,7 +2767,7 @@
       "experimentTitle": "Out-of-contract writer scheduling work outside its processing promise (observational)",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2775,7 +2801,7 @@
       "experimentTitle": "Out-of-contract writer scheduling work outside its processing promise (observational)",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2809,7 +2835,7 @@
       "experimentTitle": "Out-of-contract writer scheduling work outside its processing promise (observational)",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2847,7 +2873,7 @@
       "experimentTitle": "Real Chromium: 504 Outdated Optimize Dep first, successful React mount after - must FAIL",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2901,7 +2927,7 @@
       "experimentTitle": "Real Chromium: 504 Outdated Optimize Dep first, successful React mount after - must FAIL",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -2955,7 +2981,7 @@
       "experimentTitle": "Real Chromium: 504 Outdated Optimize Dep first, successful React mount after - must FAIL",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3005,7 +3031,7 @@
       "experimentTitle": "Worker emits a PASS report, then receives SIGTERM: supervisor must fail the run",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3045,7 +3071,7 @@
       "experimentTitle": "Worker emits a PASS report, then receives SIGTERM: supervisor must fail the run",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3085,7 +3111,7 @@
       "experimentTitle": "Worker emits a PASS report, then receives SIGTERM: supervisor must fail the run",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3125,7 +3151,7 @@
       "experimentTitle": "PASS report then exit code 7 must fail",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3165,7 +3191,7 @@
       "experimentTitle": "PASS report then exit code 7 must fail",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3205,7 +3231,7 @@
       "experimentTitle": "PASS report then exit code 7 must fail",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3245,7 +3271,7 @@
       "experimentTitle": "PASS report then uncaught exception must fail",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3285,7 +3311,7 @@
       "experimentTitle": "PASS report then uncaught exception must fail",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3325,7 +3351,7 @@
       "experimentTitle": "PASS report then uncaught exception must fail",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3365,7 +3391,7 @@
       "experimentTitle": "No report at all must fail",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3405,7 +3431,7 @@
       "experimentTitle": "No report at all must fail",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3445,7 +3471,7 @@
       "experimentTitle": "No report at all must fail",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3485,7 +3511,7 @@
       "experimentTitle": "Duplicate reports invalidate the worker even when the first was PASS",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3525,7 +3551,7 @@
       "experimentTitle": "Duplicate reports invalidate the worker even when the first was PASS",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3565,7 +3591,7 @@
       "experimentTitle": "Duplicate reports invalidate the worker even when the first was PASS",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3605,7 +3631,7 @@
       "experimentTitle": "Report kind mismatch must fail",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3645,7 +3671,7 @@
       "experimentTitle": "Report kind mismatch must fail",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3685,7 +3711,7 @@
       "experimentTitle": "Report kind mismatch must fail",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3725,7 +3751,7 @@
       "experimentTitle": "Foreign execution id must fail",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3765,7 +3791,7 @@
       "experimentTitle": "Foreign execution id must fail",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3805,7 +3831,7 @@
       "experimentTitle": "Foreign execution id must fail",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3845,7 +3871,7 @@
       "experimentTitle": "Foreign pid must fail",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3885,7 +3911,7 @@
       "experimentTitle": "Foreign pid must fail",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3925,7 +3951,7 @@
       "experimentTitle": "Foreign pid must fail",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -3965,7 +3991,7 @@
       "experimentTitle": "Mode mismatch must fail",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4005,7 +4031,7 @@
       "experimentTitle": "Mode mismatch must fail",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4045,7 +4071,7 @@
       "experimentTitle": "Mode mismatch must fail",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4085,7 +4111,7 @@
       "experimentTitle": "Incomplete probe result must fail",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4125,7 +4151,7 @@
       "experimentTitle": "Incomplete probe result must fail",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4165,7 +4191,7 @@
       "experimentTitle": "Incomplete probe result must fail",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4209,7 +4235,7 @@
       "experimentTitle": "Gateway close() rejects after a fully successful signed probe",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4264,7 +4290,7 @@
       "experimentTitle": "Gateway close() rejects after a fully successful signed probe",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4319,7 +4345,7 @@
       "experimentTitle": "Gateway close() rejects after a fully successful signed probe",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4374,7 +4400,7 @@
       "experimentTitle": "Fixture close() rejects after a fully successful signed probe",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4429,7 +4455,7 @@
       "experimentTitle": "Fixture close() rejects after a fully successful signed probe",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4484,7 +4510,7 @@
       "experimentTitle": "Fixture close() rejects after a fully successful signed probe",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4539,7 +4565,7 @@
       "experimentTitle": "Writer held past the 15s shutdown deadline: bounded reject, endpoint closed, cache retained",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4577,7 +4603,7 @@
       "experimentTitle": "Writer held past the 15s shutdown deadline: bounded reject, endpoint closed, cache retained",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4615,7 +4641,7 @@
       "experimentTitle": "Writer held past the 15s shutdown deadline: bounded reject, endpoint closed, cache retained",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4649,7 +4675,7 @@
       "experimentTitle": "Cache dir made read-only before close: deletion must fail closed, never report clean",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4683,7 +4709,7 @@
       "experimentTitle": "Cache dir made read-only before close: deletion must fail closed, never report clean",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4717,7 +4743,7 @@
       "experimentTitle": "Cache dir made read-only before close: deletion must fail closed, never report clean",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4739,6 +4765,25 @@
       }
     },
     {
+      "file": "evidence/B9-RETRY-TRACE.json",
+      "originalSha256": "13bf75b21a67e2128e087dd216288477c6e476cc1d6656c083b2b756fcd11dbe",
+      "publicSha256": "13bf75b21a67e2128e087dd216288477c6e476cc1d6656c083b2b756fcd11dbe",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "r1.1-trace",
+      "implementation": "new",
+      "sourceCommits": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      }
+    },
+    {
       "file": "evidence/B9R1-deletion-failure-isolated-r1.json",
       "originalSha256": "53520871ba85145834f34a34873df7e252715a8bb332f1b3916c4d623a6ae1c2",
       "publicSha256": "a646d5ba9f2bbd41362b3e7ce4c50a40c125e83bcba7c7c8e6357918b06a3a4d",
@@ -4752,7 +4797,7 @@
       "kind": "experiment-round",
       "workPackage": "B",
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4798,7 +4843,7 @@
       "kind": "experiment-round",
       "workPackage": "B",
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4844,7 +4889,7 @@
       "kind": "experiment-round",
       "workPackage": "B",
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4886,7 +4931,7 @@
       "kind": "experiment-round",
       "workPackage": "B",
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4922,7 +4967,7 @@
       "kind": "experiment-round",
       "workPackage": "B",
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4958,7 +5003,7 @@
       "kind": "experiment-round",
       "workPackage": "B",
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -4998,7 +5043,7 @@
       "kind": "experiment-round",
       "workPackage": "B",
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -5044,7 +5089,7 @@
       "kind": "experiment-round",
       "workPackage": "B",
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -5090,7 +5135,7 @@
       "kind": "experiment-round",
       "workPackage": "B",
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -5135,7 +5180,7 @@
       "experimentTitle": "new implementation: same drill with per-instance temporary caches",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -5174,7 +5219,7 @@
       "experimentTitle": "new implementation: same drill with per-instance temporary caches",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -5213,7 +5258,7 @@
       "experimentTitle": "new implementation: same drill with per-instance temporary caches",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -5252,7 +5297,7 @@
       "experimentTitle": "new implementation: caller misuse - both consumers share one explicit cacheDir",
       "round": 1,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -5291,7 +5336,7 @@
       "experimentTitle": "new implementation: caller misuse - both consumers share one explicit cacheDir",
       "round": 2,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -5330,7 +5375,7 @@
       "experimentTitle": "new implementation: caller misuse - both consumers share one explicit cacheDir",
       "round": 3,
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -5369,7 +5414,7 @@
       "experimentTitle": "old implementation: dev+signed sharing the root node_modules/.vite cache, two concurrent Chromium navigations",
       "round": 1,
       "implementation": "old",
-      "sourceSha256": {
+      "sourceCommits": {
         "old": "6a3eea2f679fa8979c66edcba2724675ee74aa93"
       },
       "versions": {
@@ -5408,7 +5453,7 @@
       "experimentTitle": "old implementation: dev+signed sharing the root node_modules/.vite cache, two concurrent Chromium navigations",
       "round": 2,
       "implementation": "old",
-      "sourceSha256": {
+      "sourceCommits": {
         "old": "6a3eea2f679fa8979c66edcba2724675ee74aa93"
       },
       "versions": {
@@ -5447,7 +5492,7 @@
       "experimentTitle": "old implementation: dev+signed sharing the root node_modules/.vite cache, two concurrent Chromium navigations",
       "round": 3,
       "implementation": "old",
-      "sourceSha256": {
+      "sourceCommits": {
         "old": "6a3eea2f679fa8979c66edcba2724675ee74aa93"
       },
       "versions": {
@@ -5499,7 +5544,7 @@
       "fullyPublic": true,
       "kind": "lab-log-or-report",
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       }
     },
@@ -5516,7 +5561,7 @@
       "fullyPublic": true,
       "kind": "lab-log-or-report",
       "implementation": "old",
-      "sourceSha256": {
+      "sourceCommits": {
         "old": "6a3eea2f679fa8979c66edcba2724675ee74aa93"
       }
     },
@@ -5529,7 +5574,7 @@
       "fullyPublic": true,
       "kind": "lab-log-or-report",
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       }
     },
@@ -5541,7 +5586,7 @@
       "redactionRules": [],
       "fullyPublic": true,
       "kind": "lab-log-or-report",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89",
         "old": "6a3eea2f679fa8979c66edcba2724675ee74aa93"
       },
@@ -5556,7 +5601,7 @@
       "fullyPublic": true,
       "kind": "lab-log-or-report",
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -5578,6 +5623,15 @@
       ],
       "fullyPublic": true,
       "kind": "regression-log"
+    },
+    {
+      "file": "evidence/integrity-before-2af0d2e.json",
+      "originalSha256": "888765ab2394975eac1754fe01941d34e5b5002306eae2939cf74eb88c4d2009",
+      "publicSha256": "888765ab2394975eac1754fe01941d34e5b5002306eae2939cf74eb88c4d2009",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "r1.1-integrity-verification"
     },
     {
       "file": "evidence/matrix-ci/case-0-0-fresh-instance.json",
@@ -5649,7 +5703,7 @@
       "fullyPublic": true,
       "kind": "lab-log-or-report",
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "outcome": {
@@ -5730,6 +5784,311 @@
       "implementation": "new"
     },
     {
+      "file": "evidence/R11B-EXP1-rm-transient-recovery-r1.json",
+      "originalSha256": "953be46466c2b7442dfb9f674f907dbba349ec2cf2b24f7d3ef032e86c45aca9",
+      "publicSha256": "953be46466c2b7442dfb9f674f907dbba349ec2cf2b24f7d3ef032e86c45aca9",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "r1.1-experiment",
+      "implementation": "new",
+      "sourceCommits": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      }
+    },
+    {
+      "file": "evidence/R11B-EXP1-rm-transient-recovery-r2.json",
+      "originalSha256": "062e1dce6154b8500dbf8be4772eb6b50c0e43cda69c04a36cbd42be25ff564f",
+      "publicSha256": "062e1dce6154b8500dbf8be4772eb6b50c0e43cda69c04a36cbd42be25ff564f",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "r1.1-experiment",
+      "implementation": "new",
+      "sourceCommits": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      }
+    },
+    {
+      "file": "evidence/R11B-EXP1-rm-transient-recovery-r3.json",
+      "originalSha256": "7c026a8901dc11931946677abaea081c78f32b8631939980130fdfef8781a585",
+      "publicSha256": "7c026a8901dc11931946677abaea081c78f32b8631939980130fdfef8781a585",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "r1.1-experiment",
+      "implementation": "new",
+      "sourceCommits": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      }
+    },
+    {
+      "file": "evidence/R11B-EXP2-rm-permanent-exhaustion-r1.json",
+      "originalSha256": "1558f79b8aecc0ca1a4773908e725001a5c2426ccc6aa93d2f0b4e5ac33147dd",
+      "publicSha256": "1558f79b8aecc0ca1a4773908e725001a5c2426ccc6aa93d2f0b4e5ac33147dd",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "r1.1-experiment",
+      "implementation": "new",
+      "sourceCommits": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      }
+    },
+    {
+      "file": "evidence/R11B-EXP2-rm-permanent-exhaustion-r2.json",
+      "originalSha256": "beaf79dc8fb0c5fef3832bded3671285e6d42263cfd6ec744ff6350dcc27ee7c",
+      "publicSha256": "beaf79dc8fb0c5fef3832bded3671285e6d42263cfd6ec744ff6350dcc27ee7c",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "r1.1-experiment",
+      "implementation": "new",
+      "sourceCommits": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      }
+    },
+    {
+      "file": "evidence/R11B-EXP2-rm-permanent-exhaustion-r3.json",
+      "originalSha256": "6389798214540141d3c619f97a90525844c95449202be6fc0c382adb97037032",
+      "publicSha256": "6389798214540141d3c619f97a90525844c95449202be6fc0c382adb97037032",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "r1.1-experiment",
+      "implementation": "new",
+      "sourceCommits": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      }
+    },
+    {
+      "file": "evidence/R11B-EXP3-close-decomposition-control-r1.json",
+      "originalSha256": "47878f8d2911ede3510ac28402c03c0edcc0ceb12bc4c6ea40929becb36e20d4",
+      "publicSha256": "47878f8d2911ede3510ac28402c03c0edcc0ceb12bc4c6ea40929becb36e20d4",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "r1.1-experiment",
+      "implementation": "new",
+      "sourceCommits": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      }
+    },
+    {
+      "file": "evidence/R11B-EXP3-close-decomposition-control-r2.json",
+      "originalSha256": "fce54e37a90ec1d8716942d2e45105990d136fc5e39427c6dfadbd6dc8647657",
+      "publicSha256": "fce54e37a90ec1d8716942d2e45105990d136fc5e39427c6dfadbd6dc8647657",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "r1.1-experiment",
+      "implementation": "new",
+      "sourceCommits": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      }
+    },
+    {
+      "file": "evidence/R11B-EXP3-close-decomposition-control-r3.json",
+      "originalSha256": "715d882f18ff122368c30ed7e825f6cdb2ecd3008d8fbb6a10a5538c11997042",
+      "publicSha256": "715d882f18ff122368c30ed7e825f6cdb2ecd3008d8fbb6a10a5538c11997042",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "r1.1-experiment",
+      "implementation": "new",
+      "sourceCommits": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      }
+    },
+    {
+      "file": "evidence/R11B-EXP3-close-decomposition-flagged-r1.json",
+      "originalSha256": "bebaaa414888b1e6ccf570fafc974e416703a7de7b3e45f1248650e461238f05",
+      "publicSha256": "bebaaa414888b1e6ccf570fafc974e416703a7de7b3e45f1248650e461238f05",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "r1.1-experiment",
+      "implementation": "new",
+      "sourceCommits": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      }
+    },
+    {
+      "file": "evidence/R11B-EXP3-close-decomposition-flagged-r2.json",
+      "originalSha256": "2d880c3af9c9dc7f088226d6dbaa7db2497ba5234baab316b4d240d79460482a",
+      "publicSha256": "2d880c3af9c9dc7f088226d6dbaa7db2497ba5234baab316b4d240d79460482a",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "r1.1-experiment",
+      "implementation": "new",
+      "sourceCommits": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      }
+    },
+    {
+      "file": "evidence/R11B-EXP3-close-decomposition-flagged-r3.json",
+      "originalSha256": "bcdf78683f50d782a3ff988c9dc1ef93c1112f559f94c333991a6cbf4d25bd99",
+      "publicSha256": "bcdf78683f50d782a3ff988c9dc1ef93c1112f559f94c333991a6cbf4d25bd99",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "r1.1-experiment",
+      "implementation": "new",
+      "sourceCommits": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      }
+    },
+    {
+      "file": "evidence/R11B-EXP4-rm-window-unit.json",
+      "originalSha256": "643f689bfea44e0123754c0624bd5a98a9f016d52d1368b3180f53c74ff3d1fc",
+      "publicSha256": "643f689bfea44e0123754c0624bd5a98a9f016d52d1368b3180f53c74ff3d1fc",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "r1.1-experiment",
+      "implementation": "new",
+      "sourceCommits": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      }
+    },
+    {
+      "file": "evidence/R11E-child_error_pass.json",
+      "originalSha256": "8484c878cd441a461fc849271e3075444da4b75690b5810f94269b9da358605e",
+      "publicSha256": "8484c878cd441a461fc849271e3075444da4b75690b5810f94269b9da358605e",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "r1.1-experiment",
+      "implementation": "new",
+      "sourceCommits": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      },
+      "outcome": {
+        "scenario": "child-error-pass",
+        "workerStatus": "PASS",
+        "isWorkerSuccess": true,
+        "workerError": {
+          "code": "CHILD_SIDE_DIAGNOSTIC"
+        },
+        "exitCode": 0,
+        "reportValid": true
+      }
+    },
+    {
+      "file": "evidence/R11E-child_fail_with_error.json",
+      "originalSha256": "af00eae811f20f7bfcac1a1aee0532af0e3d485530059bc20b6606824ca37a9f",
+      "publicSha256": "af00eae811f20f7bfcac1a1aee0532af0e3d485530059bc20b6606824ca37a9f",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "r1.1-experiment",
+      "implementation": "new",
+      "sourceCommits": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      },
+      "outcome": {
+        "scenario": "child-fail-with-error",
+        "workerStatus": "FAIL",
+        "isWorkerSuccess": false,
+        "workerError": {
+          "code": "T02_PROBE_SNAPSHOT_INVALID"
+        },
+        "exitCode": 0,
+        "reportValid": false
+      }
+    },
+    {
       "file": "evidence/regression-browser-504-regression.log",
       "originalSha256": "1fca5cbd65654f0a5321529921c0febdec77418a77216e629cd592bb6458558a",
       "publicSha256": "1fca5cbd65654f0a5321529921c0febdec77418a77216e629cd592bb6458558a",
@@ -5777,7 +6136,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -5808,7 +6167,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -5841,7 +6200,7 @@
         ]
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -5872,7 +6231,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -5903,7 +6262,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -5930,7 +6289,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -5961,7 +6320,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -5992,7 +6351,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6023,7 +6382,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6054,7 +6413,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6081,7 +6440,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6112,7 +6471,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6143,7 +6502,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6174,7 +6533,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6201,7 +6560,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6228,7 +6587,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6255,7 +6614,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6282,7 +6641,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6313,7 +6672,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6340,7 +6699,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6367,7 +6726,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6394,7 +6753,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6421,7 +6780,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6448,7 +6807,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6475,7 +6834,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6502,7 +6861,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6529,7 +6888,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6556,7 +6915,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6583,7 +6942,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6614,7 +6973,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6645,7 +7004,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6676,7 +7035,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6703,7 +7062,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6734,7 +7093,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6761,7 +7120,7 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6792,7 +7151,119 @@
         "divergentRounds": []
       },
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      }
+    },
+    {
+      "file": "evidence/summary-R11B-EXP1-rm-transient-recovery.json",
+      "originalSha256": "6df206e1587a3970e3bff13f6817fca365106df6ed9cd7b55e92c4d229f69a06",
+      "publicSha256": "6df206e1587a3970e3bff13f6817fca365106df6ed9cd7b55e92c4d229f69a06",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "experiment-summary",
+      "experiment": "R11B-EXP1-rm-transient-recovery",
+      "experimentTitle": "Node rm() contract: uchg flag cleared at +3.5s inside a 15s backoff window - success at >3.5s proves real re-attempts",
+      "expect": "RM-RETRIES-PROVEN",
+      "roundsRun": 3,
+      "outcome": {
+        "summary": "CONFIRMED",
+        "divergentRounds": []
+      },
+      "implementation": "new",
+      "sourceCommits": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      }
+    },
+    {
+      "file": "evidence/summary-R11B-EXP2-rm-permanent-exhaustion.json",
+      "originalSha256": "c1cd863e8ef4642bf17580b88d8e5b7be20848c02f0af442b891c303ed806548",
+      "publicSha256": "c1cd863e8ef4642bf17580b88d8e5b7be20848c02f0af442b891c303ed806548",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "experiment-summary",
+      "experiment": "R11B-EXP2-rm-permanent-exhaustion",
+      "experimentTitle": "Node rm() contract: uchg flag held - EPERM after the full linear backoff window proves retry exhaustion",
+      "expect": "RM-RETRY-EXHAUSTION-PROVEN",
+      "roundsRun": 3,
+      "outcome": {
+        "summary": "DIVERGENT",
+        "divergentRounds": [
+          1,
+          2,
+          3
+        ]
+      },
+      "implementation": "new",
+      "sourceCommits": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      }
+    },
+    {
+      "file": "evidence/summary-R11B-EXP3-close-decomposition-control.json",
+      "originalSha256": "83e4ae2f3c7c04493038f35f94a6b4ccd90f065e6e5a0ee2b005160e76d6644a",
+      "publicSha256": "83e4ae2f3c7c04493038f35f94a6b4ccd90f065e6e5a0ee2b005160e76d6644a",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "experiment-summary",
+      "experiment": "R11B-EXP3-close-decomposition-control",
+      "experimentTitle": "Product close() with no flag: baseline decomposition of drain + Vite close time",
+      "expect": "RECORDED",
+      "roundsRun": 3,
+      "outcome": {
+        "summary": "CONFIRMED",
+        "divergentRounds": []
+      },
+      "implementation": "new",
+      "sourceCommits": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      }
+    },
+    {
+      "file": "evidence/summary-R11B-EXP3-close-decomposition-flagged.json",
+      "originalSha256": "8dc37d2ef3e1b252f2bd84acbd5987f02320631e025e42e1b320a243140a09c6",
+      "publicSha256": "8dc37d2ef3e1b252f2bd84acbd5987f02320631e025e42e1b320a243140a09c6",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "experiment-summary",
+      "experiment": "R11B-EXP3-close-decomposition-flagged",
+      "experimentTitle": "Product close() with a held uchg flag: B9R2b reproduction for duration attribution",
+      "expect": "RECORDED",
+      "roundsRun": 3,
+      "outcome": {
+        "summary": "CONFIRMED",
+        "divergentRounds": []
+      },
+      "implementation": "new",
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       },
       "versions": {
@@ -6804,14 +7275,14 @@
     },
     {
       "file": "evidence/TEMP-DIR-LEDGER.json",
-      "originalSha256": "be573852e46dd8b0a79bbc999c518f7ef91384d4a53634020381bdce2580d33b",
-      "publicSha256": "be573852e46dd8b0a79bbc999c518f7ef91384d4a53634020381bdce2580d33b",
+      "originalSha256": "ef62ecb243a8a8d8eeafba835cb9ac31361fc2efc84419490cfa08ddf0b55f9a",
+      "publicSha256": "ef62ecb243a8a8d8eeafba835cb9ac31361fc2efc84419490cfa08ddf0b55f9a",
       "redacted": false,
       "redactionRules": [],
       "fullyPublic": true,
       "kind": "r1-reconciliation-ledger",
       "implementation": "new",
-      "sourceSha256": {
+      "sourceCommits": {
         "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
       }
     },
@@ -6858,6 +7329,24 @@
       "fullyPublic": true,
       "kind": "lab-log-or-report",
       "implementation": "new (harness run log; includes harness-defect iterations kept for transparency)"
+    },
+    {
+      "file": "evidence/wpB-b9r3-trace.log",
+      "originalSha256": "8c0eee23f55b1b6734ea1cb5cf2c2554e9f7eff6a46e43a13155d28cbc48f589",
+      "publicSha256": "8c0eee23f55b1b6734ea1cb5cf2c2554e9f7eff6a46e43a13155d28cbc48f589",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "lab-log-or-report"
+    },
+    {
+      "file": "evidence/wpB-b9r3-trace2.log",
+      "originalSha256": "4b69788429d5fc20f982c54f61b4eff95ea7efb77a108128de3ad30c57167901",
+      "publicSha256": "4b69788429d5fc20f982c54f61b4eff95ea7efb77a108128de3ad30c57167901",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "lab-log-or-report"
     },
     {
       "file": "evidence/wpB-run.log",
@@ -6943,8 +7432,8 @@
     {
       "file": "FAILURE-CATALOG.md",
       "kind": "deliverable",
-      "originalSha256": "91a52c02db9d1198106ef3046ff1e70308d9380851e7d5ffab6725e01182316d",
-      "publicSha256": "91a52c02db9d1198106ef3046ff1e70308d9380851e7d5ffab6725e01182316d",
+      "originalSha256": "70acd99844bcd1c62db4724dad0aa01aeb8e213ab8daa3cecd623541b04791bc",
+      "publicSha256": "70acd99844bcd1c62db4724dad0aa01aeb8e213ab8daa3cecd623541b04791bc",
       "redacted": false,
       "redactionRules": [],
       "fullyPublic": true
@@ -6952,8 +7441,8 @@
     {
       "file": "RESOURCE-LIFECYCLE.md",
       "kind": "deliverable",
-      "originalSha256": "6bf86660c4a8501b4efa8ed060cab2f4b2d925c9d35d8ff92891012c856880d4",
-      "publicSha256": "6bf86660c4a8501b4efa8ed060cab2f4b2d925c9d35d8ff92891012c856880d4",
+      "originalSha256": "fa3ad3a9e5e7add68cc69d60aadfad6514ac38f3998858543c21fa74192de680",
+      "publicSha256": "fa3ad3a9e5e7add68cc69d60aadfad6514ac38f3998858543c21fa74192de680",
       "redacted": false,
       "redactionRules": [],
       "fullyPublic": true
@@ -6974,8 +7463,8 @@
     {
       "file": "PATCHES/README.md",
       "kind": "deliverable",
-      "originalSha256": "cf71e06830815ca2b185405b2b7f061b4c4bf525affdac4ba3c3172479713a86",
-      "publicSha256": "cf71e06830815ca2b185405b2b7f061b4c4bf525affdac4ba3c3172479713a86",
+      "originalSha256": "24eca9e125f6839c2a5865b2d30000e3c6fb6006e861931d80305b4f5c6b6f53",
+      "publicSha256": "24eca9e125f6839c2a5865b2d30000e3c6fb6006e861931d80305b4f5c6b6f53",
       "redacted": false,
       "redactionRules": [],
       "fullyPublic": true
@@ -6997,6 +7486,40 @@
       "redacted": false,
       "redactionRules": [],
       "fullyPublic": true
+    },
+    {
+      "file": "ENVIRONMENT.json",
+      "kind": "integrity-anchor",
+      "originalSha256": null,
+      "publicSha256": null,
+      "redacted": true,
+      "redactionRules": [
+        "integrity-anchor: hashed by EVIDENCE-INDEX.md; content-addressed by the review branch commit"
+      ],
+      "fullyPublic": true,
+      "note": "generated file; its SHA-256 is recorded in EVIDENCE-INDEX.md (self-hashing inside the package is impossible for EVIDENCE-INDEX.json, so the commit SHA of the review branch is the anchor for that one file)"
+    },
+    {
+      "file": "EVIDENCE-INDEX.json",
+      "kind": "integrity-anchor",
+      "originalSha256": null,
+      "publicSha256": null,
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "note": "this file; hashed by EVIDENCE-INDEX.md after generation; content-addressed by the review branch commit"
+    },
+    {
+      "file": "EVIDENCE-INDEX.md",
+      "kind": "integrity-anchor",
+      "originalSha256": null,
+      "publicSha256": null,
+      "redacted": true,
+      "redactionRules": [
+        "integrity-anchor: content-addressed by the review branch commit"
+      ],
+      "fullyPublic": true,
+      "note": "human-readable index; anchors the two JSON files by SHA-256"
     }
   ]
 }
