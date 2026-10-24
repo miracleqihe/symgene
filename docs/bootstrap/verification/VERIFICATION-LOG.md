@@ -160,6 +160,8 @@ docs.github.com "Status checks":*"A job that is skipped will report its status a
 
 ## 全量复测(R3 收口时点)
 
+- 补丁复现终验:`git apply` 链 S0→S1→S1R→S1R2→S1R3(自 22eb347)与单补丁 S1-FINAL 均能**逐字节复现**分支 `.github`(5 个关键文件 diff 全 MATCH);fc17a9d 引入的一处尾随空格已在 5d1d930 清理,补丁随之重新导出。
+
 - `node --test .github/tests/*.test.mjs`:**72 tests / 72 pass / 0 fail**(63 → 72,+9:7 攻击 + 2 对照;零断言删除或放宽)。
 - 兼容:#37 `a799746` + #39 `a7ca006` 双实测 **PASS**(R3 新规则不破坏其文件;保留属性断言全过)。
 - 12 个平台脚本模拟模式通过;`git apply --check` 补丁链(S0→S1→S1R→S1R2→S1R3)与 S1-FINAL 全通过。

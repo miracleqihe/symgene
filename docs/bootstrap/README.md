@@ -35,7 +35,7 @@
 
 **方式 B(单补丁)**:`git apply S1-FINAL.patch`(= 上述并集;**不得与方式 A 叠加**)。
 
-SHA 校验:`git fetch origin review/t03-main-bootstrap-s0-s1 && git log --oneline 22eb347..FETCH_HEAD` 应依次为 d6fb5fd、7a58407、82b05e5、989fb7b、0ec15ed、d814f3c、3588967、6e61994、34f74b0、08f4534、fc17a9d、(R3 文档提交);每步 `git apply --check` 必须先通过;最终 `node --test .github/tests/*.test.mjs` 应为 72/72。测试计数沿革:20(R1 初版)→ 42(R1 整改)→ 63(R2 加固)→ 72(R3 加固),历史记录见 verification/VERIFICATION-LOG.md。
+SHA 校验:`git fetch origin review/t03-main-bootstrap-s0-s1 && git log --oneline 22eb347..FETCH_HEAD` 应依次为 d6fb5fd、7a58407、82b05e5、989fb7b、0ec15ed、d814f3c、3588967、6e61994、34f74b0、08f4534、fc17a9d、c5d0e20、5d1d930、(R3 文档提交);每步 `git apply --check` 必须先通过;最终 `node --test .github/tests/*.test.mjs` 应为 72/72。测试计数沿革:20(R1 初版)→ 42(R1 整改)→ 63(R2 加固)→ 72(R3 加固),历史记录见 verification/VERIFICATION-LOG.md。
 
 ## 当前状态一句话
 
