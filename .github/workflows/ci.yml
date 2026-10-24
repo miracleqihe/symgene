@@ -45,3 +45,13 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run verify
+
+  governance:
+    name: Governance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Audit workflows and repository governance
+        run: node --test .github/tests/*.test.mjs
