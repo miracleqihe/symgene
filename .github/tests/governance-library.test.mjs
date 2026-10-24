@@ -110,8 +110,10 @@ jobs:
     steps:
       - name: Require same-repository dev promotion for main
         env:
-          BASE_REF: main
-          HEAD_REF: dev
+          BASE_REF: \${{ github.base_ref }}
+          HEAD_REF: \${{ github.head_ref }}
+          BASE_REPOSITORY: \${{ github.repository }}
+          HEAD_REPOSITORY: \${{ github.event.pull_request.head.repo.full_name }}
         run: |
           if [[ "$BASE_REF" == "main" ]] && \\
              [[ "$HEAD_REF" != "dev" || "$HEAD_REPOSITORY" != "$BASE_REPOSITORY" ]]; then
@@ -262,4 +264,251 @@ test('scanner handles the YAML 1.1 on-block and inline trigger forms', () => {
   assert.deepEqual(triggerKeys(blocks.get('on')), ['workflow_dispatch'])
   assert.deepEqual(triggerKeys(topLevelBlocks('on: [push, workflow_dispatch]\n').get('on')), ['push', 'workflow_dispatch'])
   assert.deepEqual(triggerKeys(topLevelBlocks('on: push\n').get('on')), ['push'])
+})
+
+// ===========================================================================
+// Remediation round 2026-10-24 (review findings 1-3).
+// New fixtures for YAML expression forms, signature-based branch policy
+// validation, and fail-closed parsing boundaries. Written before the fix;
+// every test here must be red first, then green after the auditor update.
+// ===========================================================================
+
+const GOOD_DEPLOY_PAGESJOBS = { 'deploy-pages.yml': ['deploy'] }
+
+// --- F1: job-level inline permissions -------------------------------------
+const JOB_INLINE_WRITE_ALL = GOOD_DEPLOY.replace(
+  '  verify:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n',
+  '  verify:\n    runs-on: ubuntu-latest\n    permissions: write-all\n',
+)
+const JOB_INLINE_FLOW_PAGES = GOOD_DEPLOY.replace(
+  '  verify:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n',
+  '  verify:\n    runs-on: ubuntu-latest\n    permissions: { contents: read, pages: write }\n',
+)
+const JOB_INLINE_READ_ALL = GOOD_DEPLOY.replace(
+  '  verify:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n',
+  '  verify:\n    runs-on: ubuntu-latest\n    permissions: read-all\n',
+)
+const JOB_INLINE_UNPARSEABLE = GOOD_DEPLOY.replace(
+  '  verify:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n',
+  '  verify:\n    runs-on: ubuntu-latest\n    permissions: contents:read\n',
+)
+const JOB_INVALID_VALUE = GOOD_DEPLOY.replace('      id-token: write', '      id-token: Write')
+
+test('F1: inline write-all job permissions are rejected (were silently ignored)', () => {
+  const codes = auditWorkflow(JOB_INLINE_WRITE_ALL, 'deploy-pages.yml', { pagesJobs: GOOD_DEPLOY_PAGESJOBS }).map((v) => v.code)
+  assert.ok(codes.includes('JOB_PRIVILEGE_ESCALATION'), `expected JOB_PRIVILEGE_ESCALATION, got ${codes}`)
+})
+
+test('F1: inline flow-mapping job permissions granting pages: write are rejected', () => {
+  const codes = auditWorkflow(JOB_INLINE_FLOW_PAGES, 'deploy-pages.yml', { pagesJobs: GOOD_DEPLOY_PAGESJOBS }).map((v) => v.code)
+  assert.ok(codes.includes('JOB_PRIVILEGE_ESCALATION'), `expected JOB_PRIVILEGE_ESCALATION, got ${codes}`)
+})
+
+test('F1: inline read-all job permissions remain acceptable', () => {
+  const codes = auditWorkflow(JOB_INLINE_READ_ALL, 'deploy-pages.yml', { pagesJobs: GOOD_DEPLOY_PAGESJOBS }).map((v) => v.code)
+  assert.ok(!codes.some((c) => c.includes('PERMISSION')), `unexpected ${codes}`)
+})
+
+test('F1: unparseable inline job permissions fail closed', () => {
+  const codes = auditWorkflow(JOB_INLINE_UNPARSEABLE, 'deploy-pages.yml', { pagesJobs: GOOD_DEPLOY_PAGESJOBS }).map((v) => v.code)
+  assert.ok(codes.includes('JOB_PERMISSIONS_UNPARSEABLE'), `expected JOB_PERMISSIONS_UNPARSEABLE, got ${codes}`)
+})
+
+test('F1: permission values outside the read/write/none enum fail closed', () => {
+  const codes = auditWorkflow(JOB_INVALID_VALUE, 'deploy-pages.yml', { pagesJobs: GOOD_DEPLOY_PAGESJOBS }).map((v) => v.code)
+  assert.ok(codes.includes('JOB_PERMISSIONS_VALUE_INVALID'), `expected JOB_PERMISSIONS_VALUE_INVALID, got ${codes}`)
+})
+
+// --- F2: signature-based branch policy validation --------------------------
+// Verbatim shape of PR #37 (codex/t03-website-security) branch-policy job.
+const GOOD_CI_V2 = `name: CI
+
+on:
+  pull_request:
+    branches: [dev, main]
+
+permissions:
+  contents: read
+
+jobs:
+  branch-policy:
+    name: Branch policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Enforce same-repository dev promotion when targeting main
+        env:
+          EVENT_NAME: \${{ github.event_name }}
+          BASE_REF: \${{ github.base_ref }}
+          HEAD_REF: \${{ github.head_ref }}
+          BASE_REPOSITORY: \${{ github.repository }}
+          HEAD_REPOSITORY: \${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          if [[ "$EVENT_NAME" == "pull_request" && "$BASE_REF" == "main" ]]; then
+            [[ "$HEAD_REF" == "dev" && "$HEAD_REPOSITORY" == "$BASE_REPOSITORY" ]] || exit 1
+          fi
+`
+const V2_CONSTRAINT_REMOVED = GOOD_CI_V2.replace(
+  '            [[ "$HEAD_REF" == "dev" && "$HEAD_REPOSITORY" == "$BASE_REPOSITORY" ]] || exit 1\n', '')
+const V2_REPO_CLAUSE_DROPPED = GOOD_CI_V2.replace(
+  '[[ "$HEAD_REF" == "dev" && "$HEAD_REPOSITORY" == "$BASE_REPOSITORY" ]] || exit 1',
+  '[[ "$HEAD_REF" == "dev" ]] || exit 1')
+const V2_ENV_HARDWIRED = GOOD_CI_V2.replace(
+  'HEAD_REPOSITORY: \${{ github.event.pull_request.head.repo.full_name }}',
+  'HEAD_REPOSITORY: miracleqihe/symgene')
+const V3_UNRECOGNIZED = GOOD_CI_V2.replace(
+  /            \[\[ "\$HEAD_REF".*\n(.*\n)?/m,
+  '            echo "reviewed manually, trust me"\n')
+
+test('F2: PR #37 style branch policy (positive gate + exit 1) passes clean', () => {
+  assert.deepEqual(auditWorkflow(GOOD_CI_V2, 'ci.yml'), [])
+})
+
+test('F2: removing the v2 enforcement line fails', () => {
+  const codes = auditWorkflow(V2_CONSTRAINT_REMOVED, 'ci.yml').map((v) => v.code)
+  assert.ok(codes.some((c) => c.startsWith('BRANCH_POLICY_')), `expected a BRANCH_POLICY_ violation, got ${codes}`)
+})
+
+test('F2: dropping the same-repository clause from v2 fails', () => {
+  const codes = auditWorkflow(V2_REPO_CLAUSE_DROPPED, 'ci.yml').map((v) => v.code)
+  assert.ok(codes.includes('BRANCH_POLICY_WEAKENED'), `expected BRANCH_POLICY_WEAKENED, got ${codes}`)
+})
+
+test('F2: hard-wiring the env context instead of interpolating it fails', () => {
+  const codes = auditWorkflow(V2_ENV_HARDWIRED, 'ci.yml').map((v) => v.code)
+  assert.ok(codes.includes('BRANCH_POLICY_ENV_BINDING_WEAKENED'), `expected BRANCH_POLICY_ENV_BINDING_WEAKENED, got ${codes}`)
+})
+
+test('F2: an unrecognized gate implementation fails closed', () => {
+  const codes = auditWorkflow(V3_UNRECOGNIZED, 'ci.yml').map((v) => v.code)
+  assert.ok(codes.includes('BRANCH_POLICY_UNRECOGNIZED'), `expected BRANCH_POLICY_UNRECOGNIZED, got ${codes}`)
+})
+
+// --- F3: parsing boundaries ------------------------------------------------
+const FLOW_CHECKOUT_PR_TARGET = PR_TARGET_SAFE.replace(
+  '      - uses: actions/checkout@v4\n        with:\n          ref: \${{ github.event.pull_request.base.sha }}\n          persist-credentials: false\n',
+  '      - { uses: actions/checkout@v4, with: { ref: \${{ github.event.pull_request.head.sha }}, persist-credentials: false } }\n')
+const RUN_HEAD_USE_PR_TARGET = PR_TARGET_SAFE.replace(
+  '          persist-credentials: false\n',
+  '          persist-credentials: false\n      - name: report\n        run: echo "\${{ github.event.pull_request.head.sha }}"\n')
+const ANCHORED_WORKFLOW = `name: Anchored
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  first: &shared-job
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo hi
+  second: *shared-job
+`
+const MULTIDOC_WORKFLOW = '---\n' + GOOD_CI
+const TABBED_WORKFLOW = GOOD_CI.replace('  branch-policy:', '\tbranch-policy:')
+const WORKFLOW_RUN_TRIGGER = `name: Wrapped
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  after:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ok
+`
+const DYNAMIC_ENV_DEPLOY = GOOD_DEPLOY.replace('      name: github-pages', '      name: \${{ env.PAGES_ENV }}')
+const ALT_PAGES_WORKFLOW = GOOD_DEPLOY.replace("name: Deploy to GitHub Pages", "name: Alt publisher")
+
+test('F3: pull_request_target head checkout via flow mapping is rejected', () => {
+  const codes = auditWorkflow(FLOW_CHECKOUT_PR_TARGET, 'pr-governance.yml').map((v) => v.code)
+  assert.ok(codes.includes('PR_TARGET_HEAD_CHECKOUT'), `expected PR_TARGET_HEAD_CHECKOUT, got ${codes}`)
+})
+
+test('F3: pull_request_target run scripts consuming head.sha are rejected', () => {
+  const codes = auditWorkflow(RUN_HEAD_USE_PR_TARGET, 'pr-governance.yml').map((v) => v.code)
+  assert.ok(codes.includes('PR_TARGET_HEAD_REFERENCE'), `expected PR_TARGET_HEAD_REFERENCE, got ${codes}`)
+})
+
+test('F3: YAML anchors and aliases fail closed', () => {
+  const codes = auditWorkflow(ANCHORED_WORKFLOW, 'anchored.yml').map((v) => v.code)
+  assert.ok(codes.includes('UNSUPPORTED_YAML_CONSTRUCT'), `expected UNSUPPORTED_YAML_CONSTRUCT, got ${codes}`)
+})
+
+test('F3: multi-document YAML streams fail closed', () => {
+  const codes = auditWorkflow(MULTIDOC_WORKFLOW, 'multi.yml').map((v) => v.code)
+  assert.ok(codes.includes('UNSUPPORTED_YAML_CONSTRUCT'), `expected UNSUPPORTED_YAML_CONSTRUCT, got ${codes}`)
+})
+
+test('F3: tab indentation fails closed', () => {
+  const codes = auditWorkflow(TABBED_WORKFLOW, 'tabbed.yml').map((v) => v.code)
+  assert.ok(codes.includes('UNSUPPORTED_YAML_CONSTRUCT'), `expected UNSUPPORTED_YAML_CONSTRUCT, got ${codes}`)
+})
+
+test('F3: unrecognized triggers (workflow_run) fail closed', () => {
+  const codes = auditWorkflow(WORKFLOW_RUN_TRIGGER, 'wrapped.yml').map((v) => v.code)
+  assert.ok(codes.includes('TRIGGER_UNRECOGNIZED'), `expected TRIGGER_UNRECOGNIZED, got ${codes}`)
+})
+
+test('F3: an alternative Pages publishing workflow is rejected', () => {
+  const violations = auditRepository([
+    { path: '.github/workflows/deploy-pages.yml', text: GOOD_DEPLOY },
+    { path: '.github/workflows/deploy-alt.yml', text: ALT_PAGES_WORKFLOW },
+    { path: '.github/CODEOWNERS', text: GOOD_CODEOWNERS },
+  ])
+  assert.ok(violations.some((v) => v.code === 'JOB_PRIVILEGE_ESCALATION' && v.file === 'deploy-alt.yml'),
+    `expected escalation on deploy-alt.yml, got ${violations.map((v) => v.code)}`)
+})
+
+test('F3: deleting deploy-pages.yml fails closed at repository level', () => {
+  const violations = auditRepository([
+    { path: '.github/workflows/ci.yml', text: GOOD_CI },
+    { path: '.github/CODEOWNERS', text: GOOD_CODEOWNERS },
+  ])
+  assert.ok(violations.some((v) => v.code === 'PAGES_ENTRY_WORKFLOW_MISSING'),
+    `expected PAGES_ENTRY_WORKFLOW_MISSING, got ${violations.map((v) => v.code)}`)
+})
+
+test('F3: dynamic environment name in the deploy job fails closed (regression guard)', () => {
+  const codes = auditWorkflow(DYNAMIC_ENV_DEPLOY, 'deploy-pages.yml', { pagesJobs: GOOD_DEPLOY_PAGESJOBS }).map((v) => v.code)
+  assert.ok(codes.includes('DEPLOY_ENV_NOT_PAGES'), `expected DEPLOY_ENV_NOT_PAGES, got ${codes}`)
+})
+
+// --- F10 follow-up: value-aware top-level permissions -----------------------
+// Read-only top-level declarations (any scopes, read/none values) are
+// least-privilege compliant; only write values escalate. Discovered via the
+// #37 compatibility test (publication-policy.yml declares four read scopes).
+const TOP_READ_SCOPES = GOOD_DEPLOY.replace(
+  'permissions:\n  contents: read\n\n',
+  'permissions:\n  contents: read\n  pull-requests: read\n  actions: read\n\n',
+)
+const TOP_READ_ALL = GOOD_DEPLOY.replace(
+  'permissions:\n  contents: read\n\n',
+  'permissions: read-all\n',
+)
+const TOP_WRITE_SCOPE = GOOD_DEPLOY.replace(
+  'permissions:\n  contents: read\n\n',
+  'permissions:\n  contents: read\n  deployments: write\n\n',
+)
+
+test('F1: read-only top-level scopes beyond contents are acceptable', () => {
+  const codes = auditWorkflow(TOP_READ_SCOPES, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }).map((v) => v.code)
+  assert.ok(!codes.some((c) => c.startsWith('TOP_PERMISSIONS')), `unexpected ${codes}`)
+})
+
+test('F1: inline read-all top-level permissions are acceptable', () => {
+  const codes = auditWorkflow(TOP_READ_ALL, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }).map((v) => v.code)
+  assert.ok(!codes.some((c) => c.startsWith('TOP_PERMISSIONS')), `unexpected ${codes}`)
+})
+
+test('F1: any write value at top level is rejected', () => {
+  const codes = auditWorkflow(TOP_WRITE_SCOPE, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }).map((v) => v.code)
+  assert.ok(codes.includes('TOP_PERMISSIONS_NOT_LEAST_PRIVILEGE'), `expected TOP_PERMISSIONS_NOT_LEAST_PRIVILEGE, got ${codes}`)
 })
