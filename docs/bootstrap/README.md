@@ -10,7 +10,8 @@
 |------|------|
 | [PAGES-ENTRYPOINT-INVENTORY.md](PAGES-ENTRYPOINT-INVENTORY.md) | 工作包 A:生产入口完整盘点(唯一发布通道、触发器矩阵、权限 job、环境、部署历史、协作者面、UNVERIFIED 项清单) |
 | [S0-FREEZE.patch](S0-FREEZE.patch) | 工作包 B:生产冻结补丁(base 22eb347,仅 deploy-pages.yml 移除 push 触发) |
-| [S1-TRUSTED-BOOTSTRAP.patch](S1-TRUSTED-BOOTSTRAP.patch) | 工作包 B:可信治理 bootstrap(base 22eb347,审计库 + 20 个测试 + CI Governance 检查) |
+| [S1-TRUSTED-BOOTSTRAP.patch](S1-TRUSTED-BOOTSTRAP.patch) | 工作包 B:可信治理 bootstrap(base 22eb347,审计库 + 测试 + CI Governance 检查)——**原始形态,R1 整改前** |
+| [S1R-REMEDIATION.patch](S1R-REMEDIATION.patch) | R1 审查整改(commit 989fb7b):审计器缺陷修复 + 新增负向测试(现状即 原始补丁 + 本补丁) |
 | [verification/VERIFICATION-LOG.md](verification/VERIFICATION-LOG.md) | 补丁 apply/rollback 往返矩阵、测试明细、dev 分支前瞻性审计证据 |
 | [RULESET-MIGRATION-PLAN.md](RULESET-MIGRATION-PLAN.md) | 工作包 C:逐项可行性矩阵(支持/套餐/权限/check 存在/阶段/死锁/恢复)、ruleset JSON、死锁目录 D1–D6 |
 | [REQUIRED-CHECKS-MATRIX.md](REQUIRED-CHECKS-MATRIX.md) | 工作包 C:必需检查矩阵(真实 check 名与证据、可否必需、严格模式交互) |

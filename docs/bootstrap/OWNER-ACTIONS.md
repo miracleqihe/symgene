@@ -5,6 +5,8 @@ Owner = `miracleqihe`(网站仓唯一 admin)。配套数据仓(私有)的管理�
 
 ## 前置确认(1 分钟)
 
+- 注意:若 #37/#35 已合并,须先按 RUNBOOK「S0-on-#37 最小差量」重制补丁(禁止旧文件直接覆盖),并跑 `node docs/bootstrap/compat/check-37-compat.mjs <#37 checkout>`
+
 - [ ] `gh api repos/miracleqihe/symgene/actions/workflows` 中 deploy-pages 状态仍为 `disabled_manually`
 - [ ] 最近一次 Pages 部署仍为 `22eb347edf30`(2026-09-15)
 - [ ] 本地已完成:`git apply --check` 双补丁通过,`node --test .github/tests/*.test.mjs` 20/20(见 verification/VERIFICATION-LOG.md)
@@ -24,7 +26,7 @@ Owner = `miracleqihe`(网站仓唯一 admin)。配套数据仓(私有)的管理�
 | 9 | ruleset 追加 `require_code_owner_review` + `require_last_push_approval` | S3-3 | 是 | 否 |
 | 10 | 创建 `dev-minimum` ruleset | S4-1 | 是 | 否 |
 | 11 | 在 dev 开 PR 吸收 S0 触发器形态(消除晋级回潮) | S5-1/5-2 | 是 | 否 |
-| 12 | (≥2 周后)strict 模式;`Governance`、`Publication approval` 进必需集 | S6-1..3 | 是 | 否 |
+| 12 | (≥2 周后)strict 模式;`Governance` 进必需集。**不恢复旧 Publication approval 内容审读门禁**(Owner 已在 #39 撤销;legacy 发布资格与 T02 授权分离;`Publication integrity` 是否设必需属新的独立决策) | S6-1..3 | 是 | 否 |
 | 13 | (可选)建 `y4ho0/symgene-sec-lab` 测试仓并跑全部 NEG 用例 | S7-1 | 否 | 否(仅测试仓) |
 | 14 | (未来某次晋级)受控发布:dispatch deploy-pages@main 并留痕 | S7-3 | 是 | **是** |
 

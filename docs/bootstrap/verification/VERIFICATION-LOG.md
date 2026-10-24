@@ -53,3 +53,40 @@ governance audit: 2 violation(s)
 - `lib.sh require_test_repo` 拒绝路径实测:LIVE 无 TEST_REPO(64)、生产仓 `miracleqihe/symgene`(64)、非 sec-lab 仓(64)、生产仓尾斜杠变体(64)、大小写变体(64)、不存在的 sec-lab 仓(66,可访问性检查)。
 - 兼容性修复记录:macOS 自带 bash 3.2 不支持 `${var,,}` 小写展开与部分正则,lib.sh 已改为 `tr` + `case` 实现,实测通过。
 - 最终形态补丁在 fresh worktree(22eb347)上 `git apply --check` 双通过(收尾复验)。
+
+
+---
+
+# R1 独立 Review 整改记录(2026-10-24,commit 989fb7b 起)
+
+## 流程:失败测试先行 → 最小修复 → 全量复测
+
+1. 先在 `governance-library.test.mjs` 追加 14 个新测试(内联 write-all / flow 映射 pages:write / 不可解析 inline / 非法枚举值 / #37 v2 Branch policy / v2 删除约束 / v2 削弱条件 / v2 env 硬编码 / 未识别实现 / flow 映射 head checkout / run 脚本消费 head.sha / 锚点别名 / 多文档 / Tab 缩进 / workflow_run 触发 / 缺 deploy-pages)→ **14 red**。
+2. 最小修复 `audit-governance.mjs`;期间兼容测试又暴露顶层纯 read 声明误报 → 值感知修正 + 3 个新测试 + `__mode` 元键修复。
+3. 全量复测:**42 tests / 42 pass / 0 fail**(39 库与状态 + 3 顶层权限);未删除或放宽任何既有断言;唯一 fixture 变更是把 GOOD_CI 的 env 从硬编码字面量改为真实上下文插值 —— 硬编码本身就是审计应拒绝的形态(有专门负向测试)。
+
+## 审计器行为变化摘要(全部 fail-closed)
+
+- 内联 permissions(read-all/write-all/flow)被解析;write-all、含 write 的 flow、不可解析值、非法枚举值分别以专用 code 拒绝 —— 修复了"内联形态静默漏报"的漏报缺陷。
+- Branch policy 改为签名化:v1(22eb347 bash 否定式)与 v2(#37 正向门)双签名;env 必须插值真实上下文;其余形态 WEAKENED/UNRECOGNIZED 失败。
+- pull_request_target 的 head 污染扫描覆盖 flow 映射 checkout 与 run 脚本/输入消费 head.sha|ref(PR_TARGET_HEAD_REFERENCE);YAML 锚点/别名/多文档/Tab/workflow_run 触发/删除 deploy-pages.yml 全部 fail-closed。
+- 顶层权限值感知:任何 write 值拒绝;纯 read/none 合法(修正对只读声明的误报,发现于 #37 兼容测试)。
+
+## 平台测试框架(F6/F7)
+
+- `expect_rejection` 移除,`expect_protected_rejection` 上位:保护签名优先匹配 → PASS;杂项(401/403 无签名/404/网络/凭据)→ BLOCKED(70/71);意外成功 → FAIL(1)。五类分类已用受控命令实测(见上 T1–T5)。
+- 多账号场景缺 GH_A/GH_B → BLOCKED(72),拒绝单身份代跑;NEG-08 校验执行身份非 admin。
+- NEG-09 重写:dispatch 204 ≠ 通过;以 run conclusion=failure + 失败 job 可见 + 该 SHA 无 Deployment 三条为 PASS 条件。
+- 12 个脚本模拟模式复跑通过;lib.sh 补回曾遗漏的 plan() 并修复 `--` 分隔符处理。
+
+## #37 × S0 × S1 兼容测试(F10)
+
+对 `a799746`(PR #37 分支头,未合并)真实运行,结果 PASS:
+- Phase A:未调和的 #37 报 DEPLOY_TRIGGER_PUSH / DEPLOY_TRIGGER_NOT_DISPATCH_ONLY → 原样晋级会被 Governance 拦截;
+- Phase B:最小 S0 差量(移除 push 触发 + 事件白名单收窄)后零 S0/S1 不变量违规 → #37 加固、S1 审计、手动发布策略共存。
+完整原始输出见 `../compat/COMPAT-EVIDENCE.md`;脚本 `../compat/check-37-compat.mjs` 可重复执行。
+
+## 未验证(仍 PENDING)
+
+- 全部平台负向场景的真实裁决(NEG-01..11)仍需 `*-sec-lab` 测试仓;skipped/neutral 对必需检查的平台语义(NEG-05 case A)是其中最关键的一项。
+- Governance 在真实 PR 上的红/绿以 GitHub CI 为准(见 PR #40 的 check 列表)。

@@ -1,6 +1,6 @@
 # MAIN-BOOTSTRAP-RUNBOOK — symgene main 安全 bootstrap 实施手册
 
-- 版本:2026-10-24,基于基准:网站 main `22eb347`、dev `6a3eea2`;数据仓 main `8b1a7d3`、dev `c8e9c57`。
+- 版本:2026-10-24(R1 整改修订),基于基准:网站 main `22eb347`、dev `6a3eea2`;配套数据仓为私有仓(坐标不在公开文档披露)。R1 内容:适配 #37/#38/#39 的真实工作流差异;撤销过期的 Publication approval 建议;明确 legacy 发布资格与 T02 授权分离。
 - 角色定义:
   - **Owner** = `miracleqihe`(网站仓唯一 admin;配套数据仓(私有)的管理员为本包执行者)。以下所有"Owner 步骤"都需要 admin 权限,普通维护者(y4ho0 等 9 个 write 账号)无法执行。
   - **维护者** = write 权限账号,可执行阶段 0/5 的只读与代码 PR 步骤。
@@ -37,6 +37,28 @@
 - 正常预期:一致。操作后验证:同上。失败恢复:无(只读)。独立 Review:否。触发部署:否。
 
 ---
+
+
+## 与 #37/#38/#39 的集成适配(2026-10-24 复核;执行阶段 1 前必读)
+
+开放的平行工作(全部指向 dev,截至复核时未合并):
+
+| PR | 内容 | 与本包的关系 | 处置规则 |
+|----|------|--------------|----------|
+| #35 | dev→main 晋级(开放中) | 若先合并,main 前移,S0/S1 需基于新 main 重制 | 新建分支重新 `git apply --check`;不 force push |
+| #37 | T03 安全治理:重写 deploy-pages(保留 push 触发 + authorization 上下文校验)、重排 ci.yml(新增 identity/gate 等 job)、新增 publication-policy.yml | **与 S0 是两条冻结路线;禁止把旧 S0/S1 文件直接覆盖到 #37 的版本上** | 见下方「S0-on-#37 最小差量」;合并策略由 Owner 裁决 |
+| #38 | T02 Vite 优化器隔离 + t02-verification 并发修正 | 与 S0/S1 改动文件不相交 | 无需动作,常规 rebase 纪律 |
+| #39 | `Publication approval` 更名 `Publication integrity`;按 Owner 决定撤销额外内容审读发布阻断 | 必需检查名称假设变化 | 本包不再建议恢复旧门禁(REQUIRED-CHECKS-MATRIX §1.2 M3 修订) |
+
+**S0-on-#37 最小差量(经 docs/bootstrap/compat/check-37-compat.mjs 对 #37 真实分支头验证)**:若 #37 先落 main,S0 的意图(禁止自动发布)必须以差量方式施加在 #37 版本之上:
+
+1. 从 `on:` 移除 `push: branches: [main]`;
+2. 把 authorization job 事件白名单 `['push', 'workflow_dispatch']` 收窄为 `['workflow_dispatch']`;
+3. 其余一切(authorization 上下文校验、artifact digest 绑定、cancel-in-progress: false 等 #37 加固)全部保留。
+
+验证:`node docs/bootstrap/compat/check-37-compat.mjs <#37 checkout>` → Phase A 应报 DEPLOY_TRIGGER_*(原样晋级被 Governance 拦截),Phase B 应零 S0/S1 违规(三者共存)。#37 的 Branch policy v2 已被 S1R 签名化审计接受。
+
+**资格分离原则**:#37 的 `LEGACY_ENGINEERING_ELIGIBLE` 设计把 legacy 工程发布资格与 T02 正式采用授权分离。本包的一切门禁建议不得把 T02 审读重新叠加进 legacy 发布链;T02 采用授权走 T02 验证工作流与正式合同;两者只共享必需检查集,不互为前置。
 
 ## 阶段 1 — S0/S1 进入 main(需要 Owner 审核;不触发部署)
 
@@ -126,8 +148,8 @@
 
 ## 阶段 5 — dev 吸收 S0 触发器变更(维护者可做,Owner 审核)
 
-**S5-1** 对比 dev 与 main 的 deploy-pages.yml:`git diff origin/main origin/dev -- .github/workflows/deploy-pages.yml` → dev 仍带 push 触发器(已实证)。
-**S5-2** 在 dev 开 PR:把 main(已含 S0)的 deploy-pages.yml 触发器形态带进 dev(保留 dev 的 check:publication 步骤),Governance 检查必须绿。
+**S5-1** 对比 dev 与 main 的 deploy-pages.yml;注意 dev 的版本可能是 #37 重写版或含 #39 步骤更名 —— **以 dev 当时的实际文件为基线**。
+**S5-2** 在 dev 开 PR:按「S0-on-#37 最小差量」施加到 dev 当前的 deploy-pages.yml 上(只移除自动发布,不回退 #37/#39 的任何加固),Governance 检查必须绿;若 dev 带有 `['push', 'workflow_dispatch']` 事件白名单,同步收窄为 `['workflow_dispatch']`。
 - 目的:消除未来 dev→main 晋级重新引入 push 触发器的可能(VERIFICATION-LOG 的 dev 审计证据)。
 - 失败恢复:关闭 PR,不影响 main 冻结(main 侧 S0 已生效)。独立 Review:是(Owner)。触发部署:否。
 
@@ -136,7 +158,7 @@
 ## 阶段 6 — 后置强化(观察期 ≥2 周后,Owner)
 
 - S6-1 strict 模式:`strict_required_status_checks_policy=true`(先 dev 后 main)。
-- S6-2 M3 检查:确认 dev 的 ci.yml(含 Publication approval)已晋级进 main 且 main 的 package.json 有 `check:publication` 后,把 `Publication approval` 加入 main 必需检查。
+- S6-2(**R1 修订**):不恢复旧 `Publication approval` 内容审读门禁 —— Owner 已在 #39 决定撤销该阻断,legacy 发布资格与 T02 授权分离。若 Owner 另行决定以 `Publication integrity` 为必需检查,属独立新决策,须先确认该 check 在 main 上真实运行(见 REQUIRED-CHECKS-MATRIX §3),与本包无关。
 - S6-3 `Governance` 加入 dev 与 main 必需检查(若阶段 1 用选项 B,此时 main/dev 已一致)。
 - 失败恢复:逐项 PATCH 回退。独立 Review:是。触发部署:否。
 

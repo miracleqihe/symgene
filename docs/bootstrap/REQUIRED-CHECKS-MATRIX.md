@@ -15,7 +15,7 @@
 | `Verify` | ci.yml → job verify(name 字段) | PR→dev/main;push dev;dispatch | 同上 | dev 与 main PR:是 |
 | `Promotion PR policy` | pr-governance.yml → job promotion-pr-policy(name 字段) | 仅 `pull_request_target` → main | 同上 | main PR:是 |
 | `Governance` | **S1 新增** ci.yml → job governance | PR→dev/main;push dev;dispatch | 本地已验证逻辑;**线上尚不存在,合入 S1 后才可设为必需** | S1 落地后:dev 与 main PR:是 |
-| `Publication approval` | dev 的 ci.yml → job publication-approval(dev 独有) | 仅 PR → main | dev 头 6a3eea2 check-run 记录 | **main 的 ci.yml 含此 job 之前不可设为必需**,否则 main PR 永久卡死 |
+| `Publication approval` | dev 的 ci.yml → job publication-approval(dev 独有) | 仅 PR → main | dev 头 6a3eea2 check-run 记录 | 同上。**#39 已将其更名为 `Publication integrity`**,并按 Owner 决定移除了额外内容审读发布阻断(见 §1.2 M3 修订) |
 | `verify` | deploy-pages.yml → job verify(id 名,无 name 字段) | push main / dispatch(工作流当前 `disabled_manually`,不产生 run) | main 头 22eb347 的 check-run 记录 | **否**(工作流已禁用;若设为必需且工作流停用,合并永久阻塞) |
 | `deploy` | deploy-pages.yml → job deploy | 同上 | 同上 | 否(此 check 成功=已发布,不能作为合并前置) |
 | `check` | check-external-links.yml → job check(cron) | 每周一 cron | main 头 22eb347 | 否 |
@@ -29,7 +29,7 @@
 |---|---|---|
 | M1(立即可做) | `Branch policy`、`Verify`、`Promotion PR policy` | 三者在 main 上已真实存在(22eb347 证据) |
 | M2(S1 合入后) | + `Governance` | S1 的 ci.yml 已在 main |
-| M3(dev 晋级其 ci.yml 之后) | + `Publication approval` | 该 job 已在 main 的 ci.yml 中,且 main 的 package.json 具备 `check:publication` 脚本(dev 一并带来) |
+| ~~M3~~(**已撤销,2026-10-24**) | ~~+ `Publication approval`~~ | 不恢复旧的内容审读发布门禁:Owner 已在 #39 中决定撤销该阻断。`Publication integrity`(更名后)属于 dev 的发布链,本包不将其作为强加的必需检查;**legacy 工程发布资格与 T02 正式采用授权保持分离**,后者由 T02 验证工作流与合同管理,不并入 main 晋级必需集 |
 
 **dev(内容门):**
 
@@ -48,10 +48,17 @@
 - 风险:main 活跃期间晋级 PR 需反复"update branch + 重跑",可能饥饿。建议:**main 先不开严格模式,dev 开;两周稳定后再对 main 开启**(见 RUNBOOK 步骤 7)。
 - 注意:`Branch policy` 有 `if:` 条件(仅 PR→main 运行)。在 main 上以 rulesets 要求它时,PR→main 场景它总会运行,无 skipped 风险;但若未来有人把该 job 的 `if` 改宽/改窄,Governance 审计(BRANCH_POLICY_NOT_GATED)会报警。
 
-### 1.4 CI skipped / neutral 语义(本地已核,GitHub 侧行为列入 PENDING 实测)
+### 1.4 CI skipped / neutral 语义(2026-10-24 修订;平台裁决仍 PENDING)
 
-- GitHub Actions 的 skipped job **不产生**该名称的 check-run(而非产生 skipped check)→ 对必需检查而言等价于"未运行"→ 合并被拒。这是防"CI skipped 绕过"的正确默认。
-- rulesets 的 required status checks 支持对 skipped 的显式处理;legacy 界面无此选项。两种模式都建议保持"未运行=不合格"。实测项见 PLATFORM-NEGATIVE-TESTS NEG-05。
+三种"没跑"必须区分:
+
+| 形态 | 平台行为 | 对必需检查的影响 |
+|------|----------|------------------|
+| **Job 条件跳过**(`if: false` 或条件不满足) | **会**产生 conclusion=`skipped` 的 check-run(修正本文件早前"不产生 check-run"的错误表述) | skipped ≠ success;是否放行合并属平台语义,legacy 与 rulesets 可能不同 → **PENDING**,NEG-05 case A 实测 |
+| **Workflow 过滤跳过**(branches/paths 过滤、workflow 级 `if`) | 该 ref 上**不产生** run 与 check-run | 必需名称缺席 → 合并被拒(高置信,仍以 NEG-05 case B 实测为准) |
+| **neutral 结论**(check-run 存在但 conclusion=neutral) | 非 success | 不满足必需检查 → 合并被拒(高置信,NEG-05 case C 实测) |
+
+**严格 Engineering gate 原则**:门禁 job 必须"总是运行、违规即 exit 1 失败",不得依赖 skip 语义;`Branch policy` 就是该模式。任何必需检查若可能被 skip,须在 ruleset/legacy 配置中验证 skipped 的处理,或改写为无条件运行 + 显式失败。
 - neutral(conclusion=neutral)仅在 check suites 层面出现;对分支保护,未列入必需名单的 neutral check 不影响合并。同名 check 冒充风险见 NEG-06(必需检查绑定 integration_id 可限定来源,legacy 检查名绑定则不能 —— 这是以 rulesets 取代 legacy 的主要安全理由)。
 
 ## 2. 数据仓(私有)
@@ -83,3 +90,17 @@
 2. 每新增一个必需检查,先确认它在目标分支的 PR 上**至少真实运行过一次**(看 PR checks 页),再勾选必需。
 3. merge 方式:晋级模板要求 **Create a merge commit**;rulesets 的 `allowed_merge_methods` 应包含 merge、禁用 rebase/squash(与模板一致,保证 main 历史可回滚定位)。
 4. S1 合入后若 Governance 未出现在 PR checks:检查 ci.yml 的 `governance` job 是否被合并冲突丢弃,或 Actions 是否被禁用。
+
+## 4. Governance 检查的信任边界与威胁模型(2026-10-24 新增)
+
+**定位:Governance 是候选代码检查(candidate check),不是独立可信签发。** 它只在 PR 的 merge ref 上运行一次,绿灯只代表"该次计算未发现违规",不构成对 main 最终状态的签名;权威来自"必需检查 + Owner 人工审核 + 保护规则"的组合。
+
+| 威胁 | 场景 | 现有防线 | 残余风险与对策 |
+|------|------|----------|----------------|
+| 工作流自身被篡改 | PR 修改 ci.yml 删除 `governance` job | Governance 为必需检查时,删除 job = check-run 永不出现 = 合并被拒(fail-closed);`Branch policy`/审计规则同样由审计器钉死(BRANCH_POLICY_*) | 若与必需集变更同 PR 提交,审查者必须把 workflow diff 当作安全代码逐行审 |
+| 审计器/测试被修改 | PR 同时改弱 `audit-governance.mjs` 或把负向 fixture 改为合法 | `.github/` 全部内容受 CODEOWNERS 强制 Owner 审核 + dismiss stale + 禁自批准(启用后);`governance-library.test.mjs` 的负向 fixture 是审计器自检,削弱 fixture 会让审计器在别的形态下漏报 | **审查规程:凡 `.github/tests/` 的 diff,重点核对负向 fixture 是否被删除/放宽;审计器的每次放行都必须有对应 fixture 证明** |
+| 同名 Check 冒充 | 新增与必需检查同名的假 job | `CHECK_NAME_COLLISION` 审计直接打红;fork 来源 check 不被采纳 | ruleset `integration_id` 无法区分 Actions 内部工作流(平台限制)→ 靠审计 + CODEOWNERS;NEG-06 |
+| Governance 被当作授权 | 以 Governance 绿灯替代 Owner 审核直接合并 | 本文件明示其候选定位;晋级模板要求人工批准 | 流程纪律:任何"检查全绿"的 PR 仍需 Owner 批准 |
+| 检查结果复用 | 旧 SHA 的绿色结果被当作新 head 的结果 | dismiss stale + (后置)strict 模式 | NEG-04/NEG-11 实测 |
+
+落地提醒:在 rulesets 尚未启用、Governance 尚未设为必需之前,以上防线只有 CODEOWNERS 与人工审核 —— 这正是本包要求分阶段启用保护的原因。
