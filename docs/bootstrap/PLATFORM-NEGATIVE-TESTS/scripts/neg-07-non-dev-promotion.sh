@@ -5,11 +5,12 @@ set -euo pipefail
 
 metadata "NEG-07" "non-dev promotion" "PENDING / LIVE-TEST-REPO + IN-REPO-ENFORCED"
 require_test_repo && LIVE_MODE=1 || LIVE_MODE=0
+require_identity A
 
 BRANCH="neg07-feature-$RANDOM"
 plan "PR: ${BRANCH} -> main (head is NOT dev)"
 plan "expected: 'Branch policy' check fails with 'Pull requests to main must promote the dev branch from this repository.'"
-plan "expect_rejection: merge -> BLOCKED by the required failing check"
+plan "expect_protected_rejection: merge -> blocked by the required failing check"
 plan "in-repo layer: S1 audit keeps the branch-policy job intact (BRANCH_POLICY_* codes)"
 
 if [[ "$LIVE_MODE" == "1" ]]; then
@@ -19,7 +20,7 @@ if [[ "$LIVE_MODE" == "1" ]]; then
     --title "NEG-07 non-dev promotion" --body "negative test: feature -> main"
   N=$(gh_as A pr view --repo "$TEST_REPO" --head "$BRANCH" --json number --jq .number)
   sleep 60   # let Branch policy run and fail
-  expect_rejection "merge of a non-dev branch into main" \
+  expect_protected_rejection "merge of a non-dev branch into main" 'not mergeable|required review|MERGE_STATE_STATUS|protected branch|merge is blocked' \
     gh_as A pr merge "$N" --repo "$TEST_REPO" --merge
   echo "cleanup: gh pr close ${N} --repo ${TEST_REPO}; git push origin --delete ${BRANCH}"
 fi

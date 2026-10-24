@@ -21,6 +21,7 @@ set -euo pipefail
 
 metadata "NEG-06" "impersonated check name" "PENDING / IN-REPO-ENFORCED"
 require_test_repo && LIVE_MODE=1 || LIVE_MODE=0
+require_identity A
 
 BRANCH="neg06-$RANDOM"
 plan "case 1 (same-repo impostor): add workflow with job name 'Branch policy' that always succeeds"
@@ -54,7 +55,7 @@ YAML
     echo "RESULT: INCONCLUSIVE — Governance did not fail; verify S1 is active in the lab repo" >&2
     exit 1
   fi
-  expect_rejection "merge with the impostor present" \
+  expect_protected_rejection "merge with the impostor present" 'not mergeable|required review|MERGE_STATE_STATUS|protected branch|merge is blocked' \
     gh_as A pr merge "$N" --repo "$TEST_REPO" --merge
   echo "cleanup: gh pr close ${N} --repo ${TEST_REPO}; git push origin --delete ${BRANCH}"
 fi

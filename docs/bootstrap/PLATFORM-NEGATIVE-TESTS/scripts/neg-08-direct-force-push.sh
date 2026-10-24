@@ -5,6 +5,8 @@ set -euo pipefail
 
 metadata "NEG-08" "direct push / force push to protected branch" "PENDING / LIVE-TEST-REPO"
 require_test_repo && LIVE_MODE=1 || LIVE_MODE=0
+require_identity A
+require_actor_not_admin "$TEST_REPO"
 
 plan "case 1: git push origin HEAD:main (no PR) -> expected remote rejected 'protected branch hook declined'"
 plan "case 2: git push --force origin HEAD:main -> expected rejected by non_fast_forward ruleset rule"
@@ -14,8 +16,8 @@ plan "all cases run as a write-only collaborator (GH_A); an admin bypass result 
 
 if [[ "$LIVE_MODE" == "1" ]]; then
   LAB_DIR="${LAB_DIR:?LIVE=1 requires LAB_DIR pointing at the lab clone}"
-  expect_rejection "direct push to main" git -C "$LAB_DIR" push origin HEAD:main
-  expect_rejection "force push to main" git -C "$LAB_DIR" push --force origin HEAD:main
-  expect_rejection "delete main" git -C "$LAB_DIR" push origin :main
-  expect_rejection "force push to dev" git -C "$LAB_DIR" push --force origin HEAD:dev
+  expect_protected_rejection "direct push to main" 'protected branch hook declined|remote rejected|protected' git -C "$LAB_DIR" push origin HEAD:main
+  expect_protected_rejection "force push to main" 'non-fast-forward|remote rejected|protected' git -C "$LAB_DIR" push --force origin HEAD:main
+  expect_protected_rejection "delete main" 'remote rejected|protected|deletion' git -C "$LAB_DIR" push origin :main
+  expect_protected_rejection "force push to dev" 'non-fast-forward|remote rejected|protected' git -C "$LAB_DIR" push --force origin HEAD:dev
 fi

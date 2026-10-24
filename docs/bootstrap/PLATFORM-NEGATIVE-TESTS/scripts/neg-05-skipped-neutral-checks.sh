@@ -1,24 +1,31 @@
 #!/usr/bin/env bash
-# NEG-05 — a required check that reports skipped/neutral must block the merge.
+# NEG-05 — skipped / neutral results must not satisfy a required check.
 #
-# Lab setup: add a workflow whose job has `if: false` and name it exactly like
-# a required check (e.g. "Branch policy"). GitHub Actions does not emit a
-# check-run for skipped jobs, so the required name never appears.
-# A second case creates a check-run with conclusion=neutral via the API for a
-# required context and expects the merge to stay blocked.
+# Semantics being verified (see scenarios/NEG-05-skipped-neutral-checks.md):
+#   case A: job-level `if: false` — Actions EMITS a check-run with
+#           conclusion=skipped. Whether a skipped conclusion satisfies a
+#           required check is platform behavior under test: PASS means the
+#           merge was still blocked; a merge here is a FAIL (skip satisfies).
+#   case B: workflow path/branch filters — no run at all for the ref, the
+#           required name never appears; merge must stay blocked.
+#   case C: a check-run forced to conclusion=neutral via the API — neutral is
+#           not success; merge must stay blocked.
 set -euo pipefail
 . "$(dirname "$0")/lib.sh"
 
 metadata "NEG-05" "skipped / neutral required check" "PENDING / LIVE-TEST-REPO"
 require_test_repo && LIVE_MODE=1 || LIVE_MODE=0
+require_identity A
 
 BRANCH="neg05-$RANDOM"
-plan "case 1 (skipped): PR whose workflow only contains a job with if:false named like a required check"
-plan "  expected: the required check never appears -> merge BLOCKED (skipped is not success)"
-plan "case 2 (neutral): POST /repos/\${TEST_REPO}/check-runs {name: <required>, conclusion: neutral, head_sha: <pr head>}"
-plan "  expected: merge stays BLOCKED (neutral is not success for a required check)"
-plan "anti-false-positive control: the same API call with conclusion=success (via a legitimately
-        green run in the lab) unblocks the merge"
+MERGE_PAT='not mergeable|required review|MERGE_STATE_STATUS|protected branch|merge is blocked'
+plan "case A: PR whose workflow contains a job named like a required check with if:false"
+plan "  record the check conclusion (skipped) via GET /commits/<head>/check-runs"
+plan "  expect_protected_rejection: merge blocked despite the skipped conclusion"
+plan "case B: workflow filtered out entirely (no run) -> required name absent -> blocked"
+plan "case C: API-created check-run with conclusion=neutral -> blocked"
+plan "verdict rule: PASS only when the merge is rejected by protection; skipped-check"
+plan "satisfying the gate would be VERDICT: FAIL (finding to fix the required set)."
 
 if [[ "$LIVE_MODE" == "1" ]]; then
   LAB_DIR="${LAB_DIR:?LIVE=1 requires LAB_DIR pointing at the lab clone}"
@@ -36,11 +43,14 @@ jobs:
       - run: echo "never runs"
 YAML
   git -C "$LAB_DIR" add .github/workflows/neg05-skipped.yml
-  git -C "$LAB_DIR" commit -m "NEG-05: skipped impostor" && git -C "$LAB_DIR" push origin "HEAD:refs/heads/${BRANCH}"
+  git -C "$LAB_DIR" commit -m "NEG-05: skipped gate job" && git -C "$LAB_DIR" push origin "HEAD:refs/heads/${BRANCH}"
   gh_as A pr create --repo "$TEST_REPO" --base main --head "$BRANCH" \
     --title "NEG-05 skipped required check" --body "negative test"
   N=$(gh_as A pr view --repo "$TEST_REPO" --head "$BRANCH" --json number --jq .number)
-  expect_rejection "merge with a skipped required check" \
+  HEAD_SHA=$(gh_as A pr view "$N" --repo "$TEST_REPO" --json headRefOid --jq .headRefOid)
+  echo "[live] case A: check runs at head:"
+  gh api "repos/${TEST_REPO}/commits/${HEAD_SHA}/check-runs" --jq '.check_runs[] | {name, conclusion}'
+  expect_protected_rejection "merge with a skipped required check" "$MERGE_PAT" \
     gh_as A pr merge "$N" --repo "$TEST_REPO" --merge
   echo "cleanup: gh pr close ${N} --repo ${TEST_REPO}; git push origin --delete ${BRANCH}"
 fi

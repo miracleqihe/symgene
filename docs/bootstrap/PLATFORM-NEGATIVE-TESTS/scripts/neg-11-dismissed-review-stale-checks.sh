@@ -10,13 +10,14 @@ set -euo pipefail
 
 metadata "NEG-11" "dismissed review + stale green checks" "PENDING / LIVE-TEST-REPO"
 require_test_repo && LIVE_MODE=1 || LIVE_MODE=0
+require_identity A B
 
 BRANCH="neg11-$RANDOM"
 plan "precondition: dismiss_stale_reviews_on_push=true; at least one required check green at head1"
 plan "B approves at head1; wait for required checks to go green at head1"
 plan "A pushes head2 (checks go pending/red; B's review becomes DISMISSED)"
 plan "explicitly dismiss any remaining review: PUT /pulls/<N>/reviews/<id>/dismissals (needs dismissal rights = owner-side)"
-plan "expect_rejection: merge at head2 despite head1's green checks -> BLOCKED"
+plan "expect_protected_rejection: merge at head2 despite head1's green checks -> blocked"
 
 if [[ "$LIVE_MODE" == "1" ]]; then
   LAB_DIR="${LAB_DIR:?LIVE=1 requires LAB_DIR pointing at the lab clone}"
@@ -31,7 +32,7 @@ if [[ "$LIVE_MODE" == "1" ]]; then
   for id in $(gh api "repos/${TEST_REPO}/pulls/${N}/reviews" --jq '.[] | select(.state=="APPROVED") | .id'); do
     gh api -X PUT "repos/${TEST_REPO}/pulls/${N}/reviews/${id}/dismissals" -f message="NEG-11 dismissal"
   done
-  expect_rejection "merge after review dismissal with stale green checks" \
+  expect_protected_rejection "merge after review dismissal with stale green checks" 'not mergeable|required review|MERGE_STATE_STATUS|protected branch|merge is blocked' \
     gh_as A pr merge "$N" --repo "$TEST_REPO" --merge
   echo "cleanup: gh pr close ${N} --repo ${TEST_REPO}; git push origin --delete ${BRANCH}"
 fi

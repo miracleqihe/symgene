@@ -10,13 +10,14 @@ set -euo pipefail
 
 metadata "NEG-04" "stale approval on old SHA" "PENDING / LIVE-TEST-REPO"
 require_test_repo && LIVE_MODE=1 || LIVE_MODE=0
+require_identity A B
 
 BRANCH="neg04-$RANDOM"
 plan "precondition: dismiss_stale_reviews_on_push=true in the main ruleset"
 plan "B approves at head1; record the review id"
 plan "A pushes head2"
 plan "verify: GET /pulls/<N>/reviews shows B's review state=DISMISSED"
-plan "expect_rejection: merge at head2 -> BLOCKED"
+plan "expect_protected_rejection: merge at head2 -> blocked"
 plan "control: without dismiss_stale the approval would survive -> this is exactly the behavior change under test"
 
 if [[ "$LIVE_MODE" == "1" ]]; then
@@ -30,7 +31,7 @@ if [[ "$LIVE_MODE" == "1" ]]; then
   state=$(gh api "repos/${TEST_REPO}/pulls/${N}/reviews" --jq '.[0].state')
   [[ "$state" == "DISMISSED" ]] && echo "OK: stale review auto-dismissed (${state})" \
     || { echo "RESULT: UNEXPECTED — review state after push is ${state}, expected DISMISSED" >&2; exit 1; }
-  expect_rejection "merge with dismissed stale approval" \
+  expect_protected_rejection "merge with dismissed stale approval" 'not mergeable|required review|MERGE_STATE_STATUS|protected branch|merge is blocked' \
     gh_as A pr merge "$N" --repo "$TEST_REPO" --merge
   echo "cleanup: gh pr close ${N} --repo ${TEST_REPO}; git push origin --delete ${BRANCH}"
 fi
