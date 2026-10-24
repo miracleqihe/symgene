@@ -1,0 +1,849 @@
+{
+  "id": "A1-single-dev-cold-warm",
+  "title": "One development consumer; cold owned cache, then two warm runs on one explicit cache",
+  "expect": "PASS",
+  "rounds": [
+    {
+      "id": "A1-single-dev-cold-warm",
+      "title": "One development consumer; cold owned cache, then two warm runs on one explicit cache",
+      "round": 1,
+      "expect": "PASS",
+      "observed": {
+        "verdict": "PASS",
+        "probes": [
+          {
+            "kind": "development",
+            "status": "PASS",
+            "complete": true,
+            "pid": 55944,
+            "durationMs": 1244,
+            "cachePolicy": "per-instance-owned",
+            "cacheDir": "<tmpdir>/symgene-t02-vite-FW0EyQ",
+            "port": 57388,
+            "http504Count": 0,
+            "externalRequests": 0,
+            "pageErrors": [],
+            "consoleErrors": [],
+            "requestFailures": [],
+            "httpErrors": [],
+            "cleanupErrors": [],
+            "serverClosed": true,
+            "browserClosed": true,
+            "ownedCacheRemoved": true,
+            "closedPorts": [
+              {
+                "port": 57388,
+                "reachable": false
+              }
+            ],
+            "timeline": [
+              {
+                "kind": "development",
+                "stage": "start",
+                "elapsedMs": 0,
+                "pid": 55944,
+                "loadavg": [
+                  22.63525390625,
+                  35.62646484375,
+                  32.24072265625
+                ],
+                "freeMemory": 77545472
+              },
+              {
+                "kind": "development",
+                "stage": "ready",
+                "elapsedMs": 115,
+                "port": 57388,
+                "cacheDir": "<tmpdir>/symgene-t02-vite-FW0EyQ"
+              },
+              {
+                "kind": "development",
+                "stage": "domcontentloaded",
+                "elapsedMs": 1066
+              },
+              {
+                "kind": "development",
+                "stage": "response",
+                "elapsedMs": 1129,
+                "path": "/symgene/t02-dev/bootstrap",
+                "status": 200
+              },
+              {
+                "kind": "development",
+                "stage": "react-mount",
+                "elapsedMs": 1163
+              },
+              {
+                "kind": "development",
+                "stage": "snapshot",
+                "elapsedMs": 1214,
+                "fresh": true,
+                "sequence": 1
+              },
+              {
+                "kind": "development",
+                "stage": "closed",
+                "elapsedMs": 1244,
+                "serverClosed": true,
+                "browserClosed": true,
+                "ownedCacheRemoved": true,
+                "ports": [
+                  {
+                    "port": 57388,
+                    "reachable": false
+                  }
+                ],
+                "cleanupErrors": []
+              }
+            ]
+          },
+          {
+            "kind": "development",
+            "status": "PASS",
+            "complete": true,
+            "pid": 55944,
+            "durationMs": 491,
+            "cachePolicy": "explicit-caller-owned",
+            "cacheDir": "<tmpdir>/t02-faultlab-warm-6vumil",
+            "port": 57408,
+            "http504Count": 0,
+            "externalRequests": 0,
+            "pageErrors": [],
+            "consoleErrors": [],
+            "requestFailures": [],
+            "httpErrors": [],
+            "cleanupErrors": [],
+            "serverClosed": true,
+            "browserClosed": true,
+            "ownedCacheRemoved": null,
+            "closedPorts": [
+              {
+                "port": 57408,
+                "reachable": false
+              }
+            ],
+            "timeline": [
+              {
+                "kind": "development",
+                "stage": "start",
+                "elapsedMs": 0,
+                "pid": 55944,
+                "loadavg": [
+                  21.302734375,
+                  35.13427734375,
+                  32.0869140625
+                ],
+                "freeMemory": 192970752
+              },
+              {
+                "kind": "development",
+                "stage": "ready",
+                "elapsedMs": 35,
+                "port": 57408,
+                "cacheDir": "<tmpdir>/t02-faultlab-warm-6vumil"
+              },
+              {
+                "kind": "development",
+                "stage": "domcontentloaded",
+                "elapsedMs": 373
+              },
+              {
+                "kind": "development",
+                "stage": "response",
+                "elapsedMs": 407,
+                "path": "/symgene/t02-dev/bootstrap",
+                "status": 200
+              },
+              {
+                "kind": "development",
+                "stage": "react-mount",
+                "elapsedMs": 430
+              },
+              {
+                "kind": "development",
+                "stage": "snapshot",
+                "elapsedMs": 468,
+                "fresh": true,
+                "sequence": 1
+              },
+              {
+                "kind": "development",
+                "stage": "closed",
+                "elapsedMs": 491,
+                "serverClosed": true,
+                "browserClosed": true,
+                "ownedCacheRemoved": null,
+                "ports": [
+                  {
+                    "port": 57408,
+                    "reachable": false
+                  }
+                ],
+                "cleanupErrors": []
+              }
+            ]
+          },
+          {
+            "kind": "development",
+            "status": "PASS",
+            "complete": true,
+            "pid": 55944,
+            "durationMs": 400,
+            "cachePolicy": "explicit-caller-owned",
+            "cacheDir": "<tmpdir>/t02-faultlab-warm-6vumil",
+            "port": 57417,
+            "http504Count": 0,
+            "externalRequests": 0,
+            "pageErrors": [],
+            "consoleErrors": [],
+            "requestFailures": [],
+            "httpErrors": [],
+            "cleanupErrors": [],
+            "serverClosed": true,
+            "browserClosed": true,
+            "ownedCacheRemoved": null,
+            "closedPorts": [
+              {
+                "port": 57417,
+                "reachable": false
+              }
+            ],
+            "timeline": [
+              {
+                "kind": "development",
+                "stage": "start",
+                "elapsedMs": 0,
+                "pid": 55944,
+                "loadavg": [
+                  21.302734375,
+                  35.13427734375,
+                  32.0869140625
+                ],
+                "freeMemory": 165363712
+              },
+              {
+                "kind": "development",
+                "stage": "ready",
+                "elapsedMs": 30,
+                "port": 57417,
+                "cacheDir": "<tmpdir>/t02-faultlab-warm-6vumil"
+              },
+              {
+                "kind": "development",
+                "stage": "domcontentloaded",
+                "elapsedMs": 274
+              },
+              {
+                "kind": "development",
+                "stage": "response",
+                "elapsedMs": 326,
+                "path": "/symgene/t02-dev/bootstrap",
+                "status": 200
+              },
+              {
+                "kind": "development",
+                "stage": "react-mount",
+                "elapsedMs": 348
+              },
+              {
+                "kind": "development",
+                "stage": "snapshot",
+                "elapsedMs": 384,
+                "fresh": true,
+                "sequence": 1
+              },
+              {
+                "kind": "development",
+                "stage": "closed",
+                "elapsedMs": 400,
+                "serverClosed": true,
+                "browserClosed": true,
+                "ownedCacheRemoved": null,
+                "ports": [
+                  {
+                    "port": 57417,
+                    "reachable": false
+                  }
+                ],
+                "cleanupErrors": []
+              }
+            ]
+          }
+        ],
+        "warmCache": "<tmpdir>/t02-faultlab-warm-6vumil"
+      },
+      "durationMs": 2200,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "PASS",
+      "matchesExpectation": true
+    },
+    {
+      "id": "A1-single-dev-cold-warm",
+      "title": "One development consumer; cold owned cache, then two warm runs on one explicit cache",
+      "round": 2,
+      "expect": "PASS",
+      "observed": {
+        "verdict": "PASS",
+        "probes": [
+          {
+            "kind": "development",
+            "status": "PASS",
+            "complete": true,
+            "pid": 55944,
+            "durationMs": 450,
+            "cachePolicy": "per-instance-owned",
+            "cacheDir": "<tmpdir>/symgene-t02-vite-rWfgzz",
+            "port": 57426,
+            "http504Count": 0,
+            "externalRequests": 0,
+            "pageErrors": [],
+            "consoleErrors": [],
+            "requestFailures": [],
+            "httpErrors": [],
+            "cleanupErrors": [],
+            "serverClosed": true,
+            "browserClosed": true,
+            "ownedCacheRemoved": true,
+            "closedPorts": [
+              {
+                "port": 57426,
+                "reachable": false
+              }
+            ],
+            "timeline": [
+              {
+                "kind": "development",
+                "stage": "start",
+                "elapsedMs": 0,
+                "pid": 55944,
+                "loadavg": [
+                  21.302734375,
+                  35.13427734375,
+                  32.0869140625
+                ],
+                "freeMemory": 190676992
+              },
+              {
+                "kind": "development",
+                "stage": "ready",
+                "elapsedMs": 30,
+                "port": 57426,
+                "cacheDir": "<tmpdir>/symgene-t02-vite-rWfgzz"
+              },
+              {
+                "kind": "development",
+                "stage": "domcontentloaded",
+                "elapsedMs": 317
+              },
+              {
+                "kind": "development",
+                "stage": "response",
+                "elapsedMs": 358,
+                "path": "/symgene/t02-dev/bootstrap",
+                "status": 200
+              },
+              {
+                "kind": "development",
+                "stage": "react-mount",
+                "elapsedMs": 385
+              },
+              {
+                "kind": "development",
+                "stage": "snapshot",
+                "elapsedMs": 428,
+                "fresh": true,
+                "sequence": 1
+              },
+              {
+                "kind": "development",
+                "stage": "closed",
+                "elapsedMs": 450,
+                "serverClosed": true,
+                "browserClosed": true,
+                "ownedCacheRemoved": true,
+                "ports": [
+                  {
+                    "port": 57426,
+                    "reachable": false
+                  }
+                ],
+                "cleanupErrors": []
+              }
+            ]
+          },
+          {
+            "kind": "development",
+            "status": "PASS",
+            "complete": true,
+            "pid": 55944,
+            "durationMs": 432,
+            "cachePolicy": "explicit-caller-owned",
+            "cacheDir": "<tmpdir>/t02-faultlab-warm-YjPHlC",
+            "port": 57449,
+            "http504Count": 0,
+            "externalRequests": 0,
+            "pageErrors": [],
+            "consoleErrors": [],
+            "requestFailures": [],
+            "httpErrors": [],
+            "cleanupErrors": [],
+            "serverClosed": true,
+            "browserClosed": true,
+            "ownedCacheRemoved": null,
+            "closedPorts": [
+              {
+                "port": 57449,
+                "reachable": false
+              }
+            ],
+            "timeline": [
+              {
+                "kind": "development",
+                "stage": "start",
+                "elapsedMs": 0,
+                "pid": 55944,
+                "loadavg": [
+                  21.302734375,
+                  35.13427734375,
+                  32.0869140625
+                ],
+                "freeMemory": 219807744
+              },
+              {
+                "kind": "development",
+                "stage": "ready",
+                "elapsedMs": 29,
+                "port": 57449,
+                "cacheDir": "<tmpdir>/t02-faultlab-warm-YjPHlC"
+              },
+              {
+                "kind": "development",
+                "stage": "domcontentloaded",
+                "elapsedMs": 309
+              },
+              {
+                "kind": "development",
+                "stage": "response",
+                "elapsedMs": 349,
+                "path": "/symgene/t02-dev/bootstrap",
+                "status": 200
+              },
+              {
+                "kind": "development",
+                "stage": "react-mount",
+                "elapsedMs": 377
+              },
+              {
+                "kind": "development",
+                "stage": "snapshot",
+                "elapsedMs": 415,
+                "fresh": true,
+                "sequence": 1
+              },
+              {
+                "kind": "development",
+                "stage": "closed",
+                "elapsedMs": 432,
+                "serverClosed": true,
+                "browserClosed": true,
+                "ownedCacheRemoved": null,
+                "ports": [
+                  {
+                    "port": 57449,
+                    "reachable": false
+                  }
+                ],
+                "cleanupErrors": []
+              }
+            ]
+          },
+          {
+            "kind": "development",
+            "status": "PASS",
+            "complete": true,
+            "pid": 55944,
+            "durationMs": 403,
+            "cachePolicy": "explicit-caller-owned",
+            "cacheDir": "<tmpdir>/t02-faultlab-warm-YjPHlC",
+            "port": 57458,
+            "http504Count": 0,
+            "externalRequests": 0,
+            "pageErrors": [],
+            "consoleErrors": [],
+            "requestFailures": [],
+            "httpErrors": [],
+            "cleanupErrors": [],
+            "serverClosed": true,
+            "browserClosed": true,
+            "ownedCacheRemoved": null,
+            "closedPorts": [
+              {
+                "port": 57458,
+                "reachable": false
+              }
+            ],
+            "timeline": [
+              {
+                "kind": "development",
+                "stage": "start",
+                "elapsedMs": 0,
+                "pid": 55944,
+                "loadavg": [
+                  21.302734375,
+                  35.13427734375,
+                  32.0869140625
+                ],
+                "freeMemory": 219807744
+              },
+              {
+                "kind": "development",
+                "stage": "ready",
+                "elapsedMs": 28,
+                "port": 57458,
+                "cacheDir": "<tmpdir>/t02-faultlab-warm-YjPHlC"
+              },
+              {
+                "kind": "development",
+                "stage": "domcontentloaded",
+                "elapsedMs": 282
+              },
+              {
+                "kind": "development",
+                "stage": "response",
+                "elapsedMs": 324,
+                "path": "/symgene/t02-dev/bootstrap",
+                "status": 200
+              },
+              {
+                "kind": "development",
+                "stage": "react-mount",
+                "elapsedMs": 346
+              },
+              {
+                "kind": "development",
+                "stage": "snapshot",
+                "elapsedMs": 386,
+                "fresh": true,
+                "sequence": 1
+              },
+              {
+                "kind": "development",
+                "stage": "closed",
+                "elapsedMs": 403,
+                "serverClosed": true,
+                "browserClosed": true,
+                "ownedCacheRemoved": null,
+                "ports": [
+                  {
+                    "port": 57458,
+                    "reachable": false
+                  }
+                ],
+                "cleanupErrors": []
+              }
+            ]
+          }
+        ],
+        "warmCache": "<tmpdir>/t02-faultlab-warm-YjPHlC"
+      },
+      "durationMs": 1352,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "PASS",
+      "matchesExpectation": true
+    },
+    {
+      "id": "A1-single-dev-cold-warm",
+      "title": "One development consumer; cold owned cache, then two warm runs on one explicit cache",
+      "round": 3,
+      "expect": "PASS",
+      "observed": {
+        "verdict": "PASS",
+        "probes": [
+          {
+            "kind": "development",
+            "status": "PASS",
+            "complete": true,
+            "pid": 55944,
+            "durationMs": 427,
+            "cachePolicy": "per-instance-owned",
+            "cacheDir": "<tmpdir>/symgene-t02-vite-dhZLB4",
+            "port": 57467,
+            "http504Count": 0,
+            "externalRequests": 0,
+            "pageErrors": [],
+            "consoleErrors": [],
+            "requestFailures": [],
+            "httpErrors": [],
+            "cleanupErrors": [],
+            "serverClosed": true,
+            "browserClosed": true,
+            "ownedCacheRemoved": true,
+            "closedPorts": [
+              {
+                "port": 57467,
+                "reachable": false
+              }
+            ],
+            "timeline": [
+              {
+                "kind": "development",
+                "stage": "start",
+                "elapsedMs": 0,
+                "pid": 55944,
+                "loadavg": [
+                  21.302734375,
+                  35.13427734375,
+                  32.0869140625
+                ],
+                "freeMemory": 187219968
+              },
+              {
+                "kind": "development",
+                "stage": "ready",
+                "elapsedMs": 28,
+                "port": 57467,
+                "cacheDir": "<tmpdir>/symgene-t02-vite-dhZLB4"
+              },
+              {
+                "kind": "development",
+                "stage": "domcontentloaded",
+                "elapsedMs": 309
+              },
+              {
+                "kind": "development",
+                "stage": "response",
+                "elapsedMs": 343,
+                "path": "/symgene/t02-dev/bootstrap",
+                "status": 200
+              },
+              {
+                "kind": "development",
+                "stage": "react-mount",
+                "elapsedMs": 367
+              },
+              {
+                "kind": "development",
+                "stage": "snapshot",
+                "elapsedMs": 407,
+                "fresh": true,
+                "sequence": 1
+              },
+              {
+                "kind": "development",
+                "stage": "closed",
+                "elapsedMs": 427,
+                "serverClosed": true,
+                "browserClosed": true,
+                "ownedCacheRemoved": true,
+                "ports": [
+                  {
+                    "port": 57467,
+                    "reachable": false
+                  }
+                ],
+                "cleanupErrors": []
+              }
+            ]
+          },
+          {
+            "kind": "development",
+            "status": "PASS",
+            "complete": true,
+            "pid": 55944,
+            "durationMs": 418,
+            "cachePolicy": "explicit-caller-owned",
+            "cacheDir": "<tmpdir>/t02-faultlab-warm-gikqHv",
+            "port": 57476,
+            "http504Count": 0,
+            "externalRequests": 0,
+            "pageErrors": [],
+            "consoleErrors": [],
+            "requestFailures": [],
+            "httpErrors": [],
+            "cleanupErrors": [],
+            "serverClosed": true,
+            "browserClosed": true,
+            "ownedCacheRemoved": null,
+            "closedPorts": [
+              {
+                "port": 57476,
+                "reachable": false
+              }
+            ],
+            "timeline": [
+              {
+                "kind": "development",
+                "stage": "start",
+                "elapsedMs": 0,
+                "pid": 55944,
+                "loadavg": [
+                  21.302734375,
+                  35.13427734375,
+                  32.0869140625
+                ],
+                "freeMemory": 221691904
+              },
+              {
+                "kind": "development",
+                "stage": "ready",
+                "elapsedMs": 28,
+                "port": 57476,
+                "cacheDir": "<tmpdir>/t02-faultlab-warm-gikqHv"
+              },
+              {
+                "kind": "development",
+                "stage": "domcontentloaded",
+                "elapsedMs": 302
+              },
+              {
+                "kind": "development",
+                "stage": "response",
+                "elapsedMs": 345,
+                "path": "/symgene/t02-dev/bootstrap",
+                "status": 200
+              },
+              {
+                "kind": "development",
+                "stage": "react-mount",
+                "elapsedMs": 367
+              },
+              {
+                "kind": "development",
+                "stage": "snapshot",
+                "elapsedMs": 401,
+                "fresh": true,
+                "sequence": 1
+              },
+              {
+                "kind": "development",
+                "stage": "closed",
+                "elapsedMs": 418,
+                "serverClosed": true,
+                "browserClosed": true,
+                "ownedCacheRemoved": null,
+                "ports": [
+                  {
+                    "port": 57476,
+                    "reachable": false
+                  }
+                ],
+                "cleanupErrors": []
+              }
+            ]
+          },
+          {
+            "kind": "development",
+            "status": "PASS",
+            "complete": true,
+            "pid": 55944,
+            "durationMs": 375,
+            "cachePolicy": "explicit-caller-owned",
+            "cacheDir": "<tmpdir>/t02-faultlab-warm-gikqHv",
+            "port": 57485,
+            "http504Count": 0,
+            "externalRequests": 0,
+            "pageErrors": [],
+            "consoleErrors": [],
+            "requestFailures": [],
+            "httpErrors": [],
+            "cleanupErrors": [],
+            "serverClosed": true,
+            "browserClosed": true,
+            "ownedCacheRemoved": null,
+            "closedPorts": [
+              {
+                "port": 57485,
+                "reachable": false
+              }
+            ],
+            "timeline": [
+              {
+                "kind": "development",
+                "stage": "start",
+                "elapsedMs": 0,
+                "pid": 55944,
+                "loadavg": [
+                  21.302734375,
+                  35.13427734375,
+                  32.0869140625
+                ],
+                "freeMemory": 220643328
+              },
+              {
+                "kind": "development",
+                "stage": "ready",
+                "elapsedMs": 29,
+                "port": 57485,
+                "cacheDir": "<tmpdir>/t02-faultlab-warm-gikqHv"
+              },
+              {
+                "kind": "development",
+                "stage": "domcontentloaded",
+                "elapsedMs": 259
+              },
+              {
+                "kind": "development",
+                "stage": "response",
+                "elapsedMs": 302,
+                "path": "/symgene/t02-dev/bootstrap",
+                "status": 200
+              },
+              {
+                "kind": "development",
+                "stage": "react-mount",
+                "elapsedMs": 324
+              },
+              {
+                "kind": "development",
+                "stage": "snapshot",
+                "elapsedMs": 359,
+                "fresh": true,
+                "sequence": 1
+              },
+              {
+                "kind": "development",
+                "stage": "closed",
+                "elapsedMs": 375,
+                "serverClosed": true,
+                "browserClosed": true,
+                "ownedCacheRemoved": null,
+                "ports": [
+                  {
+                    "port": 57485,
+                    "reachable": false
+                  }
+                ],
+                "cleanupErrors": []
+              }
+            ]
+          }
+        ],
+        "warmCache": "<tmpdir>/t02-faultlab-warm-gikqHv"
+      },
+      "durationMs": 1285,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "PASS",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

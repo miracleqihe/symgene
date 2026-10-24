@@ -1,0 +1,108 @@
+{
+  "id": "B6c-report-wrong-kind",
+  "title": "Report kind mismatch must fail",
+  "expect": "FAIL-DETECTED",
+  "rounds": [
+    {
+      "id": "B6c-report-wrong-kind",
+      "title": "Report kind mismatch must fail",
+      "round": 1,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "35db574d-7a61-4227-ad60-ac106e9a2813",
+          "childPid": 71166,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": false,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_REPORT_INVALID"
+          }
+        }
+      },
+      "durationMs": 129,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B6c-report-wrong-kind",
+      "title": "Report kind mismatch must fail",
+      "round": 2,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "b7bb0a12-f64a-4393-a9c0-f89857c5d8dc",
+          "childPid": 71203,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": false,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_REPORT_INVALID"
+          }
+        }
+      },
+      "durationMs": 129,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B6c-report-wrong-kind",
+      "title": "Report kind mismatch must fail",
+      "round": 3,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "9e26b90f-7e82-48e6-b275-80e32c72d092",
+          "childPid": 71236,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": false,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_REPORT_INVALID"
+          }
+        }
+      },
+      "durationMs": 121,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

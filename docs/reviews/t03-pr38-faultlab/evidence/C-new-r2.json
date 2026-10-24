@@ -1,0 +1,31 @@
+{
+  "round": 2,
+  "startMs": 35,
+  "observations": [
+    {
+      "kind": "development",
+      "http504": 0,
+      "httpErrors": [],
+      "requestFailures": [],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "mounted": true,
+      "fresh": true,
+      "error": null
+    },
+    {
+      "kind": "signed",
+      "http504": 0,
+      "httpErrors": [],
+      "requestFailures": [],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "mounted": true,
+      "fresh": true,
+      "error": null
+    }
+  ],
+  "newTempCaches": [],
+  "chromiumAfter": 0,
+  "reproduced": false
+}

@@ -1,0 +1,108 @@
+{
+  "id": "B6g-report-incomplete-result",
+  "title": "Incomplete probe result must fail",
+  "expect": "FAIL-DETECTED",
+  "rounds": [
+    {
+      "id": "B6g-report-incomplete-result",
+      "title": "Incomplete probe result must fail",
+      "round": 1,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "cd87ebe9-8452-4d0c-926b-30e90a81f015",
+          "childPid": 71567,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": false,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_REPORT_INVALID"
+          }
+        }
+      },
+      "durationMs": 164,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B6g-report-incomplete-result",
+      "title": "Incomplete probe result must fail",
+      "round": 2,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "e423f29d-e8da-4faa-b3ce-861aab8a8c10",
+          "childPid": 71600,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": false,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_REPORT_INVALID"
+          }
+        }
+      },
+      "durationMs": 135,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B6g-report-incomplete-result",
+      "title": "Incomplete probe result must fail",
+      "round": 3,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "80bad31b-d672-4594-8f9e-be4c2619a1d0",
+          "childPid": 71650,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": false,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_REPORT_INVALID"
+          }
+        }
+      },
+      "durationMs": 127,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

@@ -1,0 +1,471 @@
+{
+  "id": "B3-http504-then-mount",
+  "title": "Real Chromium: 504 Outdated Optimize Dep first, successful React mount after - must FAIL",
+  "expect": "FAIL-DETECTED",
+  "rounds": [
+    {
+      "id": "B3-http504-then-mount",
+      "title": "Real Chromium: 504 Outdated Optimize Dep first, successful React mount after - must FAIL",
+      "round": 1,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "probe": {
+          "kind": "development",
+          "status": "FAIL",
+          "complete": true,
+          "pid": 70142,
+          "durationMs": 1161,
+          "cachePolicy": "per-instance-owned",
+          "cacheDir": "<tmpdir>/symgene-t02-vite-6I4lyi",
+          "port": 63388,
+          "http504Count": 1,
+          "externalRequests": 0,
+          "pageErrors": [],
+          "consoleErrors": [
+            {
+              "message": "Failed to load resource: the server responded with a status of 504 (Gateway Timeout)",
+              "location": {
+                "url": "http://127.0.0.1:63388/node_modules/.vite/deps/faultlab-startup.js",
+                "line": 0,
+                "column": 0,
+                "lineNumber": 0,
+                "columnNumber": 0
+              }
+            }
+          ],
+          "requestFailures": [],
+          "httpErrors": [
+            {
+              "path": "/node_modules/.vite/deps/faultlab-startup.js",
+              "status": 504
+            }
+          ],
+          "cleanupErrors": [],
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "closedPorts": [
+            {
+              "port": 63388,
+              "reachable": false
+            }
+          ],
+          "error": {
+            "name": "Error",
+            "code": "T02_PROBE_BROWSER_ERROR",
+            "message": "T02_PROBE_BROWSER_ERROR"
+          },
+          "timeline": [
+            {
+              "kind": "development",
+              "stage": "start",
+              "elapsedMs": 0,
+              "pid": 70142,
+              "loadavg": [
+                21.43017578125,
+                33.462890625,
+                29.3505859375
+              ],
+              "freeMemory": 65273856
+            },
+            {
+              "kind": "development",
+              "stage": "ready",
+              "elapsedMs": 62,
+              "port": 63388,
+              "cacheDir": "<tmpdir>/symgene-t02-vite-6I4lyi"
+            },
+            {
+              "kind": "development",
+              "stage": "response",
+              "elapsedMs": 890,
+              "path": "/node_modules/.vite/deps/faultlab-startup.js",
+              "status": 504
+            },
+            {
+              "kind": "development",
+              "stage": "console-error",
+              "elapsedMs": 890,
+              "message": "Failed to load resource: the server responded with a status of 504 (Gateway Timeout)",
+              "location": {
+                "url": "http://127.0.0.1:63388/node_modules/.vite/deps/faultlab-startup.js",
+                "line": 0,
+                "column": 0,
+                "lineNumber": 0,
+                "columnNumber": 0
+              }
+            },
+            {
+              "kind": "development",
+              "stage": "domcontentloaded",
+              "elapsedMs": 990
+            },
+            {
+              "kind": "development",
+              "stage": "response",
+              "elapsedMs": 1038,
+              "path": "/symgene/t02-dev/bootstrap",
+              "status": 200
+            },
+            {
+              "kind": "development",
+              "stage": "react-mount",
+              "elapsedMs": 1074
+            },
+            {
+              "kind": "development",
+              "stage": "snapshot",
+              "elapsedMs": 1137,
+              "fresh": true,
+              "sequence": 1
+            },
+            {
+              "kind": "development",
+              "stage": "failure",
+              "elapsedMs": 1137,
+              "name": "Error",
+              "code": "T02_PROBE_BROWSER_ERROR",
+              "message": "T02_PROBE_BROWSER_ERROR"
+            },
+            {
+              "kind": "development",
+              "stage": "closed",
+              "elapsedMs": 1161,
+              "serverClosed": true,
+              "browserClosed": true,
+              "ownedCacheRemoved": true,
+              "ports": [
+                {
+                  "port": 63388,
+                  "reachable": false
+                }
+              ],
+              "cleanupErrors": []
+            }
+          ]
+        }
+      },
+      "durationMs": 1217,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B3-http504-then-mount",
+      "title": "Real Chromium: 504 Outdated Optimize Dep first, successful React mount after - must FAIL",
+      "round": 2,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "probe": {
+          "kind": "development",
+          "status": "FAIL",
+          "complete": true,
+          "pid": 70142,
+          "durationMs": 591,
+          "cachePolicy": "per-instance-owned",
+          "cacheDir": "<tmpdir>/symgene-t02-vite-yjAbA4",
+          "port": 63402,
+          "http504Count": 1,
+          "externalRequests": 0,
+          "pageErrors": [],
+          "consoleErrors": [
+            {
+              "message": "Failed to load resource: the server responded with a status of 504 (Gateway Timeout)",
+              "location": {
+                "url": "http://127.0.0.1:63402/node_modules/.vite/deps/faultlab-startup.js",
+                "line": 0,
+                "column": 0,
+                "lineNumber": 0,
+                "columnNumber": 0
+              }
+            }
+          ],
+          "requestFailures": [],
+          "httpErrors": [
+            {
+              "path": "/node_modules/.vite/deps/faultlab-startup.js",
+              "status": 504
+            }
+          ],
+          "cleanupErrors": [],
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "closedPorts": [
+            {
+              "port": 63402,
+              "reachable": false
+            }
+          ],
+          "error": {
+            "name": "Error",
+            "code": "T02_PROBE_BROWSER_ERROR",
+            "message": "T02_PROBE_BROWSER_ERROR"
+          },
+          "timeline": [
+            {
+              "kind": "development",
+              "stage": "start",
+              "elapsedMs": 0,
+              "pid": 70142,
+              "loadavg": [
+                21.43017578125,
+                33.462890625,
+                29.3505859375
+              ],
+              "freeMemory": 131235840
+            },
+            {
+              "kind": "development",
+              "stage": "ready",
+              "elapsedMs": 31,
+              "port": 63402,
+              "cacheDir": "<tmpdir>/symgene-t02-vite-yjAbA4"
+            },
+            {
+              "kind": "development",
+              "stage": "response",
+              "elapsedMs": 209,
+              "path": "/node_modules/.vite/deps/faultlab-startup.js",
+              "status": 504
+            },
+            {
+              "kind": "development",
+              "stage": "console-error",
+              "elapsedMs": 209,
+              "message": "Failed to load resource: the server responded with a status of 504 (Gateway Timeout)",
+              "location": {
+                "url": "http://127.0.0.1:63402/node_modules/.vite/deps/faultlab-startup.js",
+                "line": 0,
+                "column": 0,
+                "lineNumber": 0,
+                "columnNumber": 0
+              }
+            },
+            {
+              "kind": "development",
+              "stage": "domcontentloaded",
+              "elapsedMs": 354
+            },
+            {
+              "kind": "development",
+              "stage": "response",
+              "elapsedMs": 396,
+              "path": "/symgene/t02-dev/bootstrap",
+              "status": 200
+            },
+            {
+              "kind": "development",
+              "stage": "react-mount",
+              "elapsedMs": 450
+            },
+            {
+              "kind": "development",
+              "stage": "snapshot",
+              "elapsedMs": 523,
+              "fresh": true,
+              "sequence": 1
+            },
+            {
+              "kind": "development",
+              "stage": "failure",
+              "elapsedMs": 523,
+              "name": "Error",
+              "code": "T02_PROBE_BROWSER_ERROR",
+              "message": "T02_PROBE_BROWSER_ERROR"
+            },
+            {
+              "kind": "development",
+              "stage": "closed",
+              "elapsedMs": 591,
+              "serverClosed": true,
+              "browserClosed": true,
+              "ownedCacheRemoved": true,
+              "ports": [
+                {
+                  "port": 63402,
+                  "reachable": false
+                }
+              ],
+              "cleanupErrors": []
+            }
+          ]
+        }
+      },
+      "durationMs": 689,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B3-http504-then-mount",
+      "title": "Real Chromium: 504 Outdated Optimize Dep first, successful React mount after - must FAIL",
+      "round": 3,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "probe": {
+          "kind": "development",
+          "status": "FAIL",
+          "complete": true,
+          "pid": 70142,
+          "durationMs": 475,
+          "cachePolicy": "per-instance-owned",
+          "cacheDir": "<tmpdir>/symgene-t02-vite-kdQ0Oc",
+          "port": 63413,
+          "http504Count": 1,
+          "externalRequests": 0,
+          "pageErrors": [],
+          "consoleErrors": [
+            {
+              "message": "Failed to load resource: the server responded with a status of 504 (Gateway Timeout)",
+              "location": {
+                "url": "http://127.0.0.1:63413/node_modules/.vite/deps/faultlab-startup.js",
+                "line": 0,
+                "column": 0,
+                "lineNumber": 0,
+                "columnNumber": 0
+              }
+            }
+          ],
+          "requestFailures": [],
+          "httpErrors": [
+            {
+              "path": "/node_modules/.vite/deps/faultlab-startup.js",
+              "status": 504
+            }
+          ],
+          "cleanupErrors": [],
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "closedPorts": [
+            {
+              "port": 63413,
+              "reachable": false
+            }
+          ],
+          "error": {
+            "name": "Error",
+            "code": "T02_PROBE_BROWSER_ERROR",
+            "message": "T02_PROBE_BROWSER_ERROR"
+          },
+          "timeline": [
+            {
+              "kind": "development",
+              "stage": "start",
+              "elapsedMs": 0,
+              "pid": 70142,
+              "loadavg": [
+                21.43017578125,
+                33.462890625,
+                29.3505859375
+              ],
+              "freeMemory": 98336768
+            },
+            {
+              "kind": "development",
+              "stage": "ready",
+              "elapsedMs": 57,
+              "port": 63413,
+              "cacheDir": "<tmpdir>/symgene-t02-vite-kdQ0Oc"
+            },
+            {
+              "kind": "development",
+              "stage": "response",
+              "elapsedMs": 235,
+              "path": "/node_modules/.vite/deps/faultlab-startup.js",
+              "status": 504
+            },
+            {
+              "kind": "development",
+              "stage": "console-error",
+              "elapsedMs": 235,
+              "message": "Failed to load resource: the server responded with a status of 504 (Gateway Timeout)",
+              "location": {
+                "url": "http://127.0.0.1:63413/node_modules/.vite/deps/faultlab-startup.js",
+                "line": 0,
+                "column": 0,
+                "lineNumber": 0,
+                "columnNumber": 0
+              }
+            },
+            {
+              "kind": "development",
+              "stage": "domcontentloaded",
+              "elapsedMs": 364
+            },
+            {
+              "kind": "development",
+              "stage": "response",
+              "elapsedMs": 399,
+              "path": "/symgene/t02-dev/bootstrap",
+              "status": 200
+            },
+            {
+              "kind": "development",
+              "stage": "react-mount",
+              "elapsedMs": 422
+            },
+            {
+              "kind": "development",
+              "stage": "snapshot",
+              "elapsedMs": 458,
+              "fresh": true,
+              "sequence": 1
+            },
+            {
+              "kind": "development",
+              "stage": "failure",
+              "elapsedMs": 458,
+              "name": "Error",
+              "code": "T02_PROBE_BROWSER_ERROR",
+              "message": "T02_PROBE_BROWSER_ERROR"
+            },
+            {
+              "kind": "development",
+              "stage": "closed",
+              "elapsedMs": 475,
+              "serverClosed": true,
+              "browserClosed": true,
+              "ownedCacheRemoved": true,
+              "ports": [
+                {
+                  "port": 63413,
+                  "reachable": false
+                }
+              ],
+              "cleanupErrors": []
+            }
+          ]
+        }
+      },
+      "durationMs": 532,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

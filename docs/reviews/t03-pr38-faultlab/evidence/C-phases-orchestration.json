@@ -1,0 +1,38 @@
+{
+  "c2-new": {
+    "name": "c2-new",
+    "error": null,
+    "stdout": "{\"phase\":\"startup\",\"impl\":\"new\",\"shared\":false,\"round\":1,\"reproduced\":false,\"http504\":[0,0],\"mounted\":[true,true],\"fresh\":[true,true]}\n{\"phase\":\"startup\",\"impl\":\"new\",\"shared\":false,\"round\":2,\"reproduced\":false,\"http504\":[0,0],\"mounted\":[true,true],\"fresh\":[true,true]}\n{\"phase\":\"startup\",\"impl\":\"new\",\"shared\":false,\"round\":3,\"reproduced\":false,\"http504\":[0,0],\"mounted\":[true,true],\"fresh\":[true,true]}\n",
+    "stderr": ""
+  },
+  "c1-old": {
+    "name": "c1-old",
+    "error": null,
+    "stdout": "{\"phase\":\"startup\",\"impl\":\"old\",\"shared\":false,\"round\":1,\"reproduced\":false,\"http504\":[0,0],\"mounted\":[true,true],\"fresh\":[true,true]}\n9:45:30 AM [vite] (client) Re-optimizing dependencies because vite config has changed\n{\"phase\":\"startup\",\"impl\":\"old\",\"shared\":false,\"round\":2,\"reproduced\":true,\"http504\":[3,0],\"mounted\":[false,true],\"fresh\":[false,true]}\n9:45:45 AM [vite] (client) Re-optimizing dependencies because vite config has changed\n{\"phase\":\"startup\",\"impl\":\"old\",\"shared\":false,\"round\":3,\"reproduced\":true,\"http504\":[0,3],\"mounted\":[true,false],\"fresh\":[true,false]}\n",
+    "stderr": ""
+  },
+  "c3-new-shared": {
+    "name": "c3-new-shared",
+    "error": null,
+    "stdout": "{\"phase\":\"startup\",\"impl\":\"new\",\"shared\":true,\"round\":1,\"reproduced\":false,\"http504\":[0,0],\"mounted\":[true,true],\"fresh\":[true,true]}\n{\"phase\":\"startup\",\"impl\":\"new\",\"shared\":true,\"round\":2,\"reproduced\":false,\"http504\":[0,0],\"mounted\":[true,true],\"fresh\":[true,true]}\n{\"phase\":\"startup\",\"impl\":\"new\",\"shared\":true,\"round\":3,\"reproduced\":false,\"http504\":[0,0],\"mounted\":[true,true],\"fresh\":[true,true]}\n",
+    "stderr": ""
+  },
+  "c5a-old": {
+    "name": "c5a-old",
+    "error": null,
+    "stdout": "9:46:04 AM [vite] (client) Re-optimizing dependencies because vite config has changed\n{\n \"impl\": \"old\",\n \"rejected\": {\n  \"name\": \"Error\",\n  \"code\": \"ERR_MODULE_NOT_FOUND\",\n  \"message\": \"Cannot find module '<tmpdir>/t02-faultlab-diff-producer-FJ30o4/missing-playwrigh\"\n },\n \"leakedListeners\": 3,\n \"listenersAfter\": [\n  \"node    93274 <redacted-user>   14u  IPv4 0x1326be5b72cecbb5      0t0  TCP 127.0.0.1:52830\",\n  \"node    93274 <redacted-user>   15u  IPv4 0x3ae89b193426d146      0t0  TCP 127.0.0.1:52831\",\n  \"node    93274 <redacted-user>   28u  IPv4  0xed85c589ed3920c      0t0  TCP 127.0.0.1:52832\"\n ],\n \"closesRecorded\": [],\n \"staleReportLeft\": false\n}\n",
+    "stderr": ""
+  },
+  "c5a-new": {
+    "name": "c5a-new",
+    "error": null,
+    "stdout": "{\n \"impl\": \"new\",\n \"rejected\": {\n  \"name\": \"Error\",\n  \"code\": \"ERR_MODULE_NOT_FOUND\",\n  \"message\": \"Cannot find module '<tmpdir>/t02-faultlab-diff-producer-BBolKH/missing-playwrigh\"\n },\n \"leakedListeners\": 0,\n \"listenersAfter\": [],\n \"closesRecorded\": [\n  {\n   \"name\": \"gateway\",\n   \"port\": 52834,\n   \"listening\": false\n  },\n  {\n   \"name\": \"checkpoint\",\n   \"port\": 52833,\n   \"listening\": false\n  }\n ],\n \"staleReportLeft\": false\n}\n",
+    "stderr": ""
+  },
+  "c5b-drill": {
+    "name": "c5b-drill",
+    "error": null,
+    "stdout": "{\"status\":\"SIGNED_REACT_BROWSER_LOCAL_PASS\",\"checks\":30,\"drills\":8}\n",
+    "stderr": ""
+  }
+}

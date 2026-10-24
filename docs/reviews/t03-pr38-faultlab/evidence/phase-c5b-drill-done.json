@@ -1,0 +1,374 @@
+{
+  "phase": "c5b-drill",
+  "result": {
+    "status": "SIGNED_REACT_BROWSER_LOCAL_PASS",
+    "formalAdoption": "BLOCKED",
+    "production": "legacy",
+    "identities": "local-test-only",
+    "reviews": "simulation-only",
+    "checks": 30,
+    "browser": "151.0.7922.34",
+    "playwrightVersion": "1.62.1",
+    "originalStorageDigest": "21e262245949d9935bce11d0cb4e5eaed7a33a1397f495cfbc557691ef401a83",
+    "originalStoragePreserved": true,
+    "cacheAuthority": "none-denial-only",
+    "pageErrors": 0,
+    "externalRequests": 0,
+    "responses": [
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-2",
+        "action": "read",
+        "status": 503,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-2",
+        "action": "adopt",
+        "status": 200,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-2",
+        "action": "read",
+        "status": 200,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-2",
+        "action": "read",
+        "status": 200,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-2",
+        "action": "read",
+        "status": 200,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-2",
+        "action": "adopt",
+        "status": 200,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-2",
+        "action": "read",
+        "status": 200,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-2",
+        "action": "read",
+        "status": 503,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-2",
+        "action": "read",
+        "status": 200,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-2",
+        "action": "read",
+        "status": 503,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-2",
+        "action": "read",
+        "status": 200,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-2",
+        "action": "read",
+        "status": 200,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-1",
+        "action": "rollback",
+        "status": 200,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-1",
+        "action": "read",
+        "status": 200,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-1",
+        "action": "read",
+        "status": 503,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-1",
+        "action": "read",
+        "status": 200,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-1",
+        "action": "read",
+        "status": 503,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-1",
+        "action": "read",
+        "status": 200,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-1",
+        "action": "read",
+        "status": 200,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-1",
+        "action": "read",
+        "status": 503,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-1",
+        "action": "read",
+        "status": 200,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/symgene/t02-signed/snapshot",
+        "version": "signed-test-1",
+        "action": "read",
+        "status": 503,
+        "cacheControl": "no-store"
+      }
+    ],
+    "drills": [
+      {
+        "scenario": "network-interruption-and-cache",
+        "initial": "Signed release visible with details and v4 edits",
+        "action": "Chromium network goes offline",
+        "expected": "All rendered/search/detail content hidden; original edits retained",
+        "observed": {
+          "fresh": false,
+          "counts": {
+            "drugs": 0,
+            "disorders": 0,
+            "cases": 0,
+            "resources": 0
+          },
+          "detailVisible": false,
+          "cacheScope": "denial-only-no-offline-authority"
+        },
+        "recovery": "Network restored; gateway reread restores verified visibility"
+      },
+      {
+        "scenario": "checkpoint-unavailable",
+        "initial": "Signed release visible",
+        "action": "Independent checkpoint HTTP service fails or serves stale signed checkpoint",
+        "expected": "503 no-store and React hides all content",
+        "observed": {
+          "fresh": false,
+          "counts": {
+            "drugs": 0,
+            "disorders": 0,
+            "cases": 0,
+            "resources": 0
+          },
+          "error": "SIGNED_GATEWAY_UNAVAILABLE"
+        },
+        "recovery": "Independent latest checkpoint restored; gateway reread succeeds"
+      },
+      {
+        "scenario": "checkpoint-stale",
+        "initial": "Signed release visible",
+        "action": "Independent checkpoint HTTP service fails or serves stale signed checkpoint",
+        "expected": "503 no-store and React hides all content",
+        "observed": {
+          "fresh": false,
+          "counts": {
+            "drugs": 0,
+            "disorders": 0,
+            "cases": 0,
+            "resources": 0
+          },
+          "error": "SIGNED_GATEWAY_UNAVAILABLE"
+        },
+        "recovery": "Independent latest checkpoint restored; gateway reread succeeds"
+      },
+      {
+        "scenario": "signed-retraction-dependency-and-rollback",
+        "initial": "Disease, dependent seed and custom cases displayed before signed retraction",
+        "action": "Retraction operator signs next event and independent checkpoint; website rolls back archive and restores backup",
+        "expected": "Disease/dependencies/search/detail remain hidden; user overrides/tombstone/backups retained",
+        "observed": {
+          "withdrawn": {
+            "sequence": 2,
+            "counts": {
+              "drugs": 1,
+              "disorders": 0,
+              "cases": 0,
+              "resources": 0
+            },
+            "rawCounts": {
+              "drugs": 1,
+              "disorders": 1,
+              "cases": 2,
+              "resources": 0
+            }
+          },
+          "rollback": {
+            "version": "signed-test-1",
+            "counts": {
+              "drugs": 1,
+              "disorders": 0,
+              "cases": 0,
+              "resources": 0
+            },
+            "sequence": 2
+          }
+        },
+        "recovery": "Refresh verifies the latest ledger and retains rejection history across the configured archive versions"
+      },
+      {
+        "scenario": "checkpoint-regression",
+        "initial": "Sequence after retraction accepted",
+        "action": "Independent service returns earlier signed checkpoint",
+        "expected": "Gateway rejects regression and React hides all content",
+        "observed": {
+          "fresh": false,
+          "sequence": 2,
+          "counts": {
+            "drugs": 0,
+            "disorders": 0,
+            "cases": 0,
+            "resources": 0
+          }
+        },
+        "recovery": "Latest checkpoint restored"
+      },
+      {
+        "scenario": "service-restart-and-durable-recovery",
+        "initial": "Withdrawn content hidden after rollback",
+        "action": "Stop gateway, recreate runtime from same ledger/archive/audit directories, restart gateway and independent checkpoint service",
+        "expected": "Failure hides content; recovery retains highest retraction and hidden dependencies",
+        "observed": {
+          "unavailable": false,
+          "recoveredSequence": 2,
+          "recoveredCounts": {
+            "drugs": 1,
+            "disorders": 0,
+            "cases": 0,
+            "resources": 0
+          }
+        },
+        "recovery": "Browser refresh reconfirms persisted state"
+      },
+      {
+        "scenario": "signed-event-expiry-and-recovery",
+        "initial": "Valid signed retraction retains hidden dependencies",
+        "action": "Sign a short-lived next event and observe actual wall-clock expiry",
+        "expected": "Gateway refuses expired event; browser hides everything and preserves storage",
+        "observed": {
+          "fresh": false,
+          "counts": {
+            "drugs": 0,
+            "disorders": 0,
+            "cases": 0,
+            "resources": 0
+          },
+          "recoveredSequence": 4,
+          "recoveredCounts": {
+            "drugs": 1,
+            "disorders": 0,
+            "cases": 0,
+            "resources": 0
+          }
+        },
+        "recovery": "Operator signs a fresh next event and independent checkpoint; prior retractions remain effective"
+      },
+      {
+        "scenario": "emergency-close-survives-restart",
+        "initial": "Withdrawn release still available for remaining safe content",
+        "action": "Signed emergency shutdown and runtime restart",
+        "expected": "All content hidden across restart",
+        "observed": {
+          "fresh": false,
+          "counts": {
+            "drugs": 0,
+            "disorders": 0,
+            "cases": 0,
+            "resources": 0
+          },
+          "sequence": 4
+        },
+        "recovery": "Signed operator recovery is required; runtime restart alone does not reopen"
+      }
+    ],
+    "implementation": [
+      {
+        "file": "scripts/t02/consumer-vite-server.mjs",
+        "sha256": "c8110b64f4d081564ff8fbe0b3d8e91a9acd2e2ef42d9024f95fe7e5d0c000f4"
+      },
+      {
+        "file": "scripts/t02/signed-consumer.mjs",
+        "sha256": "0f22b0487240283702d73f1a42ee5ef54b5f82ef989821eec501ed7905b734c8"
+      },
+      {
+        "file": "scripts/t02/signed-consumer-browser.mjs",
+        "sha256": "9953d9906cc2772b0fc1fb7baf58322bcff239fff0395f5adc3d316f24b746ac"
+      },
+      {
+        "file": "src/dev/t02-signed-consumer.jsx",
+        "sha256": "c696c0477f860cdcc3d0f61e0761dff7ea885a8a564f081b0f7ee4caf4764a3a"
+      },
+      {
+        "file": "src/dev/t02-signed-session.js",
+        "sha256": "56665fed93bf270a72cd2a468cb3c96279e1d4dd72994dcb8e2f101521c4e650"
+      },
+      {
+        "file": "src/content/adapter.js",
+        "sha256": "97b47aaf4f90bf01bd2dda8740e97eb3ac9d618bab67066c27f14b75db7835b0"
+      },
+      {
+        "file": "src/search.js",
+        "sha256": "3d1c8b589839fd569e87e2cf4684b86334695e9106475e6e695f681c6faa6853"
+      },
+      {
+        "file": "src/storage/storage.js",
+        "sha256": "2d2837b8d45d5967fb979a9764540def30d05ca50c5c88ecede7c8456dc90198"
+      },
+      {
+        "file": "content-pack.lock",
+        "sha256": "d32000bcf1479ecd2198bf74f362e17ced9eebde98e22d9c86c487c54b9d84b0"
+      }
+    ]
+  }
+}

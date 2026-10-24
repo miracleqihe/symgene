@@ -1,0 +1,108 @@
+{
+  "id": "B6d-report-wrong-execution",
+  "title": "Foreign execution id must fail",
+  "expect": "FAIL-DETECTED",
+  "rounds": [
+    {
+      "id": "B6d-report-wrong-execution",
+      "title": "Foreign execution id must fail",
+      "round": 1,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "147ca792-d018-433c-ab39-1a6a4245167c",
+          "childPid": 71269,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": false,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_REPORT_INVALID"
+          }
+        }
+      },
+      "durationMs": 121,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B6d-report-wrong-execution",
+      "title": "Foreign execution id must fail",
+      "round": 2,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "0aa606e0-af70-4126-abd5-ffac7750b05f",
+          "childPid": 71302,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": false,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_REPORT_INVALID"
+          }
+        }
+      },
+      "durationMs": 129,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B6d-report-wrong-execution",
+      "title": "Foreign execution id must fail",
+      "round": 3,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "6aa8c2d5-1cdd-4849-984b-c3e50096fdc0",
+          "childPid": 71335,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": false,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_REPORT_INVALID"
+          }
+        }
+      },
+      "durationMs": 125,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

@@ -1,0 +1,240 @@
+{
+  "id": "A6-quad-separate-processes",
+  "title": "Four consumers (2 dev + 2 signed) each in its own supervised worker, simultaneous",
+  "expect": "PASS",
+  "rounds": [
+    {
+      "id": "A6-quad-separate-processes",
+      "title": "Four consumers (2 dev + 2 signed) each in its own supervised worker, simultaneous",
+      "round": 1,
+      "expect": "PASS",
+      "observed": {
+        "verdict": "PASS",
+        "workers": [
+          {
+            "executionId": "d4cfb701-fb75-44cb-96e5-dbaf9e6f6133",
+            "childPid": 62986,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "reportReceived": true,
+            "reportCount": 1,
+            "reportValid": true,
+            "exitObserved": true,
+            "closeObserved": true,
+            "supervisorDeadlineExceeded": false,
+            "status": "PASS"
+          },
+          {
+            "executionId": "f7f39b0b-64f8-489f-9a43-aff0daa114f2",
+            "childPid": 62987,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "reportReceived": true,
+            "reportCount": 1,
+            "reportValid": true,
+            "exitObserved": true,
+            "closeObserved": true,
+            "supervisorDeadlineExceeded": false,
+            "status": "PASS"
+          },
+          {
+            "executionId": "3db36041-9ecc-43e0-b573-ead6887eb480",
+            "childPid": 62988,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "reportReceived": true,
+            "reportCount": 1,
+            "reportValid": true,
+            "exitObserved": true,
+            "closeObserved": true,
+            "supervisorDeadlineExceeded": false,
+            "status": "PASS"
+          },
+          {
+            "executionId": "2ae55f69-44bb-4267-9a1b-f59d5865d5d1",
+            "childPid": 62989,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "reportReceived": true,
+            "reportCount": 1,
+            "reportValid": true,
+            "exitObserved": true,
+            "closeObserved": true,
+            "supervisorDeadlineExceeded": false,
+            "status": "PASS"
+          }
+        ]
+      },
+      "durationMs": 1641,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "PASS",
+      "matchesExpectation": true
+    },
+    {
+      "id": "A6-quad-separate-processes",
+      "title": "Four consumers (2 dev + 2 signed) each in its own supervised worker, simultaneous",
+      "round": 2,
+      "expect": "PASS",
+      "observed": {
+        "verdict": "PASS",
+        "workers": [
+          {
+            "executionId": "f866f46b-091e-428f-9e48-c48f9f76eb02",
+            "childPid": 63043,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "reportReceived": true,
+            "reportCount": 1,
+            "reportValid": true,
+            "exitObserved": true,
+            "closeObserved": true,
+            "supervisorDeadlineExceeded": false,
+            "status": "PASS"
+          },
+          {
+            "executionId": "0ff81561-85a9-457b-a55a-c47de438b26e",
+            "childPid": 63044,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "reportReceived": true,
+            "reportCount": 1,
+            "reportValid": true,
+            "exitObserved": true,
+            "closeObserved": true,
+            "supervisorDeadlineExceeded": false,
+            "status": "PASS"
+          },
+          {
+            "executionId": "325ab212-22cc-44cb-a43e-8b2c993fdb27",
+            "childPid": 63045,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "reportReceived": true,
+            "reportCount": 1,
+            "reportValid": true,
+            "exitObserved": true,
+            "closeObserved": true,
+            "supervisorDeadlineExceeded": false,
+            "status": "PASS"
+          },
+          {
+            "executionId": "c7dd3bdb-341d-45ad-a487-27d586e3b6a9",
+            "childPid": 63046,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "reportReceived": true,
+            "reportCount": 1,
+            "reportValid": true,
+            "exitObserved": true,
+            "closeObserved": true,
+            "supervisorDeadlineExceeded": false,
+            "status": "PASS"
+          }
+        ]
+      },
+      "durationMs": 1689,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "PASS",
+      "matchesExpectation": true
+    },
+    {
+      "id": "A6-quad-separate-processes",
+      "title": "Four consumers (2 dev + 2 signed) each in its own supervised worker, simultaneous",
+      "round": 3,
+      "expect": "PASS",
+      "observed": {
+        "verdict": "PASS",
+        "workers": [
+          {
+            "executionId": "42bc7b9c-6bcd-40e4-82d4-fd092d747819",
+            "childPid": 63121,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "reportReceived": true,
+            "reportCount": 1,
+            "reportValid": true,
+            "exitObserved": true,
+            "closeObserved": true,
+            "supervisorDeadlineExceeded": false,
+            "status": "PASS"
+          },
+          {
+            "executionId": "2ca67a0f-2c8e-4f3a-a276-571e8eb0bfc4",
+            "childPid": 63122,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "reportReceived": true,
+            "reportCount": 1,
+            "reportValid": true,
+            "exitObserved": true,
+            "closeObserved": true,
+            "supervisorDeadlineExceeded": false,
+            "status": "PASS"
+          },
+          {
+            "executionId": "72c86725-71d7-4454-bcc1-54787d2d836b",
+            "childPid": 63123,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "reportReceived": true,
+            "reportCount": 1,
+            "reportValid": true,
+            "exitObserved": true,
+            "closeObserved": true,
+            "supervisorDeadlineExceeded": false,
+            "status": "PASS"
+          },
+          {
+            "executionId": "69390b55-c156-4e18-adfa-22ff196b7f8f",
+            "childPid": 63124,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "reportReceived": true,
+            "reportCount": 1,
+            "reportValid": true,
+            "exitObserved": true,
+            "closeObserved": true,
+            "supervisorDeadlineExceeded": false,
+            "status": "PASS"
+          }
+        ]
+      },
+      "durationMs": 1819,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "PASS",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

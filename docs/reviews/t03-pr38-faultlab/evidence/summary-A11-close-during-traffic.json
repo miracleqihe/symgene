@@ -1,0 +1,241 @@
+{
+  "id": "A11-close-during-traffic",
+  "title": "app.close() while Chromium is mid-navigation and the optimizer is live",
+  "expect": "CLOSE-CLEAN",
+  "rounds": [
+    {
+      "id": "A11-close-during-traffic",
+      "title": "app.close() while Chromium is mid-navigation and the optimizer is live",
+      "round": 1,
+      "expect": "CLOSE-CLEAN",
+      "observed": {
+        "verdict": "CLOSE-CLEAN",
+        "closeMs": 6025,
+        "closeError": null,
+        "navigationOutcome": "loaded",
+        "requestFailures": [
+          {
+            "path": "/src/storage/importExport.js",
+            "text": "net::ERR_CONNECTION_RESET"
+          },
+          {
+            "path": "/src/dev/t02-storage.js",
+            "text": "net::ERR_CONNECTION_RESET"
+          },
+          {
+            "path": "/@fs<tmpdir>/symgene-t02-vite-9xEYeV/deps/react_jsx-dev-runtime.js",
+            "text": "net::ERR_CONNECTION_REFUSED"
+          },
+          {
+            "path": "/@fs<tmpdir>/symgene-t02-vite-9xEYeV/deps/react-dom_client.js",
+            "text": "net::ERR_CONTENT_LENGTH_MISMATCH"
+          },
+          {
+            "path": "/@fs<tmpdir>/symgene-t02-vite-9xEYeV/deps/rolldown-runtime-B-1-B7_t.js",
+            "text": "net::ERR_CONNECTION_REFUSED"
+          },
+          {
+            "path": "/src/content/adapter.js",
+            "text": "net::ERR_CONNECTION_REFUSED"
+          },
+          {
+            "path": "/src/storage/storage.js",
+            "text": "net::ERR_CONNECTION_REFUSED"
+          },
+          {
+            "path": "/src/storage/operations.js",
+            "text": "net::ERR_CONNECTION_REFUSED"
+          },
+          {
+            "path": "/src/storage/constants.js",
+            "text": "net::ERR_CONNECTION_REFUSED"
+          },
+          {
+            "path": "/src/validation/dataValidation.js",
+            "text": "net::ERR_CONNECTION_REFUSED"
+          },
+          {
+            "path": "/src/dev/t02-consumer.css",
+            "text": "net::ERR_CONNECTION_REFUSED"
+          }
+        ],
+        "httpErrors": [],
+        "cacheRemoved": true,
+        "portClosed": true
+      },
+      "durationMs": 7040,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "CLOSE-CLEAN",
+      "matchesExpectation": true
+    },
+    {
+      "id": "A11-close-during-traffic",
+      "title": "app.close() while Chromium is mid-navigation and the optimizer is live",
+      "round": 2,
+      "expect": "CLOSE-CLEAN",
+      "observed": {
+        "verdict": "CLOSE-CLEAN",
+        "closeMs": 6125,
+        "closeError": null,
+        "navigationOutcome": "loaded",
+        "requestFailures": [],
+        "httpErrors": [],
+        "cacheRemoved": true,
+        "portClosed": true
+      },
+      "durationMs": 6504,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "CLOSE-CLEAN",
+      "matchesExpectation": true
+    },
+    {
+      "id": "A11-close-during-traffic",
+      "title": "app.close() while Chromium is mid-navigation and the optimizer is live",
+      "round": 3,
+      "expect": "CLOSE-CLEAN",
+      "observed": {
+        "verdict": "CLOSE-CLEAN",
+        "closeMs": 6023,
+        "closeError": null,
+        "navigationOutcome": "loaded",
+        "requestFailures": [
+          {
+            "path": "/src/validation/dataValidation.js",
+            "text": "net::ERR_CONNECTION_REFUSED"
+          },
+          {
+            "path": "/src/storage/migrations.js",
+            "text": "net::ERR_CONNECTION_REFUSED"
+          },
+          {
+            "path": "/src/storage/storage.js",
+            "text": "net::ERR_CONNECTION_REFUSED"
+          },
+          {
+            "path": "/src/storage/operations.js",
+            "text": "net::ERR_CONNECTION_REFUSED"
+          },
+          {
+            "path": "/src/storage/constants.js",
+            "text": "net::ERR_CONNECTION_REFUSED"
+          }
+        ],
+        "httpErrors": [],
+        "cacheRemoved": true,
+        "portClosed": true
+      },
+      "durationMs": 6545,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "CLOSE-CLEAN",
+      "matchesExpectation": true
+    },
+    {
+      "id": "A11-close-during-traffic",
+      "title": "app.close() while Chromium is mid-navigation and the optimizer is live",
+      "round": 4,
+      "expect": "CLOSE-CLEAN",
+      "observed": {
+        "verdict": "CLOSE-BOUNDED-FAIL",
+        "closeMs": 15008,
+        "closeError": {
+          "name": "Error",
+          "code": "T02_CONSUMER_SHUTDOWN_TIMEOUT"
+        },
+        "navigationOutcome": "loaded",
+        "requestFailures": [],
+        "httpErrors": [],
+        "cacheRemoved": false,
+        "portClosed": true
+      },
+      "durationMs": 15477,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [
+          "symgene-t02-vite-5cBdrg"
+        ],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "CLOSE-BOUNDED-FAIL",
+      "matchesExpectation": false
+    },
+    {
+      "id": "A11-close-during-traffic",
+      "title": "app.close() while Chromium is mid-navigation and the optimizer is live",
+      "round": 5,
+      "expect": "CLOSE-CLEAN",
+      "observed": {
+        "verdict": "CLOSE-CLEAN",
+        "closeMs": 6141,
+        "closeError": null,
+        "navigationOutcome": "loaded",
+        "requestFailures": [
+          {
+            "path": "/src/storage/storage.js",
+            "text": "net::ERR_CONNECTION_REFUSED"
+          },
+          {
+            "path": "/src/validation/dataValidation.js",
+            "text": "net::ERR_CONNECTION_REFUSED"
+          },
+          {
+            "path": "/src/storage/migrations.js",
+            "text": "net::ERR_CONNECTION_REFUSED"
+          },
+          {
+            "path": "/@fs<tmpdir>/symgene-t02-vite-Oysmzg/deps/react_jsx-dev-runtime.js",
+            "text": "net::ERR_CONNECTION_REFUSED"
+          },
+          {
+            "path": "/src/storage/constants.js",
+            "text": "net::ERR_CONNECTION_REFUSED"
+          },
+          {
+            "path": "/src/content/adapter.js",
+            "text": "net::ERR_CONNECTION_REFUSED"
+          },
+          {
+            "path": "/src/storage/operations.js",
+            "text": "net::ERR_CONNECTION_REFUSED"
+          }
+        ],
+        "httpErrors": [],
+        "cacheRemoved": true,
+        "portClosed": true
+      },
+      "durationMs": 6577,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "CLOSE-CLEAN",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "DIVERGENT",
+  "divergentRounds": [
+    4
+  ]
+}

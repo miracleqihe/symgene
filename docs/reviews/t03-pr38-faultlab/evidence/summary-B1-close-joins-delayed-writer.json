@@ -1,0 +1,75 @@
+{
+  "id": "B1-close-joins-delayed-writer",
+  "title": "close() must join a writer held for 300ms before removing the cache",
+  "expect": "JOINED",
+  "rounds": [
+    {
+      "id": "B1-close-joins-delayed-writer",
+      "title": "close() must join a writer held for 300ms before removing the cache",
+      "round": 1,
+      "expect": "JOINED",
+      "observed": {
+        "verdict": "JOINED",
+        "closeStillPendingWhileWriterBlocked": true,
+        "cacheRemoved": true,
+        "marker": null
+      },
+      "durationMs": 742,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "JOINED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B1-close-joins-delayed-writer",
+      "title": "close() must join a writer held for 300ms before removing the cache",
+      "round": 2,
+      "expect": "JOINED",
+      "observed": {
+        "verdict": "JOINED",
+        "closeStillPendingWhileWriterBlocked": true,
+        "cacheRemoved": true,
+        "marker": null
+      },
+      "durationMs": 647,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "JOINED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B1-close-joins-delayed-writer",
+      "title": "close() must join a writer held for 300ms before removing the cache",
+      "round": 3,
+      "expect": "JOINED",
+      "observed": {
+        "verdict": "JOINED",
+        "closeStillPendingWhileWriterBlocked": true,
+        "cacheRemoved": true,
+        "marker": null
+      },
+      "durationMs": 572,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "JOINED",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

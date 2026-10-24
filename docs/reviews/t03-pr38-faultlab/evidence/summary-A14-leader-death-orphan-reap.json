@@ -1,0 +1,154 @@
+{
+  "id": "A14-leader-death-orphan-reap",
+  "title": "SIGKILL the probe worker at react-mount; Chromium orphans must be reaped by the group kill",
+  "expect": "ORPHANS-REAPED",
+  "rounds": [
+    {
+      "id": "A14-leader-death-orphan-reap",
+      "title": "SIGKILL the probe worker at react-mount; Chromium orphans must be reaped by the group kill",
+      "round": 1,
+      "expect": "ORPHANS-REAPED",
+      "observed": {
+        "verdict": "ORPHANS-REAPED",
+        "leaderExit": {
+          "exitCode": null,
+          "signal": "SIGKILL"
+        },
+        "chromiumAliveAtKillPlus400ms": 0,
+        "chromiumSelfExitedFast": true,
+        "reapedChromiumPids": [],
+        "outputTail": ""
+      },
+      "durationMs": 2432,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [
+          "symgene-t02-vite-kkSN1m"
+        ],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "ORPHANS-REAPED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "A14-leader-death-orphan-reap",
+      "title": "SIGKILL the probe worker at react-mount; Chromium orphans must be reaped by the group kill",
+      "round": 2,
+      "expect": "ORPHANS-REAPED",
+      "observed": {
+        "verdict": "ORPHANS-REAPED",
+        "leaderExit": {
+          "exitCode": null,
+          "signal": "SIGKILL"
+        },
+        "chromiumAliveAtKillPlus400ms": 0,
+        "chromiumSelfExitedFast": true,
+        "reapedChromiumPids": [],
+        "outputTail": ""
+      },
+      "durationMs": 2561,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [
+          "symgene-t02-vite-hq5uEb"
+        ],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "ORPHANS-REAPED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "A14-leader-death-orphan-reap",
+      "title": "SIGKILL the probe worker at react-mount; Chromium orphans must be reaped by the group kill",
+      "round": 3,
+      "expect": "ORPHANS-REAPED",
+      "observed": {
+        "verdict": "ORPHANS-REAPED",
+        "leaderExit": {
+          "exitCode": null,
+          "signal": "SIGKILL"
+        },
+        "chromiumAliveAtKillPlus400ms": 0,
+        "chromiumSelfExitedFast": true,
+        "reapedChromiumPids": [],
+        "outputTail": ""
+      },
+      "durationMs": 2328,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [
+          "symgene-t02-vite-cBJbh7"
+        ],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "ORPHANS-REAPED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "A14-leader-death-orphan-reap",
+      "title": "SIGKILL the probe worker at react-mount; Chromium orphans must be reaped by the group kill",
+      "round": 4,
+      "expect": "ORPHANS-REAPED",
+      "observed": {
+        "verdict": "ORPHANS-REAPED",
+        "leaderExit": {
+          "exitCode": null,
+          "signal": "SIGKILL"
+        },
+        "chromiumAliveAtKillPlus400ms": 0,
+        "chromiumSelfExitedFast": true,
+        "reapedChromiumPids": [],
+        "outputTail": ""
+      },
+      "durationMs": 2321,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [
+          "symgene-t02-vite-KKB5e6"
+        ],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "ORPHANS-REAPED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "A14-leader-death-orphan-reap",
+      "title": "SIGKILL the probe worker at react-mount; Chromium orphans must be reaped by the group kill",
+      "round": 5,
+      "expect": "ORPHANS-REAPED",
+      "observed": {
+        "verdict": "ORPHANS-REAPED",
+        "leaderExit": {
+          "exitCode": null,
+          "signal": "SIGKILL"
+        },
+        "chromiumAliveAtKillPlus400ms": 0,
+        "chromiumSelfExitedFast": true,
+        "reapedChromiumPids": [],
+        "outputTail": ""
+      },
+      "durationMs": 2349,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [
+          "symgene-t02-vite-RIWdMK"
+        ],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "ORPHANS-REAPED",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

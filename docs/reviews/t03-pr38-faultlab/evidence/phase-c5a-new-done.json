@@ -1,0 +1,26 @@
+{
+  "phase": "c5a-new",
+  "result": {
+    "impl": "new",
+    "rejected": {
+      "name": "Error",
+      "code": "ERR_MODULE_NOT_FOUND",
+      "message": "Cannot find module '<tmpdir>/t02-faultlab-diff-producer-BBolKH/missing-playwrigh"
+    },
+    "leakedListeners": 0,
+    "listenersAfter": [],
+    "closesRecorded": [
+      {
+        "name": "gateway",
+        "port": 52834,
+        "listening": false
+      },
+      {
+        "name": "checkpoint",
+        "port": 52833,
+        "listening": false
+      }
+    ],
+    "staleReportLeft": false
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "id": "B6e-report-wrong-pid",
+  "title": "Foreign pid must fail",
+  "expect": "FAIL-DETECTED",
+  "rounds": [
+    {
+      "id": "B6e-report-wrong-pid",
+      "title": "Foreign pid must fail",
+      "round": 1,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "2b35f5f5-3274-4ef8-bdf2-e59bbafc13a1",
+          "childPid": 71368,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": false,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_REPORT_INVALID"
+          }
+        }
+      },
+      "durationMs": 128,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B6e-report-wrong-pid",
+      "title": "Foreign pid must fail",
+      "round": 2,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "1f85bca2-80a6-44e5-b6ba-179653402027",
+          "childPid": 71402,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": false,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_REPORT_INVALID"
+          }
+        }
+      },
+      "durationMs": 128,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B6e-report-wrong-pid",
+      "title": "Foreign pid must fail",
+      "round": 3,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "62011393-4054-4704-ab77-f36936bf2e60",
+          "childPid": 71435,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": false,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_REPORT_INVALID"
+          }
+        }
+      },
+      "durationMs": 128,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}
