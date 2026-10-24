@@ -37,7 +37,7 @@
     "enforced": "every published file was re-scanned after sanitization; any surviving hit aborts the package build"
   },
   "totals": {
-    "files": 225,
+    "files": 230,
     "experimentRounds": 121,
     "workPackages": {
       "A": 46,
@@ -7492,6 +7492,51 @@
       "kind": "deliverable",
       "originalSha256": "3aa857b6693abc4b1badacde7819cce01913901fd96166cf9baec346e5448135",
       "publicSha256": "3aa857b6693abc4b1badacde7819cce01913901fd96166cf9baec346e5448135",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true
+    },
+    {
+      "file": "B9-RETRY-TRACE.md",
+      "kind": "deliverable",
+      "originalSha256": "77daa40c040934a1ab7c227b3d5082413c3b5b1bf6cce6f3732259a626b68c6b",
+      "publicSha256": "77daa40c040934a1ab7c227b3d5082413c3b5b1bf6cce6f3732259a626b68c6b",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true
+    },
+    {
+      "file": "CODE-FINDINGS-R1.1.md",
+      "kind": "deliverable",
+      "originalSha256": "51aa2181e3dbbabb2564affac206cb15af86cbd237c1ac3b924381f93119d428",
+      "publicSha256": "51aa2181e3dbbabb2564affac206cb15af86cbd237c1ac3b924381f93119d428",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true
+    },
+    {
+      "file": "EVIDENCE-INTEGRITY-REPORT.md",
+      "kind": "deliverable",
+      "originalSha256": "592639d6c1f17e822cb0c47cfb2ea905125ab3fb14f5bd5a1519b6f6ae53f8ea",
+      "publicSha256": "592639d6c1f17e822cb0c47cfb2ea905125ab3fb14f5bd5a1519b6f6ae53f8ea",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true
+    },
+    {
+      "file": "repro/b9-delete-failure-drill.mjs",
+      "kind": "deliverable",
+      "originalSha256": "995d1113dc628fb42e857d201f8e62025b98e0546131f931279009e6dad64cab",
+      "publicSha256": "995d1113dc628fb42e857d201f8e62025b98e0546131f931279009e6dad64cab",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true
+    },
+    {
+      "file": "repro/verify-evidence-integrity.mjs",
+      "kind": "deliverable",
+      "originalSha256": "cbef3538477bc335015a86755d2647e3a87f5b8990e1f9ea9119861145f8ceea",
+      "publicSha256": "cbef3538477bc335015a86755d2647e3a87f5b8990e1f9ea9119861145f8ceea",
       "redacted": false,
       "redactionRules": [],
       "fullyPublic": true
