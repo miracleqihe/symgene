@@ -2,38 +2,34 @@
 # NEG-09 — publishing through the wrong Pages environment/ref must fail AT
 # THE ENVIRONMENT GATE.
 #
-# R2 corrections:
-#   1. dispatch parameters fixed: deploy-pages.yml declares no inputs, so the
-#      dispatch sends ONLY ref (the earlier bogus client_payload argument is
-#      removed — it could dissociate the request from the run);
-#   2. the run is associated by head_sha AND event=workflow_dispatch;
-#   3. the failure must be PROVEN to come from the github-pages ENVIRONMENT
-#      protection rule: the failed job's log must contain the environment
-#      rejection text; a run that fails elsewhere or with no matching log is
-#      BLOCKED, not a pass;
-#   4. NO Deployment may exist for that sha.
-#
-# WARNING: lab-only (lib.sh refuses non *-sec-lab repos). The lab repo must
-# have the github-pages environment with a custom branch policy allowing only
-# 'main' (mirroring production). Real Pages need not be enabled.
+# R2 fixes retained: dispatch with ref only (no bogus client_payload), run
+# associated by head_sha AND event, PASS requires run failure + failed job
+# log containing the environment rejection + zero deployments for the sha.
+# R3 fix (P1-16): the R2 script had a fallback to the LOCAL default git
+# credentials when the authenticated push failed — removed. A failed
+# authenticated push is a BLOCKED, never a silent default-credential push
+# (which would misattribute the actor and could fake the result).
 set -euo pipefail
 . "$(dirname "$0")/lib.sh"
 
 metadata "NEG-09" "wrong Pages environment / ref" "PENDING / LIVE-TEST-REPO (lab only)"
 require_test_repo && LIVE_MODE=1 || LIVE_MODE=0
+require_identity A
 
 BRANCH="neg09-$RANDOM"
+plan "push via authed_url(GH_A) ONLY — no local-credential fallback; failure => BLOCKED"
 plan "dispatch deploy-pages.yml with ref=${BRANCH} (204 = queued, NOT a verdict)"
 plan "locate run by event=workflow_dispatch AND head_sha=<branch head>"
 plan "require: run conclusion=failure"
 plan "require: failed job log contains 'environment protection rules' / 'not allowed to deploy' (source proof)"
 plan "require: zero deployments for that sha and environment github-pages"
-plan "production read-only control: prod env policy = main-only (see inventory)"
 
 if [[ "$LIVE_MODE" == "1" ]]; then
   LAB_DIR="${LAB_DIR:?LIVE=1 requires LAB_DIR pointing at the lab clone}"
-  git_as A "$LAB_DIR" push "$(authed_url A "$TEST_REPO")" "HEAD:refs/heads/${BRANCH}" 2>/dev/null || \
-    git -C "$LAB_DIR" push origin "HEAD:refs/heads/${BRANCH}"
+  if ! git_as A "$LAB_DIR" push "$(authed_url A "$TEST_REPO")" "HEAD:refs/heads/${BRANCH}"; then
+    echo "VERDICT: BLOCKED — authenticated push as GH_A failed; refusing to fall back to local credentials" >&2
+    exit $EXIT_BLOCKED_AUTH
+  fi
   HEAD_SHA=$(git -C "$LAB_DIR" rev-parse HEAD)
 
   gh api -X POST "repos/${TEST_REPO}/actions/workflows/deploy-pages.yml/dispatches" -f ref="$BRANCH" >/dev/null

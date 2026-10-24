@@ -129,3 +129,37 @@ docs.github.com "Status checks":*"A job that is skipped will report its status a
 - `node --test .github/tests/*.test.mjs`(node v22.23.4):**63 tests / 63 pass / 0 fail**(R1 末 42 → R2 63,新增 21 项对抗/对照断言;零断言删除或放宽)。
 - 兼容:PR #37(`a799746`)+ PR #39(`a7ca006`)双实测 PASS,含保留属性断言(身份/工程终判/生产授权/digest 绑定/run-attempt 绑定;#39 更名与 legacy 完整性策略不被旧阻断覆盖)。
 - `git diff --check` clean;`npm ci && npm run verify` 全绿;12 个平台脚本模拟模式通过;`git apply --check` 补丁链(S0→S1→S1R→S1R2)与合并版 S1-FINAL 全通过。
+
+
+---
+
+# R3 独立 Review 整改记录(2026-10-24,commit fc17a9d 起)
+
+## 复现结论(P1-10..P1-17、P2-06)
+
+9 项新断言:**7 项确认为真实缺陷**(先红后绿),**2 项为对照确认**;逐项:
+
+| Finding | 处置 | 证据 |
+|---|---|---|
+| P1-10 Branch policy job 条件绕过(`&& false`) | 确认:R2 规则以子串包含判断,`if: github.base_ref == 'main' && false` 恒假但通过 → skipped 满足必需检查 → 门禁整体旁路 | `P1-10: job if "…&& false"…` 红;对照 `if: false` 原已拒绝(绿) | 
+| P1-11 Governance job 条件跳过 | 确认:R2 未覆盖 governance job 的 job 级 if | `P1-11` 两测红(if:false 与表达式形态) |
+| P1-12 表达式 continue-on-error | 确认:R2 只匹配字面 true | `P1-12` 两测红(`${{ }}` 与数字 1) |
+| P1-13 head_ref 与括号索引漏检 | 确认:`github.head_ref` 与 `github['event']['pull_request']['title']` 均逃逸 R2 扫描 | `P1-13` 两测红;对照:括号形态的 number 仍放行(绿) |
+| P1-14 NEG-01 提前合并 | 确认:R2 正向控制在第 (2) 步真实合并,第 (3) 步不可达且污染 lab main | 脚本重写:差分改用 mergeStateStatus(MERGEABLE/BLOCKED 只读断言),全程零合并 |
+| P1-15 NEG-03 正向对照 = 作者自批准 | 确认:R2 由 B(作者)批准 → 403 自批准,对照永远无法成立 | 脚本重写:引入第三身份 C(非作者非最后推送者)执行对照;A/B/C 三重 assert_identity |
+| P1-16 NEG-09 默认凭据回退 | 确认:R2 脚本认证 push 失败时回退 `git push origin`(本地默认凭据) | 移除回退;认证 push 失败 = BLOCKED(70) |
+| P1-17 NEG-05 三类实验未实现 | 确认:R2 仅 case A 有 live 实现 | 三类实验全部实现:case A(job if:false → skipped → 预期放行)、case B(path 过滤 → 无 run → 预期阻塞)、case C(API 造 neutral → 预期放行);逐项 MEASURED 记录 |
+| P2-06 Runbook 仍应用过期 S1 补丁 | 确认:S1-1 命令只 apply S0+S1 原始补丁 | 改为全链 S0→S1→S1R→S1R2→S1R3(或 S1-FINAL 单补丁),计数 72/72 |
+
+## R3 审计器变化
+
+- Branch policy job 级 if:必须与 v1 门控条件**全等**(空白归一化后 == `github.event_name=='pull_request'&&github.base_ref=='main'`),子串包含规则废除。
+- Governance job:存在 job 级 if 即 GOVERNANCE_JOB_CONDITIONAL(skipped 满足必需检查 → 必须无条件)。
+- continue-on-error:仅字面 `false` 放行;表达式/数字/true 一律 FAILURE_SWALLOWED。
+- 不可信输入:表达式归一化(括号索引 → 点路径)后匹配;`github.head_ref` 在 pull_request_target run/script/with 位置一律 PR_TARGET_UNTRUSTED_INPUT;可信集不变(number、base.*)。
+
+## 全量复测(R3 收口时点)
+
+- `node --test .github/tests/*.test.mjs`:**72 tests / 72 pass / 0 fail**(63 → 72,+9:7 攻击 + 2 对照;零断言删除或放宽)。
+- 兼容:#37 `a799746` + #39 `a7ca006` 双实测 **PASS**(R3 新规则不破坏其文件;保留属性断言全过)。
+- 12 个平台脚本模拟模式通过;`git apply --check` 补丁链(S0→S1→S1R→S1R2→S1R3)与 S1-FINAL 全通过。

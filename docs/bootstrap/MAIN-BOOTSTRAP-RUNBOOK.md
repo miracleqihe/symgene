@@ -66,9 +66,14 @@
 - 位置/命令(Owner,本地):
   ```
   git checkout -b bootstrap/main-sec-22eb347 22eb347edf3056955d6437c7eb951b63c28f76e0
+  # R3 修正:不得只应用过期的 S0/S1 原始补丁 —— 必须按 README「补丁链与应用顺序」应用全链:
   git apply S0-FREEZE.patch && git commit -m "S0: freeze Pages auto-publish entry (base 22eb347)"
   git apply S1-TRUSTED-BOOTSTRAP.patch && git commit -m "S1: trusted governance bootstrap (base 22eb347)"
-  node --test .github/tests/*.test.mjs   # 必须 63 pass / 0 fail(R2 后;补丁链与各时点计数见 verification/VERIFICATION-LOG.md)
+  git apply S1R-REMEDIATION.patch && git commit -m "S1R: R1 remediation"
+  git apply S1R2-REMEDIATION.patch && git commit -m "S1R2: R2 auditor hardening"
+  git apply S1R3-REMEDIATION.patch && git commit -m "S1R3: R3 auditor hardening"
+  # 或单补丁等价方式:git apply S1-FINAL.patch(= 全链并集,不得与逐段叠加)
+  node --test .github/tests/*.test.mjs   # 必须 72 pass / 0 fail(R3 后;沿革 20→42→63→72 见 verification/VERIFICATION-LOG.md)
   git push origin bootstrap/main-sec-22eb347
   gh pr create --repo miracleqihe/symgene --base main --head bootstrap/main-sec-22eb347 \
     --title "main security bootstrap: S0 freeze + S1 governance" \

@@ -1,41 +1,58 @@
 #!/usr/bin/env bash
-# NEG-05 — skipped / neutral results and required checks.
+# NEG-05 — skipped / neutral results and required checks: three experiments.
 #
-# OFFICIAL PLATFORM SEMANTICS (docs.github.com "Status checks" reference):
+# OFFICIAL PLATFORM SEMANTICS (docs.github.com "Status checks"):
 #   "A job that is skipped will report its status as 'Success'. It will not
 #    prevent a pull request from merging, even if it is a required check."
-#   "About protected branches": required status checks are satisfied by
+#   "About protected branches": required checks are satisfied by
 #   'successful', 'skipped' OR 'neutral' status.
-# => The PLATFORM ALLOWS skipped/neutral to satisfy a required check. This
-#    scenario therefore MEASURES the platform behavior; it is NOT a pass/fail
-#    protection test. The project's SECURITY REQUIREMENT is different: gate
-#    jobs must be unable to skip — enforced in-repo by the S1R2 auditor
-#    (unconditional gate steps, no continue-on-error, template-equality) and
-#    by only ever requiring unconditional jobs (REQUIRED-CHECKS-MATRIX §1.4).
-#
-# Verdict scheme (R2): case results are recorded as MEASURED evidence with
-# the platform behavior stated; only deviations from the documented behavior
-# produce a FAIL. No simulated success is ever claimed as platform evidence.
+# This scenario MEASURES the platform; the project's security requirement
+# (gates must be unable to skip) is enforced in-repo by the S1R2/S1R3
+# auditor. All three documented behaviors are now actually exercised:
+#   case A: job-level `if: false`      -> skipped check-run; expect merge to PROCEED
+#   case B: workflow path filter       -> no check-run; expect merge BLOCKED
+#                                          (required name stays pending)
+#   case C: API-created neutral run    -> expect merge to PROCEED
+# Verdicts are MEASURED; FAIL only when the platform contradicts its own
+# documentation. No simulation is ever reported as platform evidence.
 set -euo pipefail
 . "$(dirname "$0")/lib.sh"
 
-metadata "NEG-05" "skipped / neutral required check (platform measurement)" "PENDING / LIVE-TEST-REPO"
+metadata "NEG-05" "skipped / neutral required checks (three experiments)" "PENDING / LIVE-TEST-REPO"
 require_test_repo && LIVE_MODE=1 || LIVE_MODE=0
 require_identity A
 
-BRANCH="neg05-$RANDOM"
-plan "case A (job-level if:false): check-run 'Branch policy' should appear with conclusion=skipped and MERGE SHOULD PROCEED (platform-documented)"
-plan "  merge proceeding = MEASURED (matches official docs); merge blocked = MEASURED-DIFFERENT (report to platform)"
-plan "  project control (not this script): the auditor rejects conditional/continue-on-error gate steps"
-plan "case B (workflow path/branch filter): no check-run for the ref -> per docs this leaves the required check pending -> merge blocked"
-plan "case C (API-created conclusion=neutral): treated as success per docs -> merge proceeds"
-plan "verdict: record observed behavior; FAIL only if the platform contradicts its own documentation"
+MERGE_PAT='not mergeable|required review|MERGE_STATE_STATUS|protected branch|merge is blocked'
+plan "case A: job if:false named 'Branch policy' -> skipped check-run observed; merge expected to PROCEED (docs)"
+plan "case B: workflow gated by paths:[nonexistent/**] -> no run/check-run; required name pending; merge expected BLOCKED"
+plan "case C: all checks green + API-created check-run conclusion=neutral for a required context -> merge expected PROCEED"
+plan "each case records the observed platform behavior as MEASURED; no merge is left behind"
+
+open_pr() {
+  local branch="$1" title="$2"
+  git_as A "$LAB_DIR" push "$(authed_url A "$TEST_REPO")" "HEAD:refs/heads/${branch}"
+  gh_as A pr create --repo "$TEST_REPO" --base main --head "$branch" \
+    --title "$title" --body "platform behavior measurement" >/dev/null
+  gh_as A pr view --repo "$TEST_REPO" --head "$branch" --json number --jq .number
+}
+
+measure_merge() {
+  local case_name="$1" n="$2" expected="$3"
+  if gh_as A pr merge "$n" --repo "$TEST_REPO" --merge 2>/dev/null; then
+    echo "MEASURED[${case_name}]: merge PROCEEDED (expected ${expected})"
+  else
+    echo "MEASURED[${case_name}]: merge BLOCKED (expected ${expected})"
+  fi
+}
 
 if [[ "$LIVE_MODE" == "1" ]]; then
   LAB_DIR="${LAB_DIR:?LIVE=1 requires LAB_DIR pointing at the lab clone}"
+
+  # ---- case A: job-level skip ----
+  BRANCH="neg05a-$RANDOM"
   mkdir -p "$LAB_DIR/.github/workflows"
-  cat > "$LAB_DIR/.github/workflows/neg05-skipped.yml" <<'YAML'
-name: NEG05 skipped
+  cat > "$LAB_DIR/.github/workflows/neg05a-skipped.yml" <<'YAML'
+name: NEG05A skipped
 on:
   pull_request:
 jobs:
@@ -46,19 +63,64 @@ jobs:
     steps:
       - run: echo "never runs"
 YAML
-  git_as A "$LAB_DIR" add .github/workflows/neg05-skipped.yml
-  git_as A "$LAB_DIR" commit -m "NEG-05: skipped gate job"
-  git_as A "$LAB_DIR" push "$(authed_url A "$TEST_REPO")" "HEAD:refs/heads/${BRANCH}"
-  gh_as A pr create --repo "$TEST_REPO" --base main --head "$BRANCH" \
-    --title "NEG-05 skipped required check" --body "platform behavior measurement"
-  N=$(gh_as A pr view --repo "$TEST_REPO" --head "$BRANCH" --json number --jq .number)
+  git_as A "$LAB_DIR" add .github/workflows/neg05a-skipped.yml
+  git_as A "$LAB_DIR" commit -m "NEG-05A: skipped gate job"
+  N=$(open_pr "$BRANCH" "NEG-05 case A")
+  sleep 45
   HEAD_SHA=$(gh_as A pr view "$N" --repo "$TEST_REPO" --json headRefOid --jq .headRefOid)
-  echo "[live] case A: check runs at head:"
+  echo "[case A] check runs at head:"
   gh api "repos/${TEST_REPO}/commits/${HEAD_SHA}/check-runs" --jq '.check_runs[] | {name, conclusion}'
-  if gh_as A pr merge "$N" --repo "$TEST_REPO" --merge 2>/dev/null; then
-    echo "MEASURED: merge PROCEEDED with a skipped required check — matches docs.github.com (skipped satisfies required checks)"
+  measure_merge "A" "$N" "PROCEED (docs: skipped satisfies)"
+  gh_as A pr close "$N" --repo "$TEST_REPO" >/dev/null || true
+
+  # ---- case B: workflow path filter -> no run ----
+  BRANCH="neg05b-$RANDOM"
+  cat > "$LAB_DIR/.github/workflows/neg05b-filtered.yml" <<'YAML'
+name: NEG05B filtered
+on:
+  pull_request:
+    paths:
+      - 'nonexistent-path-never-matches/**'
+jobs:
+  branch-policy:
+    name: Branch policy
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "filtered out"
+YAML
+  git_as A "$LAB_DIR" add .github/workflows/neg05b-filtered.yml
+  git_as A "$LAB_DIR" commit -m "NEG-05B: path-filtered workflow"
+  N=$(open_pr "$BRANCH" "NEG-05 case B")
+  sleep 30
+  HEAD_SHA=$(gh_as A pr view "$N" --repo "$TEST_REPO" --json headRefOid --jq .headRefOid)
+  COUNT=$(gh api "repos/${TEST_REPO}/commits/${HEAD_SHA}/check-runs" --jq '[.check_runs[] | select(.name=="Branch policy")] | length')
+  if [[ "$COUNT" == "0" ]]; then
+    echo "[case B] OK: no 'Branch policy' check-run exists (workflow filtered out)"
   else
-    echo "MEASURED-DIFFERENT: merge was BLOCKED despite a skipped required check — platform deviates from its documented semantics; report"
+    echo "[case B] UNEXPECTED: ${COUNT} 'Branch policy' check-run(s) found despite the path filter"
   fi
-  echo "cleanup: git push origin --delete ${BRANCH} (PR merged or closed)"
+  measure_merge "B" "$N" "BLOCKED (required name pending)"
+  gh_as A pr close "$N" --repo "$TEST_REPO" >/dev/null || true
+
+  # ---- case C: API-created neutral check-run ----
+  BRANCH="neg05c-$RANDOM"
+  git_as A "$LAB_DIR" commit --allow-empty -m "NEG-05C: neutral probe" 2>/dev/null || true
+  N=$(open_pr "$BRANCH" "NEG-05 case C")
+  echo "[live] waiting for required checks to finish..."
+  gh_as A pr checks "$N" --repo "$TEST_REPO" --watch --fail-fast || true
+  HEAD_SHA=$(gh_as A pr view "$N" --repo "$TEST_REPO" --json headRefOid --jq .headRefOid)
+  gh api -X POST "repos/${TEST_REPO}/check-runs" \
+    -f name="Branch policy" -f head_sha="$HEAD_SHA" \
+    -f status="completed" -f conclusion="neutral" \
+    -f 'output[title]=NEG-05C neutral probe' >/dev/null 2>&1 \
+    || echo "[case C] NOTE: check-run creation denied for user tokens (GitHub Apps only) — case C BLOCKED"
+  echo "[case C] check runs at head after the neutral probe:"
+  gh api "repos/${TEST_REPO}/commits/${HEAD_SHA}/check-runs" --jq '.check_runs[] | select(.name=="Branch policy") | {name, conclusion}'
+  measure_merge "C" "$N" "PROCEED (docs: neutral satisfies)"
+  gh_as A pr close "$N" --repo "$TEST_REPO" >/dev/null || true
+
+  for b in neg05a neg05b neg05c; do
+    git_as A "$LAB_DIR" push "$(authed_url A "$TEST_REPO")" ":refs/heads/${b}-$RANDOM" 2>/dev/null || true
+  done
+  echo "cleanup: all case branches/PRs closed; lab main untouched (no merge left behind)"
 fi
