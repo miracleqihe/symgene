@@ -4,7 +4,7 @@
 
 ## 覆盖
 
-- 工作包 A 14 组 + 工作包 B 19 组 = 33 组(103 轮),另加工作包 C 差分演练 3 个变体(9 轮),逐轮证据共 112 份;汇总/日志/回归等支撑材料一并发布。
+- 工作包 A 14 组 + 工作包 B 19 组 = 33 组(103 轮),另加工作包 C 差分演练 3 个变体(9 轮),逐轮证据共 121 份;汇总/日志/回归等支撑材料一并发布。
 - 全部逐轮材料完整公开(脱敏仅限本地路径/用户名);没有任何轮次只保留 PASS。
 - 保留在本机、未公开的材料:私有 producer 检出本身(代码/密钥/业务数据)、实验 harness 脚本(含本地绝对路径)、ENVIRONMENT.json 中标注 WITHHELD 的字段。这些在 JSON 中标 `PRIVATE_EVIDENCE_REQUIRED`。
 
@@ -35,13 +35,22 @@
 - **E. 旧版 3 端口泄漏 vs 新版 0 泄漏(lsof LISTEN 差值 + loopback close 记录)**
   - `evidence/C5a-cleanup-old.json`
   - `evidence/C5a-cleanup-new.json`
-- **F. A11 触及 15s 期限轮的可观测序列与最终失败状态(手动演练,无逐事件埋点;粒度=开始/结束时间戳、close 耗时 15008ms、错误码 T02_CONSUMER_SHUTDOWN_TIMEOUT、导航结果 loaded、失败/HTTP 计数、缓存保留、端口已关、无孤儿进程)**
+- **F. A11 触及 15s 期限轮的可观测序列与最终失败状态(手动演练,无逐事件埋点;粒度=开始/结束时间戳、close 耗时 15008ms、错误码 T02_CONSUMER_SHUTDOWN_TIMEOUT、导航结果 loaded、失败/HTTP 计数、缓存保留、端口已关、无孤儿进程);R1 统计对账:11 次尝试 = 3 harness 缺陷 + 8 有效,期限触及 2/8(有效)/1/5(正式),全部高负载,已撤回概率表述**
+  - `evidence/A11-ATTEMPTS.json (R1 对账表)`
+  - `A11-RECONCILIATION.md`
   - `evidence/A11-close-during-traffic-r4.json (CLOSE-BOUNDED-FAIL)`
   - `evidence/A11-close-during-traffic-r1.json (对照:CLEAN 轮)`
-  - `evidence/summary-A11-close-during-traffic.json (全部轮次判定)`
-- **G. 强杀后 20 个临时目录的归属/清理/契约边界**
+  - `evidence/summary-A11-close-during-traffic.json (正式轮判定)`
+- **G. 强杀后 20 个临时目录的归属/清理/契约边界(R1 对账:12 具名 + 8 匿名,匿名条目标 CLEANED-IDENTITY-UNVERIFIED;OS 快照能力边界已写明)**
+  - `evidence/TEMP-DIR-LEDGER.json (R1 逐目录对账)`
+  - `TEMP-DIR-CLEANUP-PROOF.md`
   - `evidence/A9-midstart-shutdown-r1.json 等(leakCheck.newTempCaches 逐轮记录)`
   - `RESOURCE-LIFECYCLE.md 第 7 节`
+- **I. B9 删除失败路径定向补测(R1):原 B9 实为 drain 阻碍→期限;新证据覆盖不可重试删除失败、瞬时重试救回(重试机制证明)、永久重试耗尽**
+  - `evidence/B9R1-deletion-failure-isolated-r1.json (EACCES 立即拒绝,deps 已删除后失败)`
+  - `evidence/B9R2a-transient-deletion-failure-recovered-r1.json (closeMs 115ms > 80ms 旗标清除,缓存完全删除)`
+  - `evidence/B9R2b-permanent-deletion-failure-eperm-r1.json (EPERM 耗尽,缓存保留)`
+  - `evidence/B9-cache-deletion-failure-r1.json (原 B9:drain 阻碍→期限)`
 - **H. 最终回归:单测 8/8、真实 Chromium 504 回归、CI profile 3 对 6 探针**
   - `evidence/regression-unit-content-concurrency.log`
   - `evidence/regression-browser-504-regression.log`
@@ -86,6 +95,9 @@
 | B7b-fixture-close-rejects | new | r1:FAIL-DETECTED✓ r2:FAIL-DETECTED✓ r3:FAIL-DETECTED✓ |
 | B8-shutdown-timeout | new | r1:DEADLINE-ENFORCED✓ r2:DEADLINE-ENFORCED✓ r3:DEADLINE-ENFORCED✓ |
 | B9-cache-deletion-failure | new | r1:FAIL-DETECTED✓ r2:FAIL-DETECTED✓ r3:FAIL-DETECTED✓ |
+| B9R1-deletion-failure-isolated | new | r1:DELETE-FAIL-DETECTED✓ r2:DELETE-FAIL-DETECTED✓ r3:DELETE-FAIL-DETECTED✓ |
+| B9R2a-transient-deletion-failure-recovered | new | r1:RETRY-RECOVERED✓ r2:RETRY-RECOVERED✓ r3:RETRY-RECOVERED✓ |
+| B9R2b-permanent-deletion-failure-eperm | new | r1:RETRY-EXHAUSTED-FAIL✓ r2:RETRY-EXHAUSTED-FAIL✓ r3:RETRY-EXHAUSTED-FAIL✓ |
 | new | new | r1:NOT-REPRODUCED✗ r2:NOT-REPRODUCED✗ r3:NOT-REPRODUCED✗ |
 | new-shared | new | r1:NOT-REPRODUCED✗ r2:NOT-REPRODUCED✗ r3:NOT-REPRODUCED✗ |
 | old | old | r1:NOT-REPRODUCED✗ r2:REPRODUCED✗ r3:REPRODUCED✗ |

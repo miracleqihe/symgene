@@ -11,11 +11,11 @@
     "enforced": "every published file was re-scanned after sanitization; any surviving hit aborts the package build"
   },
   "totals": {
-    "files": 181,
-    "experimentRounds": 112,
+    "files": 198,
+    "experimentRounds": 121,
     "workPackages": {
       "A": 46,
-      "B": 57,
+      "B": 66,
       "C": 9
     }
   },
@@ -298,6 +298,20 @@
         "verdict": "RESTART-PASS",
         "matchesExpectation": true,
         "leakCheck": "no-orphan-chromium"
+      }
+    },
+    {
+      "file": "evidence/A11-ATTEMPTS.json",
+      "originalSha256": "55f3b955371214a82efed5b4af961697b953b13f0574c656761ba8536fdcfcb8",
+      "publicSha256": "55f3b955371214a82efed5b4af961697b953b13f0574c656761ba8536fdcfcb8",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "r1-reconciliation-ledger",
+      "implementation": "new+old",
+      "sourceSha256": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89",
+        "old": "6a3eea2f679fa8979c66edcba2724675ee74aa93"
       }
     },
     {
@@ -4725,6 +4739,390 @@
       }
     },
     {
+      "file": "evidence/B9R1-deletion-failure-isolated-r1.json",
+      "originalSha256": "53520871ba85145834f34a34873df7e252715a8bb332f1b3916c4d623a6ae1c2",
+      "publicSha256": "a646d5ba9f2bbd41362b3e7ce4c50a40c125e83bcba7c7c8e6357918b06a3a4d",
+      "redacted": true,
+      "redactionRules": [
+        "personal-home-path",
+        "username",
+        "per-user-tmpdir"
+      ],
+      "fullyPublic": true,
+      "kind": "experiment-round",
+      "workPackage": "B",
+      "implementation": "new",
+      "sourceSha256": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      },
+      "experiment": "B9R1-deletion-failure-isolated",
+      "experimentTitle": "Owned-cache rm() fails via a locked subdir while the optimizer drain completes: close must reject with the deletion error (distinct from the shutdown deadline), endpoint closed, cache retained",
+      "round": 1,
+      "config": {
+        "expect": "DELETE-FAIL-DETECTED"
+      },
+      "startedAt": "2026-10-24T18:21:24.979Z",
+      "finishedAt": "2026-10-24T18:21:42.438Z",
+      "durationMs": 17454,
+      "outcome": {
+        "verdict": "DELETE-FAIL-DETECTED",
+        "matchesExpectation": true,
+        "leakCheck": "no-orphan-chromium",
+        "closeError": {
+          "name": "Error",
+          "code": "EACCES",
+          "message": "EACCES: permission denied, unlink '<tmpdir>/symgene-t02-vite-vqgD0Z/faultlab-locked/x'",
+          "cleanupIncomplete": false
+        },
+        "closeMs": 10,
+        "cacheRetained": true
+      }
+    },
+    {
+      "file": "evidence/B9R1-deletion-failure-isolated-r2.json",
+      "originalSha256": "0a9ed20bcb83b83a52975aa1f10000c3b9afd253e59cba267c7184965efedc45",
+      "publicSha256": "9dc49ec7b9e5fb0e0a2448c139681b749bc69e5105b444fcc774c5a0bd7041fb",
+      "redacted": true,
+      "redactionRules": [
+        "personal-home-path",
+        "username",
+        "per-user-tmpdir"
+      ],
+      "fullyPublic": true,
+      "kind": "experiment-round",
+      "workPackage": "B",
+      "implementation": "new",
+      "sourceSha256": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      },
+      "experiment": "B9R1-deletion-failure-isolated",
+      "experimentTitle": "Owned-cache rm() fails via a locked subdir while the optimizer drain completes: close must reject with the deletion error (distinct from the shutdown deadline), endpoint closed, cache retained",
+      "round": 2,
+      "config": {
+        "expect": "DELETE-FAIL-DETECTED"
+      },
+      "startedAt": "2026-10-24T18:21:42.494Z",
+      "finishedAt": "2026-10-24T18:21:59.278Z",
+      "durationMs": 16785,
+      "outcome": {
+        "verdict": "DELETE-FAIL-DETECTED",
+        "matchesExpectation": true,
+        "leakCheck": "no-orphan-chromium",
+        "closeError": {
+          "name": "Error",
+          "code": "EACCES",
+          "message": "EACCES: permission denied, unlink '<tmpdir>/symgene-t02-vite-4rCXPR/faultlab-locked/x'",
+          "cleanupIncomplete": false
+        },
+        "closeMs": 1,
+        "cacheRetained": true
+      }
+    },
+    {
+      "file": "evidence/B9R1-deletion-failure-isolated-r3.json",
+      "originalSha256": "f8ffaca1467279ada1ebb1f73ad3b41c9b615b8fe16363b4989d008164c077b3",
+      "publicSha256": "d76af08d745a93d3bc7397ec42bce7bd559ffce7da0b0d1309ea3abd8dcb1a59",
+      "redacted": true,
+      "redactionRules": [
+        "personal-home-path",
+        "username",
+        "per-user-tmpdir"
+      ],
+      "fullyPublic": true,
+      "kind": "experiment-round",
+      "workPackage": "B",
+      "implementation": "new",
+      "sourceSha256": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      },
+      "experiment": "B9R1-deletion-failure-isolated",
+      "experimentTitle": "Owned-cache rm() fails via a locked subdir while the optimizer drain completes: close must reject with the deletion error (distinct from the shutdown deadline), endpoint closed, cache retained",
+      "round": 3,
+      "config": {
+        "expect": "DELETE-FAIL-DETECTED"
+      },
+      "startedAt": "2026-10-24T18:21:59.331Z",
+      "finishedAt": "2026-10-24T18:22:16.056Z",
+      "durationMs": 16726,
+      "outcome": {
+        "verdict": "DELETE-FAIL-DETECTED",
+        "matchesExpectation": true,
+        "leakCheck": "no-orphan-chromium",
+        "closeError": {
+          "name": "Error",
+          "code": "EACCES",
+          "message": "EACCES: permission denied, unlink '<tmpdir>/symgene-t02-vite-3Of9Yl/faultlab-locked/x'",
+          "cleanupIncomplete": false
+        },
+        "closeMs": 1,
+        "cacheRetained": true
+      }
+    },
+    {
+      "file": "evidence/B9R2a-transient-deletion-failure-recovered-r1.json",
+      "originalSha256": "9f8f9763690dad698730c6973702cbcbd3cd5ac6d6d0582bd9939d96a915b8b9",
+      "publicSha256": "9f8f9763690dad698730c6973702cbcbd3cd5ac6d6d0582bd9939d96a915b8b9",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "experiment-round",
+      "workPackage": "B",
+      "implementation": "new",
+      "sourceSha256": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      },
+      "experiment": "B9R2a-transient-deletion-failure-recovered",
+      "experimentTitle": "Transient deletion failure (uchg cleared at +80ms): rm retries must recover, close resolves, cache fully removed",
+      "round": 1,
+      "config": {
+        "expect": "RETRY-RECOVERED"
+      },
+      "startedAt": "2026-10-24T18:24:41.973Z",
+      "finishedAt": "2026-10-24T18:24:59.693Z",
+      "durationMs": 17713,
+      "outcome": {
+        "verdict": "RETRY-RECOVERED",
+        "matchesExpectation": true,
+        "leakCheck": "no-orphan-chromium",
+        "closeMs": 115,
+        "cacheRetained": false
+      }
+    },
+    {
+      "file": "evidence/B9R2a-transient-deletion-failure-recovered-r2.json",
+      "originalSha256": "f18743ea454ce556cdc09c0b8025b4cfad19548b24dfedd18fcfe63ff4a7770d",
+      "publicSha256": "f18743ea454ce556cdc09c0b8025b4cfad19548b24dfedd18fcfe63ff4a7770d",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "experiment-round",
+      "workPackage": "B",
+      "implementation": "new",
+      "sourceSha256": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      },
+      "experiment": "B9R2a-transient-deletion-failure-recovered",
+      "experimentTitle": "Transient deletion failure (uchg cleared at +80ms): rm retries must recover, close resolves, cache fully removed",
+      "round": 2,
+      "config": {
+        "expect": "RETRY-RECOVERED"
+      },
+      "startedAt": "2026-10-24T18:24:59.760Z",
+      "finishedAt": "2026-10-24T18:25:16.685Z",
+      "durationMs": 16925,
+      "outcome": {
+        "verdict": "RETRY-RECOVERED",
+        "matchesExpectation": true,
+        "leakCheck": "no-orphan-chromium",
+        "closeMs": 109,
+        "cacheRetained": false
+      }
+    },
+    {
+      "file": "evidence/B9R2a-transient-deletion-failure-recovered-r3.json",
+      "originalSha256": "517c6ca9b601aaf061b48b6d2c9b11e635265a6c935a0235a802d037d80b8e8d",
+      "publicSha256": "517c6ca9b601aaf061b48b6d2c9b11e635265a6c935a0235a802d037d80b8e8d",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "experiment-round",
+      "workPackage": "B",
+      "implementation": "new",
+      "sourceSha256": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      },
+      "experiment": "B9R2a-transient-deletion-failure-recovered",
+      "experimentTitle": "Transient deletion failure (uchg cleared at +80ms): rm retries must recover, close resolves, cache fully removed",
+      "round": 3,
+      "config": {
+        "expect": "RETRY-RECOVERED"
+      },
+      "startedAt": "2026-10-24T18:25:16.750Z",
+      "finishedAt": "2026-10-24T18:25:33.694Z",
+      "durationMs": 16944,
+      "outcome": {
+        "verdict": "RETRY-RECOVERED",
+        "matchesExpectation": true,
+        "leakCheck": "no-orphan-chromium",
+        "closeMs": 107,
+        "cacheRetained": false
+      }
+    },
+    {
+      "file": "evidence/B9R2b-permanent-deletion-failure-eperm-r1.json",
+      "originalSha256": "abab2ce29004da2d3ae830532e7ffc8efce7b74c3d26c3617066be729f24faab",
+      "publicSha256": "b1f9a4bf4247090ff4ce749cfc06edad7771b44e1d0f306664068942f1525cde",
+      "redacted": true,
+      "redactionRules": [
+        "personal-home-path",
+        "username",
+        "per-user-tmpdir"
+      ],
+      "fullyPublic": true,
+      "kind": "experiment-round",
+      "workPackage": "B",
+      "implementation": "new",
+      "sourceSha256": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      },
+      "experiment": "B9R2b-permanent-deletion-failure-eperm",
+      "experimentTitle": "Permanent deletion failure (uchg held): rm retries must exhaust, close rejects with EPERM after the retry window, cache retained",
+      "round": 1,
+      "config": {
+        "expect": "RETRY-EXHAUSTED-FAIL"
+      },
+      "startedAt": "2026-10-24T18:25:33.762Z",
+      "finishedAt": "2026-10-24T18:25:57.501Z",
+      "durationMs": 23739,
+      "outcome": {
+        "verdict": "RETRY-EXHAUSTED-FAIL",
+        "matchesExpectation": true,
+        "leakCheck": "no-orphan-chromium",
+        "closeError": {
+          "name": "Error",
+          "code": "EPERM",
+          "message": "EPERM: operation not permitted, unlink '<tmpdir>/symgene-t02-vite-5366QG/deps/@remotion_player.js'",
+          "cleanupIncomplete": false
+        },
+        "closeMs": 6869,
+        "cacheRetained": true
+      }
+    },
+    {
+      "file": "evidence/B9R2b-permanent-deletion-failure-eperm-r2.json",
+      "originalSha256": "97e166d87821391df1d9cd8a3b8be5939fd757e9ea3975be94f8b6147e713383",
+      "publicSha256": "7da2d2dd613540db54fb2ad919a9c26b7117d2b9bf574dc8b4a66c493da25f39",
+      "redacted": true,
+      "redactionRules": [
+        "personal-home-path",
+        "username",
+        "per-user-tmpdir"
+      ],
+      "fullyPublic": true,
+      "kind": "experiment-round",
+      "workPackage": "B",
+      "implementation": "new",
+      "sourceSha256": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      },
+      "experiment": "B9R2b-permanent-deletion-failure-eperm",
+      "experimentTitle": "Permanent deletion failure (uchg held): rm retries must exhaust, close rejects with EPERM after the retry window, cache retained",
+      "round": 2,
+      "config": {
+        "expect": "RETRY-EXHAUSTED-FAIL"
+      },
+      "startedAt": "2026-10-24T18:25:57.565Z",
+      "finishedAt": "2026-10-24T18:26:21.669Z",
+      "durationMs": 24104,
+      "outcome": {
+        "verdict": "RETRY-EXHAUSTED-FAIL",
+        "matchesExpectation": true,
+        "leakCheck": "no-orphan-chromium",
+        "closeError": {
+          "name": "Error",
+          "code": "EPERM",
+          "message": "EPERM: operation not permitted, unlink '<tmpdir>/symgene-t02-vite-1ByE4C/deps/@remotion_player.js'",
+          "cleanupIncomplete": false
+        },
+        "closeMs": 6788,
+        "cacheRetained": true
+      }
+    },
+    {
+      "file": "evidence/B9R2b-permanent-deletion-failure-eperm-r3.json",
+      "originalSha256": "d7458b1a30f47611b65a48b76bb7c177e891f51cf9d7ed009f28ea859bc9644e",
+      "publicSha256": "40a9cdd04e94cdd9a6c64d729805a7cd61b9404b5cee8cb20af3627b2e9ccc06",
+      "redacted": true,
+      "redactionRules": [
+        "personal-home-path",
+        "username",
+        "per-user-tmpdir"
+      ],
+      "fullyPublic": true,
+      "kind": "experiment-round",
+      "workPackage": "B",
+      "implementation": "new",
+      "sourceSha256": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      },
+      "experiment": "B9R2b-permanent-deletion-failure-eperm",
+      "experimentTitle": "Permanent deletion failure (uchg held): rm retries must exhaust, close rejects with EPERM after the retry window, cache retained",
+      "round": 3,
+      "config": {
+        "expect": "RETRY-EXHAUSTED-FAIL"
+      },
+      "startedAt": "2026-10-24T18:26:21.823Z",
+      "finishedAt": "2026-10-24T18:26:45.816Z",
+      "durationMs": 23993,
+      "outcome": {
+        "verdict": "RETRY-EXHAUSTED-FAIL",
+        "matchesExpectation": true,
+        "leakCheck": "no-orphan-chromium",
+        "closeError": {
+          "name": "Error",
+          "code": "EPERM",
+          "message": "EPERM: operation not permitted, unlink '<tmpdir>/symgene-t02-vite-Udsr02/deps/@remotion_player.js'",
+          "cleanupIncomplete": false
+        },
+        "closeMs": 6728,
+        "cacheRetained": true
+      }
+    },
+    {
       "file": "evidence/C-new-r1.json",
       "originalSha256": "350d71c0bc45dcbb71db3b4bc4477a04e347e89c690e036764091206d81c7312",
       "publicSha256": "350d71c0bc45dcbb71db3b4bc4477a04e347e89c690e036764091206d81c7312",
@@ -6316,6 +6714,108 @@
       }
     },
     {
+      "file": "evidence/summary-B9R1-deletion-failure-isolated.json",
+      "originalSha256": "342ab9aa2e34efeb4ade96d6023e94864bc0fdf7efc845d0665124ad5762ebea",
+      "publicSha256": "1184c239a1d744e7e449f7b1420b80b5e6390b0ad0e993ef31b9e80d0538db67",
+      "redacted": true,
+      "redactionRules": [
+        "personal-home-path",
+        "username",
+        "per-user-tmpdir"
+      ],
+      "fullyPublic": true,
+      "kind": "experiment-summary",
+      "experiment": "B9R1-deletion-failure-isolated",
+      "experimentTitle": "Owned-cache rm() fails via a locked subdir while the optimizer drain completes: close must reject with the deletion error (distinct from the shutdown deadline), endpoint closed, cache retained",
+      "expect": "DELETE-FAIL-DETECTED",
+      "roundsRun": 3,
+      "outcome": {
+        "summary": "CONFIRMED",
+        "divergentRounds": []
+      },
+      "implementation": "new",
+      "sourceSha256": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      }
+    },
+    {
+      "file": "evidence/summary-B9R2a-transient-deletion-failure-recovered.json",
+      "originalSha256": "af26cde8146a192a4b597f93786f8883b4d283159ceff2b22bed157503949198",
+      "publicSha256": "af26cde8146a192a4b597f93786f8883b4d283159ceff2b22bed157503949198",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "experiment-summary",
+      "experiment": "B9R2a-transient-deletion-failure-recovered",
+      "experimentTitle": "Transient deletion failure (uchg cleared at +80ms): rm retries must recover, close resolves, cache fully removed",
+      "expect": "RETRY-RECOVERED",
+      "roundsRun": 3,
+      "outcome": {
+        "summary": "CONFIRMED",
+        "divergentRounds": []
+      },
+      "implementation": "new",
+      "sourceSha256": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      }
+    },
+    {
+      "file": "evidence/summary-B9R2b-permanent-deletion-failure-eperm.json",
+      "originalSha256": "4a7b242151c9a910140955285ac6b6afcf60c75816c301db00598649008a2964",
+      "publicSha256": "b79f75d3e9a58fdaa26d5304a1992ceb8a0a6c2b376d3d9169c6405af855f5fd",
+      "redacted": true,
+      "redactionRules": [
+        "personal-home-path",
+        "username",
+        "per-user-tmpdir"
+      ],
+      "fullyPublic": true,
+      "kind": "experiment-summary",
+      "experiment": "B9R2b-permanent-deletion-failure-eperm",
+      "experimentTitle": "Permanent deletion failure (uchg held): rm retries must exhaust, close rejects with EPERM after the retry window, cache retained",
+      "expect": "RETRY-EXHAUSTED-FAIL",
+      "roundsRun": 3,
+      "outcome": {
+        "summary": "CONFIRMED",
+        "divergentRounds": []
+      },
+      "implementation": "new",
+      "sourceSha256": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      },
+      "versions": {
+        "node": "v22.23.4",
+        "vite": "8.1.6",
+        "playwright": "1.62.1",
+        "react": "19.2.8"
+      }
+    },
+    {
+      "file": "evidence/TEMP-DIR-LEDGER.json",
+      "originalSha256": "be573852e46dd8b0a79bbc999c518f7ef91384d4a53634020381bdce2580d33b",
+      "publicSha256": "be573852e46dd8b0a79bbc999c518f7ef91384d4a53634020381bdce2580d33b",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "r1-reconciliation-ledger",
+      "implementation": "new",
+      "sourceSha256": {
+        "new": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89"
+      }
+    },
+    {
       "file": "evidence/wpA-run.log",
       "originalSha256": "0ee1b95d3b467c8d5debd15dbdb499cab2e10b0273ac0a048aafa5853f52ae9b",
       "publicSha256": "7fc5f4a4392ddb9f2e399b65adcfdbd958be5cc3a751abf235614a003ea9ed60",
@@ -6343,6 +6843,16 @@
       "file": "evidence/wpA-run3.log",
       "originalSha256": "551cfa8cf160aa4680bf0fa7948fdda2f0ea8f488789642b8e7170f96fc32653",
       "publicSha256": "551cfa8cf160aa4680bf0fa7948fdda2f0ea8f488789642b8e7170f96fc32653",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true,
+      "kind": "lab-log-or-report",
+      "implementation": "new (harness run log; includes harness-defect iterations kept for transparency)"
+    },
+    {
+      "file": "evidence/wpB-b9r2.log",
+      "originalSha256": "c4a458e7ccbbdc9bcd3892987fe748cd9d46c6b4a99add3d5a305f8877471dc5",
+      "publicSha256": "c4a458e7ccbbdc9bcd3892987fe748cd9d46c6b4a99add3d5a305f8877471dc5",
       "redacted": false,
       "redactionRules": [],
       "fullyPublic": true,
@@ -6420,8 +6930,8 @@
     {
       "file": "RELIABILITY-MATRIX.json",
       "kind": "deliverable",
-      "originalSha256": "4c2b8422caf7592e8d895be1cc5d319c0117b6c3de75577d50a425aeb2a128c2",
-      "publicSha256": "9fa63794a004cd032566b1e57b6e00a4b7e67dad7f1e322e9644a066da23bbea",
+      "originalSha256": "b7d24c86d2fdd8c7d3a0bc9e8b29112ec3a9742925d3fd8511bae8c604f84771",
+      "publicSha256": "c0ce572bb023b8f70d88eaf6755affd92790271d15cd7424300c607df6dfc52e",
       "redacted": true,
       "redactionRules": [
         "personal-home-path",
@@ -6433,8 +6943,8 @@
     {
       "file": "FAILURE-CATALOG.md",
       "kind": "deliverable",
-      "originalSha256": "309ddce841da8cca77a5d7a19da5c78524cd83014037be64bedd41c710b1de17",
-      "publicSha256": "309ddce841da8cca77a5d7a19da5c78524cd83014037be64bedd41c710b1de17",
+      "originalSha256": "91a52c02db9d1198106ef3046ff1e70308d9380851e7d5ffab6725e01182316d",
+      "publicSha256": "91a52c02db9d1198106ef3046ff1e70308d9380851e7d5ffab6725e01182316d",
       "redacted": false,
       "redactionRules": [],
       "fullyPublic": true
@@ -6451,8 +6961,8 @@
     {
       "file": "REPRODUCTION-COMMANDS.md",
       "kind": "deliverable",
-      "originalSha256": "ed82e07669607aef0d39fb3eb5ba90d8cedc55cfa61f827d1d70f775ed448358",
-      "publicSha256": "b7eb0e4b8b722f0b359f91e205d605334cf99c14fa52d0e036d55b122589a252",
+      "originalSha256": "2db69df1f33e857377937c0a0483895819b6a87b459592129320157123512a50",
+      "publicSha256": "fe625427e943d9956cc036f4ce05c3cd41ec5183fe7cd9e3037dc7eb1cfb99df",
       "redacted": true,
       "redactionRules": [
         "personal-home-path",
@@ -6466,6 +6976,24 @@
       "kind": "deliverable",
       "originalSha256": "cf71e06830815ca2b185405b2b7f061b4c4bf525affdac4ba3c3172479713a86",
       "publicSha256": "cf71e06830815ca2b185405b2b7f061b4c4bf525affdac4ba3c3172479713a86",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true
+    },
+    {
+      "file": "A11-RECONCILIATION.md",
+      "kind": "deliverable",
+      "originalSha256": "53f98dc2be5a3b309ada94ceba1fa4512fb8e3cf5064b998c3eeb1d10daa0db1",
+      "publicSha256": "53f98dc2be5a3b309ada94ceba1fa4512fb8e3cf5064b998c3eeb1d10daa0db1",
+      "redacted": false,
+      "redactionRules": [],
+      "fullyPublic": true
+    },
+    {
+      "file": "TEMP-DIR-CLEANUP-PROOF.md",
+      "kind": "deliverable",
+      "originalSha256": "3aa857b6693abc4b1badacde7819cce01913901fd96166cf9baec346e5448135",
+      "publicSha256": "3aa857b6693abc4b1badacde7819cce01913901fd96166cf9baec346e5448135",
       "redacted": false,
       "redactionRules": [],
       "fullyPublic": true

@@ -20,8 +20,11 @@
 | B7a | gateway.close() 在探针完全成功后 reject | FAIL-DETECTED | 3/3 | probe 主体 PASS 后仍在 finally 判 FAIL,cleanupErrors=['FAULTLAB_GATEWAY_CLOSE_REJECTED'],端口全关 |
 | B7b | fixture.close() reject | FAIL-DETECTED | 3/3 | 同上,cleanupErrors=['FAULTLAB_FIXTURE_CLOSE_REJECTED'] |
 | B8 | writer 永久阻塞,超过 15s 关闭期限 | DEADLINE-ENFORCED | 3/3 | `T02_CONSUMER_SHUTDOWN_TIMEOUT` + `cleanupIncomplete` + 端口已关 + 缓存保留(elapsed 15.4/15.8/15.4s) |
-| B9 | 缓存目录 chmod 555 后 close | FAIL-DETECTED | 3/3 | 实际路径:只读目录使 drain 无法写 → 15s 期限 → 有界拒绝、缓存保留、cleanupIncomplete;无假"干净" |
+| B9 | 缓存目录 chmod 555 后 close | FAIL-DETECTED | 3/3 | 实际路径:只读目录使 optimizer drain 无法写 → 15s 期限 → 有界拒绝、缓存保留、cleanupIncomplete;无假"干净"。**R1 更正:该轮覆盖的是 drain 阻碍路径,不能证明删除重试机制——删除路径由 B9R1/B9R2a/B9R2b 定向补测覆盖(见下)。** |
 | B10 | 运行中(react-mount 时)对 worker 进程组 SIGTERM | FAIL-CLOSED | 3/3 | probeConsumer 的中断处理器关闭浏览器 → 探针以 FAIL 结束、exitCode≠0、无孤儿 Chromium |
+| B9R1 | 锁定子目录使 rm() 立即失败(EACCES,不在 Node rm 重试集合内;drain 不受影响) | DELETE-FAIL-DETECTED | 3/3 | close 以 EACCES 拒绝(10ms,非期限路径)、cleanupIncomplete=false、端点已关、缓存保留且 deps 已被删除(删除已推进后失败)——失败可见,无假"干净" |
+| B9R2a | 瞬时删除失败(uchg 旗标在 +80ms 清除;EPERM 属可重试集合) | RETRY-RECOVERED | 3/3 | close 成功解析、缓存**完全**删除、端点已关;closeMs 115ms > 80ms 旗标清除时刻——逻辑上要求重试在旗标清除后仍在进行,**删除重试机制被直接证明有效** |
+| B9R2b | 永久删除失败(uchg 全程保持) | RETRY-EXHAUSTED-FAIL | 3/3 | 重试耗尽后 close 以 EPERM 拒绝、cleanupIncomplete=false、缓存保留、端点已关——耗尽即失败,无假"干净" |
 
 工作包 A 的 14 组并发/生命周期实验(每组 3–5 轮)全部 CONFIRMED,其中:
 
@@ -47,9 +50,9 @@
 
 ## 三、边界发现(不构成 #38 的缺陷,附判定依据)
 
-**F-1 流量中关闭可走满 15s 期限(观测频率 1/8)。**
-A11 共 8 轮:7 次 clean join(约 6.5s),1 次达到 `T02_CONSUMER_SHUTDOWN_TIMEOUT`。
-判定:按设计行为。PR 文档明确 15s 期限与 fail-closed 语义;该轮端口已关、缓存保留、错误可见,probe 会 FAIL 而非假 PASS。没有任何静默成功。频率本身是可用性观察,不是正确性缺陷。
+**F-1 流量中关闭可走满 15s 期限(R1 更正:有效尝试 2/8,正式轮 1/5;无正常负载样本)。**
+R1 对账(见 `A11-RECONCILIATION.md` 与 `evidence/A11-ATTEMPTS.json`):A11 全部尝试共 11 次——run1 的 3 轮为 harness 缺陷轮(实验未执行),有效尝试 8 次(run2 3 + run3 5),其中触及 15s 期限的为 run2-r1(当时按过渡语义记为 DIRTY,行为与 run3-r4 的 CLOSE-BOUNDED-FAIL 同签名)与 run3-r4,即 **2/8**;正式最终语义 5 轮中为 **1/5**。此前发布的「1/8」是口径错误(正式轮触及数套有效分母),现予更正;没有任何轮次被改判为 PASS。
+负载披露:run2 期间 1 分钟 loadavg ≈14–15;run3 全部 A11 轮为 **80–105**(已核实与实验室自身活动无关,来自外部系统负载)。不存在正常负载样本,n 过小,不能作任何概率推断。定性结论不变:触及期限时 PR 契约成立(端口关、缓存保留、错误可见、无假 PASS)——这是设计行为,不是正确性缺陷。
 
 **F-2 C3 共享显式缓存 3 轮未复现 504。**
 判定:非缺陷。共享显式缓存属于文档禁止的调用方误用;未复现 ≠ 不存在;发生时检测层有效。
@@ -62,6 +65,12 @@ A11 共 8 轮:7 次 clean join(约 6.5s),1 次达到 `T02_CONSUMER_SHUTDOWN_TIME
 三份边界发现都不是 #38 引入的新缺陷:没有一处"真实故障被后续成功状态覆盖",没有资源泄漏回归,没有断言退化,原始 504 的根因被消除。按任务规则("仅在确有新缺陷时")不创建 PATCHES/。
 
 若未来要加固(明确不属于本次修复):F-1 可在文档中建议调用方预期有界失败;F-3 可考虑 drain 后的可选宽限观察(代价是延长 close);C3 可考虑对"同 cacheDir 的存活服务器"做检测。均未实施。
+
+## 四A、R1 整改记录(2026-10-24)
+
+1. **A11 统计重建(R1-A)**:新增 `A11-RECONCILIATION.md` + `evidence/A11-ATTEMPTS.json`;更正 F-1 与本文件注入表;「1/8」撤回,更正为有效尝试 2/8、正式轮 1/5,并强制披露负载条件。
+2. **临时目录对账(R1-B)**:新增 `TEMP-DIR-CLEANUP-PROOF.md` + `evidence/TEMP-DIR-LEDGER.json`;20 = 12 具名(正式轮可确认)+ 8 匿名(run2 同名覆盖 7 + B8 挂起强杀 1);匿名条目标 `CLEANED-IDENTITY-UNVERIFIED`;基线 92 复核仍成立。
+3. **B9 路径澄清与定向补测(R1-C)**:B9 条目改述为 drain 阻碍路径;新增 B9R1(EACCES 立即失败)、B9R2a(瞬时 EPERM 被重试救回,证明重试机制有效)、B9R2b(永久 EPERM 重试耗尽)。四条失败路径(drain 阻碍 / 不可重试删除失败 / 瞬时可恢复 / 重试耗尽)全部 fail-closed,无假 PASS。#38 产品代码零修改。
 
 ## 五、机器与环境备注
 

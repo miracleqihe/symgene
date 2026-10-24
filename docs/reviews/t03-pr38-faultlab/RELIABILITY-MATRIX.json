@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generatedAt": "2026-10-24T16:49:11.348Z",
+    "generatedAt": "2026-10-24T18:29:07.798Z",
     "repository": "miracleqihe/symgene",
     "pullRequest": 38,
     "newImplementation": {
@@ -1990,6 +1990,177 @@
           }
         }
       ]
+    },
+    {
+      "id": "B9R1-deletion-failure-isolated",
+      "title": "Owned-cache rm() fails via a locked subdir while the optimizer drain completes: close must reject with the deletion error (distinct from the shutdown deadline), endpoint closed, cache retained",
+      "expect": "DELETE-FAIL-DETECTED",
+      "roundsRun": 3,
+      "verdicts": [
+        "DELETE-FAIL-DETECTED",
+        "DELETE-FAIL-DETECTED",
+        "DELETE-FAIL-DETECTED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B9R1-deletion-failure-isolated-r1.json",
+          "round": 1,
+          "verdict": "DELETE-FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 17454,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B9R1-deletion-failure-isolated-r2.json",
+          "round": 2,
+          "verdict": "DELETE-FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 16785,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B9R1-deletion-failure-isolated-r3.json",
+          "round": 3,
+          "verdict": "DELETE-FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 16726,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B9R2a-transient-deletion-failure-recovered",
+      "title": "Transient deletion failure (uchg cleared at +80ms): rm retries must recover, close resolves, cache fully removed",
+      "expect": "RETRY-RECOVERED",
+      "roundsRun": 3,
+      "verdicts": [
+        "RETRY-RECOVERED",
+        "RETRY-RECOVERED",
+        "RETRY-RECOVERED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B9R2a-transient-deletion-failure-recovered-r1.json",
+          "round": 1,
+          "verdict": "RETRY-RECOVERED",
+          "matchesExpectation": true,
+          "durationMs": 17713,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B9R2a-transient-deletion-failure-recovered-r2.json",
+          "round": 2,
+          "verdict": "RETRY-RECOVERED",
+          "matchesExpectation": true,
+          "durationMs": 16925,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B9R2a-transient-deletion-failure-recovered-r3.json",
+          "round": 3,
+          "verdict": "RETRY-RECOVERED",
+          "matchesExpectation": true,
+          "durationMs": 16944,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B9R2b-permanent-deletion-failure-eperm",
+      "title": "Permanent deletion failure (uchg held): rm retries must exhaust, close rejects with EPERM after the retry window, cache retained",
+      "expect": "RETRY-EXHAUSTED-FAIL",
+      "roundsRun": 3,
+      "verdicts": [
+        "RETRY-EXHAUSTED-FAIL",
+        "RETRY-EXHAUSTED-FAIL",
+        "RETRY-EXHAUSTED-FAIL"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B9R2b-permanent-deletion-failure-eperm-r1.json",
+          "round": 1,
+          "verdict": "RETRY-EXHAUSTED-FAIL",
+          "matchesExpectation": true,
+          "durationMs": 23739,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B9R2b-permanent-deletion-failure-eperm-r2.json",
+          "round": 2,
+          "verdict": "RETRY-EXHAUSTED-FAIL",
+          "matchesExpectation": true,
+          "durationMs": 24104,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B9R2b-permanent-deletion-failure-eperm-r3.json",
+          "round": 3,
+          "verdict": "RETRY-EXHAUSTED-FAIL",
+          "matchesExpectation": true,
+          "durationMs": 23993,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
     }
   ],
   "workPackageC": {
@@ -2440,14 +2611,54 @@
     "failedSteps": 0,
     "note": "Bounded regression: T02 concurrency unit suite, real-Chromium 504 regression, CI-profile matrix (3 cases / 6 probes, website-synthetic). Full verify (423+37) was out of lab scope; see PR description CI run 40005458722."
   },
+  "r1Corrections": {
+    "date": "2026-10-24",
+    "trigger": "independent review of the evidence-only draft PR #41",
+    "a11DeadlineStatistics": {
+      "priorClaim": "1/8 rounds hit the 15s shutdown deadline",
+      "corrected": {
+        "totalAttempts": 11,
+        "invalidHarnessDefectAttempts": 3,
+        "validAttempts": 8,
+        "deadlineHitsAmongValidAttempts": 2,
+        "fractionAmongValidAttempts": "2/8",
+        "formalFinalSemanticsRounds": 5,
+        "deadlineHitsAmongFormalRounds": 1,
+        "fractionAmongFormalRounds": "1/5"
+      },
+      "loadCaveat": "Every valid attempt ran under elevated system load. run2 proxies: 1-min loadavg ~14-15 on 10 cores. run3 (formal): 1-min loadavg 80.28-105.19 recorded in the rounds' own audits; no lab work was concurrent with run3 A11 (verified by artifact timestamps), so the spike is external system load. There is no normal-load sample, and n is far too small for any probability statement. The bounded-fail rate must not be read as a normal-load timeout probability for PR #38.",
+      "ledger": "evidence/A11-ATTEMPTS.json + A11-RECONCILIATION.md"
+    },
+    "tempDirLedger": {
+      "priorClaim": "20 temp directories left by killed processes",
+      "corrected": {
+        "formalRoundNamedRecords": 12,
+        "lostRecordAnonymousEntries": 8,
+        "diskDelta": 20,
+        "unverifiedIdentityEntries": 8,
+        "cleanupProof": {
+          "method": "find <tmpdir> -maxdepth 1 -name 'symgene-t02-*' -newermt 2026-10-24 -exec rm -rf {} +",
+          "matchedBeforeSweep": 20,
+          "removed": 20,
+          "postSweepCount": 92,
+          "postSweepEqualsBaseline": true,
+          "reverifiedDuringR1": "symgene-t02-* count re-checked at the start of the R1 session: 92; t02-faultlab-* count: 0",
+          "nonLabResourcesTouched": 0,
+          "note": "the sweep pattern matched only directories with a 2026-10-24 timestamp; the 92 pre-existing directories from earlier sessions were never touched"
+        }
+      },
+      "ledger": "evidence/TEMP-DIR-LEDGER.json + TEMP-DIR-CLEANUP-PROOF.md"
+    },
+    "b9ScopeClarification": "The original B9 (chmod 555 on the whole cache) obstructed optimizer writes and exercised the 15s shutdown-deadline path, not the removeOwnedCache() deletion-retry mechanism. Targeted follow-ups B9R1 (EACCES: non-retryable, immediate close rejection), B9R2a (transient EPERM: retries recover, close resolves, cache fully removed - proving the retry mechanism) and B9R2b (permanent EPERM: retries exhausted, close rejects) now cover the deletion path. All four failure paths are fail-closed with distinct signatures."
+  },
   "resourceLifecycle": {
     "orphanChromiumViolations": [],
     "note": "每轮实验前后 osAudit 对比 pgrep(ms-playwright) 与 $TMPDIR/symgene-t02-* 目录;任何孤儿 Chromium 都会记录在这里。实验自身显式创建的缓存目录在记录后由 harness 删除。"
   },
   "counts": {
-    "experiments": 33,
-    "confirmed": 32,
+    "experiments": 36,
+    "confirmed": 35,
     "divergent": 1,
-    "roundsTotal": 103
+    "roundsTotal": 112
   }
 }

@@ -40,6 +40,8 @@ $N22 harness/wpA-concurrency.mjs A6-quad-separate-processes
 T02_LAB_ROUNDS=5 $N22 harness/wpA-concurrency.mjs A11-close-during-traffic
 ```
 
+R1 对账材料:`A11-RECONCILIATION.md` + `evidence/A11-ATTEMPTS.json`(全部 11 次尝试)、`TEMP-DIR-CLEANUP-PROOF.md` + `evidence/TEMP-DIR-LEDGER.json`(20 个临时目录)。
+
 实验覆盖:冷/热缓存、1/2/4 消费者、同型/混合并发、连续/同时启动、启动中途 SIGTERM、
 初始化失败后重启、流量中关闭、HTTP 服务先于 React 挂载、导航中断、leader 死亡后孤儿回收。
 
@@ -53,7 +55,13 @@ $N22 harness/wpB-faults.mjs B8-shutdown-timeout   # 单项复现
 
 注入清单:B1 延迟 writer;B2a close 后才释放的 writer;B2b 逃逸 drain 的契约外 writer(观测残留);
 B3 504-后-挂载;B4 PASS 报告后 SIGTERM;B5 PASS 后非零退出/未捕获异常;B6 报告缺失/重复/身份错;
-B7 清理函数 reject(gateway / fixture);B8 15s 关闭期限;B9 缓存删除失败(chmod 555);B10 运行中 SIGTERM。
+B7 清理函数 reject(gateway / fixture);B8 15s 关闭期限;B9 缓存删除失败(chmod 555;R1 更正:覆盖 drain 阻碍路径);
+B10 运行中 SIGTERM。R1 补测(B9R1/B9R2a/B9R2b,需 macOS chflags):
+
+```bash
+$N22 harness/wpB-b9r1.mjs                                   # 三条删除失败路径:EACCES 立即失败 / 瞬时重试救回 / EPERM 重试耗尽
+$N22 harness/wpB-b9r1.mjs B9R2a-transient-deletion-failure-recovered
+```
 
 ## 工作包 C — 新旧差分
 
