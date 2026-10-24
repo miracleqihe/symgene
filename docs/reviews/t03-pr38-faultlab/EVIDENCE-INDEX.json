@@ -19,9 +19,9 @@
       },
       {
         "phase": "R1.1 closure",
-        "indexEntries": 201,
-        "prFiles": 201,
-        "note": "zero dangling, zero unindexed; wpB-b9r2.log force-added after rescan"
+        "indexEntries": 230,
+        "prFiles": 230,
+        "note": "zero dangling, zero unindexed; wpB-b9r2.log force-added after rescan; an intermediate staging patch was partially applied and left repro/ + three R1.1 documents unpublished - discovered by PR-description cross-check and fixed; final counts verified 227 hashes + 3 anchors"
       }
     ]
   },
@@ -5626,8 +5626,8 @@
     },
     {
       "file": "evidence/integrity-after.json",
-      "originalSha256": "621d7c113cc4b4bf1522633dcf010955a0da78bec4f6cb25ec964751d0666f8c",
-      "publicSha256": "621d7c113cc4b4bf1522633dcf010955a0da78bec4f6cb25ec964751d0666f8c",
+      "originalSha256": "23c54438aaf4a8b54eadaadbff696fd5138c5979c3780b56a50814235064bfc7",
+      "publicSha256": "23c54438aaf4a8b54eadaadbff696fd5138c5979c3780b56a50814235064bfc7",
       "redacted": false,
       "redactionRules": [],
       "fullyPublic": true,
@@ -7441,8 +7441,8 @@
     {
       "file": "FAILURE-CATALOG.md",
       "kind": "deliverable",
-      "originalSha256": "70acd99844bcd1c62db4724dad0aa01aeb8e213ab8daa3cecd623541b04791bc",
-      "publicSha256": "70acd99844bcd1c62db4724dad0aa01aeb8e213ab8daa3cecd623541b04791bc",
+      "originalSha256": "693ede500c0e662abdce557f31281b76e4d57f0ea907fc579527ccbc909d192c",
+      "publicSha256": "693ede500c0e662abdce557f31281b76e4d57f0ea907fc579527ccbc909d192c",
       "redacted": false,
       "redactionRules": [],
       "fullyPublic": true
@@ -7517,8 +7517,8 @@
     {
       "file": "EVIDENCE-INTEGRITY-REPORT.md",
       "kind": "deliverable",
-      "originalSha256": "592639d6c1f17e822cb0c47cfb2ea905125ab3fb14f5bd5a1519b6f6ae53f8ea",
-      "publicSha256": "592639d6c1f17e822cb0c47cfb2ea905125ab3fb14f5bd5a1519b6f6ae53f8ea",
+      "originalSha256": "e0c629288c7251c81bd0649c434e5b2934313c0a28e1127da741d8132cf3df5f",
+      "publicSha256": "e0c629288c7251c81bd0649c434e5b2934313c0a28e1127da741d8132cf3df5f",
       "redacted": false,
       "redactionRules": [],
       "fullyPublic": true

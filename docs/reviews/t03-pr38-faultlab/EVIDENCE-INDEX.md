@@ -4,8 +4,8 @@
 
 ## 完整性锚点
 
-- `EVIDENCE-INDEX.json` SHA-256: `9ff3113ed47faf8ab61689a971c4a989ff481880db0882e54d8556e3eeefc14b`
-- `ENVIRONMENT.json` SHA-256: `eac8c537a2b905b18e8d95597164d9f3781bfb9c1c9bf443ef7388037664eab1`
+- `EVIDENCE-INDEX.json` SHA-256: `6ef3f8c68d253e071fd890efad15382827c2950c073862ae46591862f4b6d6c9`
+- `ENVIRONMENT.json` SHA-256: `39562a329f40cc6dc6ff73997af2ddda23c89b0c63f33d378817c80a657fd5be`
 - `EVIDENCE-INDEX.md`(本文件)无法在包内自哈希;其完整性由审查分支的 git 提交 SHA 内容寻址锚定——任何对已发布文件的改动都会改变提交并使 `EVIDENCE-INTEGRITY-REPORT.md` 的核对失效。
 
 ## 覆盖

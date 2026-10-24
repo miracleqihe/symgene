@@ -23,7 +23,7 @@
 | B9 | 缓存目录 chmod 555 后 close | FAIL-DETECTED | 3/3 | 实际路径:只读目录使 optimizer drain 无法写 → 15s 期限 → 有界拒绝、缓存保留、cleanupIncomplete;无假"干净"。**R1 更正:该轮覆盖的是 drain 阻碍路径,不能证明删除重试机制——删除路径由 B9R1/B9R2a/B9R2b 定向补测覆盖(见下)。** |
 | B10 | 运行中(react-mount 时)对 worker 进程组 SIGTERM | FAIL-CLOSED | 3/3 | probeConsumer 的中断处理器关闭浏览器 → 探针以 FAIL 结束、exitCode≠0、无孤儿 Chromium |
 | B9R1 | 锁定子目录使 rm() 立即失败(EACCES,不在 Node rm 重试集合内;drain 不受影响) | DELETE-FAIL-DETECTED | 3/3 | close 以 EACCES 拒绝(10ms,非期限路径)、cleanupIncomplete=false、端点已关、缓存保留且 deps 已被删除(删除已推进后失败)——失败可见,无假"干净" |
-| B9R2a | 瞬时删除失败(uchg 旗标在 +80ms 清除;EPERM 属可重试集合) | RETRY-RECOVERED | 3/3 | close 成功解析、缓存**完全**删除、端点已关;closeMs 115ms > 80ms 旗标清除时刻——逻辑上要求重试在旗标清除后仍在进行,**删除重试机制被直接证明有效** |
+| B9R2a | 瞬时删除失败(uchg 旗标在 +80ms 清除;EPERM 属可重试集合) | RETRY-RECOVERED | 3/3 | **结局级 CONFIRMED**:close 成功解析、缓存**完全**删除、端点已关。机制级证明由 R1.1-B EXP-1 在 rm() 契约层承担(秒级余量);产品路径的首次尝试顺序保持 PARTIAL(无系统调用跟踪);closeMs>80ms 的旧推断已按 Review 意见撤回。见 `B9-RETRY-TRACE.md` |
 | B9R2b | 永久删除失败(uchg 全程保持) | RETRY-EXHAUSTED-FAIL | 3/3 | 重试耗尽后 close 以 EPERM 拒绝、cleanupIncomplete=false、缓存保留、端点已关——耗尽即失败,无假"干净" |
 
 工作包 A 的 14 组并发/生命周期实验(每组 3–5 轮)全部 CONFIRMED,其中:
@@ -70,7 +70,7 @@ R1 对账(见 `A11-RECONCILIATION.md` 与 `evidence/A11-ATTEMPTS.json`):A11 全�
 
 1. **A11 统计重建(R1-A)**:新增 `A11-RECONCILIATION.md` + `evidence/A11-ATTEMPTS.json`;更正 F-1 与本文件注入表;「1/8」撤回,更正为有效尝试 2/8、正式轮 1/5,并强制披露负载条件。
 2. **临时目录对账(R1-B)**:新增 `TEMP-DIR-CLEANUP-PROOF.md` + `evidence/TEMP-DIR-LEDGER.json`;20 = 12 具名(正式轮可确认)+ 8 匿名(run2 同名覆盖 7 + B8 挂起强杀 1);匿名条目标 `CLEANED-IDENTITY-UNVERIFIED`;基线 92 复核仍成立。
-3. **B9 路径澄清与定向补测(R1-C)**:B9 条目改述为 drain 阻碍路径;新增 B9R1(EACCES 立即失败)、B9R2a(瞬时 EPERM 被重试救回,证明重试机制有效)、B9R2b(永久 EPERM 重试耗尽)。四条失败路径(drain 阻碍 / 不可重试删除失败 / 瞬时可恢复 / 重试耗尽)全部 fail-closed,无假 PASS。#38 产品代码零修改。
+3. **B9 路径澄清与定向补测(R1-C)**:B9 条目改述为 drain 阻碍路径;新增 B9R1(EACCES 立即失败)、B9R2a(瞬时 EPERM 被重试救回,结局级;机制级证明见 R1.1-B EXP-1)、B9R2b(永久 EPERM 重试耗尽)。四条失败路径(drain 阻碍 / 不可重试删除失败 / 瞬时可恢复 / 重试耗尽)全部 fail-closed,无假 PASS。#38 产品代码零修改。
 
 ## 五、机器与环境备注
 
