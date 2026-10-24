@@ -1,0 +1,165 @@
+{"id":"B1-close-joins-delayed-writer","round":1,"verdict":"JOINED","expect":"JOINED","matches":true,"ms":775}
+{"id":"B1-close-joins-delayed-writer","round":2,"verdict":"JOINED","expect":"JOINED","matches":true,"ms":559}
+{"id":"B1-close-joins-delayed-writer","round":3,"verdict":"JOINED","expect":"JOINED","matches":true,"ms":554}
+{"id":"B2a-close-joins-writer-released-after-close-start","round":1,"verdict":"JOINED","expect":"JOINED","matches":true,"ms":411}
+{"id":"B2a-close-joins-writer-released-after-close-start","round":2,"verdict":"JOINED","expect":"JOINED","matches":true,"ms":408}
+{"id":"B2a-close-joins-writer-released-after-close-start","round":3,"verdict":"JOINED","expect":"JOINED","matches":true,"ms":397}
+{"id":"B2b-detached-writer-escapes-drain","round":1,"verdict":"RESIDUE-RECORDED","expect":"RESIDUE-RECORDED","matches":true,"ms":478}
+{"id":"B2b-detached-writer-escapes-drain","round":2,"verdict":"RESIDUE-RECORDED","expect":"RESIDUE-RECORDED","matches":true,"ms":484}
+{"id":"B2b-detached-writer-escapes-drain","round":3,"verdict":"RESIDUE-RECORDED","expect":"RESIDUE-RECORDED","matches":true,"ms":848}
+{"id":"B3-http504-then-mount","round":1,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":1217}
+{"id":"B3-http504-then-mount","round":2,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":689}
+{"id":"B3-http504-then-mount","round":3,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":532}
+{"id":"B4-pass-report-then-sigterm","round":1,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":123}
+{"id":"B4-pass-report-then-sigterm","round":2,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":125}
+{"id":"B4-pass-report-then-sigterm","round":3,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":122}
+{"id":"B5a-pass-then-nonzero-exit","round":1,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":123}
+{"id":"B5a-pass-then-nonzero-exit","round":2,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":127}
+{"id":"B5a-pass-then-nonzero-exit","round":3,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":134}
+{"id":"B5b-pass-then-uncaught","round":1,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":126}
+{"id":"B5b-pass-then-uncaught","round":2,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":123}
+{"id":"B5b-pass-then-uncaught","round":3,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":128}
+{"id":"B6a-report-missing","round":1,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":134}
+{"id":"B6a-report-missing","round":2,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":231}
+{"id":"B6a-report-missing","round":3,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":147}
+{"id":"B6b-report-duplicate-second-fails","round":1,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":145}
+{"id":"B6b-report-duplicate-second-fails","round":2,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":127}
+{"id":"B6b-report-duplicate-second-fails","round":3,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":130}
+{"id":"B6c-report-wrong-kind","round":1,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":129}
+{"id":"B6c-report-wrong-kind","round":2,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":129}
+{"id":"B6c-report-wrong-kind","round":3,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":121}
+{"id":"B6d-report-wrong-execution","round":1,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":121}
+{"id":"B6d-report-wrong-execution","round":2,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":129}
+{"id":"B6d-report-wrong-execution","round":3,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":125}
+{"id":"B6e-report-wrong-pid","round":1,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":128}
+{"id":"B6e-report-wrong-pid","round":2,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":128}
+{"id":"B6e-report-wrong-pid","round":3,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":128}
+{"id":"B6f-report-mode-mismatch","round":1,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":132}
+{"id":"B6f-report-mode-mismatch","round":2,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":132}
+{"id":"B6f-report-mode-mismatch","round":3,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":148}
+{"id":"B6g-report-incomplete-result","round":1,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":164}
+{"id":"B6g-report-incomplete-result","round":2,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":135}
+{"id":"B6g-report-incomplete-result","round":3,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":127}
+{"id":"B7a-gateway-close-rejects","round":1,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":575}
+{"id":"B7a-gateway-close-rejects","round":2,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":532}
+{"id":"B7a-gateway-close-rejects","round":3,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":518}
+{"id":"B7b-fixture-close-rejects","round":1,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":850}
+{"id":"B7b-fixture-close-rejects","round":2,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":557}
+{"id":"B7b-fixture-close-rejects","round":3,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":532}
+{"id":"B8-shutdown-timeout","round":1,"verdict":"DIRTY","expect":"DEADLINE-ENFORCED","matches":false,"ms":243}
+{"id":"B8-shutdown-timeout","round":2,"verdict":"DIRTY","expect":"DEADLINE-ENFORCED","matches":false,"ms":249}
+{"id":"B8-shutdown-timeout","round":3,"verdict":"DIRTY","expect":"DEADLINE-ENFORCED","matches":false,"ms":482}
+{"id":"B9-cache-deletion-failure","round":1,"verdict":"THREW","expect":"FAIL-DETECTED","matches":false,"ms":129}
+{"id":"B9-cache-deletion-failure","round":2,"verdict":"THREW","expect":"FAIL-DETECTED","matches":false,"ms":84}
+{"id":"B9-cache-deletion-failure","round":3,"verdict":"THREW","expect":"FAIL-DETECTED","matches":false,"ms":97}
+{"id":"B10-sigterm-midrun-browser-interrupt","round":1,"verdict":"FAIL-CLOSED","expect":"FAIL-CLOSED","matches":true,"ms":2339}
+{"id":"B10-sigterm-midrun-browser-interrupt","round":2,"verdict":"FAIL-CLOSED","expect":"FAIL-CLOSED","matches":true,"ms":1889}
+{"id":"B10-sigterm-midrun-browser-interrupt","round":3,"verdict":"FAIL-CLOSED","expect":"FAIL-CLOSED","matches":true,"ms":1786}
+{
+  "workPackage": "B",
+  "experiments": [
+    {
+      "id": "B1-close-joins-delayed-writer",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "B2a-close-joins-writer-released-after-close-start",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "B2b-detached-writer-escapes-drain",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "B3-http504-then-mount",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "B4-pass-report-then-sigterm",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "B5a-pass-then-nonzero-exit",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "B5b-pass-then-uncaught",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "B6a-report-missing",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "B6b-report-duplicate-second-fails",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "B6c-report-wrong-kind",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "B6d-report-wrong-execution",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "B6e-report-wrong-pid",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "B6f-report-mode-mismatch",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "B6g-report-incomplete-result",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "B7a-gateway-close-rejects",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "B7b-fixture-close-rejects",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "B8-shutdown-timeout",
+      "summary": "DIVERGENT",
+      "divergent": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "B9-cache-deletion-failure",
+      "summary": "DIVERGENT",
+      "divergent": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "B10-sigterm-midrun-browser-interrupt",
+      "summary": "CONFIRMED",
+      "divergent": []
+    }
+  ]
+}

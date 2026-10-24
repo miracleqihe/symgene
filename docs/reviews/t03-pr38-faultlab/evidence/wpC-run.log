@@ -1,0 +1,25 @@
+{"phase":"c2-new","ok":true,"tail":"se\":\"startup\",\"impl\":\"new\",\"shared\":false,\"round\":1,\"reproduced\":false,\"http504\":[0,0],\"mounted\":[true,true],\"fresh\":[true,true]}\n{\"phase\":\"startup\",\"impl\":\"new\",\"shared\":false,\"round\":2,\"reproduced\":false,\"http504\":[0,0],\"mounted\":[true,true],\"fresh\":[true,true]}\n{\"phase\":\"startup\",\"impl\":\"new\",\"shared\":false,\"round\":3,\"reproduced\":false,\"http504\":[0,0],\"mounted\":[true,true],\"fresh\":[true,true]}\n"}
+{"phase":"c1-old","ok":true,"tail":"endencies because vite config has changed\n{\"phase\":\"startup\",\"impl\":\"old\",\"shared\":false,\"round\":2,\"reproduced\":true,\"http504\":[3,0],\"mounted\":[false,true],\"fresh\":[false,true]}\n9:35:18 AM [vite] (client) Re-optimizing dependencies because vite config has changed\n{\"phase\":\"startup\",\"impl\":\"old\",\"shared\":false,\"round\":3,\"reproduced\":true,\"http504\":[0,3],\"mounted\":[true,false],\"fresh\":[true,false]}\n"}
+{"phase":"c3-new-shared","ok":true,"tail":"phase\":\"startup\",\"impl\":\"new\",\"shared\":true,\"round\":1,\"reproduced\":false,\"http504\":[0,0],\"mounted\":[true,true],\"fresh\":[true,true]}\n{\"phase\":\"startup\",\"impl\":\"new\",\"shared\":true,\"round\":2,\"reproduced\":false,\"http504\":[0,0],\"mounted\":[true,true],\"fresh\":[true,true]}\n{\"phase\":\"startup\",\"impl\":\"new\",\"shared\":true,\"round\":3,\"reproduced\":false,\"http504\":[0,0],\"mounted\":[true,true],\"fresh\":[true,true]}\n"}
+{"phase":"c5a-old","ok":true,"tail":"{\n \"impl\": \"old\",\n \"rejected\": {\n  \"name\": \"Error\",\n  \"code\": \"SIGNED_BROWSER_EVIDENCE_OUTSIDE_GIT_REQUIRED\",\n  \"message\": \"SIGNED_BROWSER_EVIDENCE_OUTSIDE_GIT_REQUIRED\"\n },\n \"leakedListeners\": 0,\n \"listenersAfter\": [],\n \"closesRecorded\": [],\n \"staleReportLeft\": false\n}\n"}
+{"phase":"c5a-new","ok":true,"tail":"{\n \"impl\": \"new\",\n \"rejected\": {\n  \"name\": \"Error\",\n  \"code\": \"SIGNED_BROWSER_EVIDENCE_OUTSIDE_GIT_REQUIRED\",\n  \"message\": \"SIGNED_BROWSER_EVIDENCE_OUTSIDE_GIT_REQUIRED\"\n },\n \"leakedListeners\": 0,\n \"listenersAfter\": [],\n \"closesRecorded\": [],\n \"staleReportLeft\": false\n}\n"}
+node:internal/errors:983
+  const err = new Error(message);
+              ^
+
+Error: Command failed: grep -o SIGNED_BROWSER_[A-Z_]+ <redacted-home>/Projects/symgene-workspace/.worktrees/t02-faultlab-old/scripts/t02/signed-consumer-browser.mjs
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:916:11)
+    at execFileSync (node:child_process:952:15)
+    at extractCodes (file://<redacted-home>/Projects/symgene-workspace/t02-faultlab/harness/wpC-differential.mjs:218:30)
+    at file://<redacted-home>/Projects/symgene-workspace/t02-faultlab/harness/wpC-differential.mjs:219:26 {
+  status: 1,
+  signal: null,
+  output: [ null, '', '' ],
+  pid: 91620,
+  stdout: '',
+  stderr: ''
+}
+
+Node.js v22.23.4

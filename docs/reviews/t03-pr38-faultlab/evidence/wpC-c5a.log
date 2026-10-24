@@ -1,0 +1,40 @@
+9:39:20 AM [vite] (client) Re-optimizing dependencies because vite config has changed
+{
+ "impl": "old",
+ "rejected": {
+  "name": "Error",
+  "code": "ERR_MODULE_NOT_FOUND",
+  "message": "Cannot find module '<tmpdir>/t02-faultlab-diff-producer-dCSOhe/missing-playwrigh"
+ },
+ "leakedListeners": 3,
+ "listenersAfter": [
+  "node    81840 <redacted-user>   14u  IPv4 0x58f081a834d2a986      0t0  TCP 127.0.0.1:50207",
+  "node    81840 <redacted-user>   15u  IPv4 0xaf0f5056910ca39c      0t0  TCP 127.0.0.1:50208",
+  "node    81840 <redacted-user>   28u  IPv4 0xdac2b07d81ec365c      0t0  TCP 127.0.0.1:50209"
+ ],
+ "closesRecorded": [],
+ "staleReportLeft": false
+}
+{
+ "impl": "new",
+ "rejected": {
+  "name": "Error",
+  "code": "ERR_MODULE_NOT_FOUND",
+  "message": "Cannot find module '<tmpdir>/t02-faultlab-diff-producer-TdZ4ye/missing-playwrigh"
+ },
+ "leakedListeners": 0,
+ "listenersAfter": [],
+ "closesRecorded": [
+  {
+   "name": "gateway",
+   "port": 50211,
+   "listening": false
+  },
+  {
+   "name": "checkpoint",
+   "port": 50210,
+   "listening": false
+  }
+ ],
+ "staleReportLeft": false
+}

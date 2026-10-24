@@ -1,0 +1,20 @@
+=== STEP unit-content-concurrency
+PASS (log: <redacted-home>/Projects/symgene-workspace/t02-faultlab/evidence/regression-unit-content-concurrency.log)
+# skipped 0
+# todo 0
+# duration_ms 19397.508708
+=== STEP browser-504-regression
+PASS (log: <redacted-home>/Projects/symgene-workspace/t02-faultlab/evidence/regression-browser-504-regression.log)
+# skipped 0
+# todo 0
+# duration_ms 1337.1275
+=== STEP matrix-ci-profile
+PASS (log: <redacted-home>/Projects/symgene-workspace/t02-faultlab/evidence/regression-matrix-ci-profile.log)
+{"id":"0-0-fresh-instance","order":"parallel","processes":"separate","cache":"default","ports":"fixed","temperature":"fresh-instance","status":"PASS","durations":[1052,1070]}
+{"id":"1-0-fresh-instance","order":"parallel","processes":"separate","cache":"default","ports":"ephemeral","consumers":["signed","signed"],"temperature":"fresh-instance","status":"PASS","durations":[987,956]}
+{"id":"2-0-fresh-instance","order":"parallel","processes":"separate","cache":"default","ports":"ephemeral","consumers":["development","development"],"temperature":"fresh-instance","status":"PASS","durations":[1158,1170]}
+=== SUMMARY
+unit-content-concurrency=0
+browser-504-regression=0
+matrix-ci-profile=0
+FAILED_STEPS=0

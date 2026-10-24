@@ -1,0 +1,7 @@
+{"id":"B1-close-joins-delayed-writer","round":1,"verdict":"JOINED","expect":"JOINED","matches":true,"ms":742}
+{"id":"B1-close-joins-delayed-writer","round":2,"verdict":"JOINED","expect":"JOINED","matches":true,"ms":647}
+{"id":"B1-close-joins-delayed-writer","round":3,"verdict":"JOINED","expect":"JOINED","matches":true,"ms":572}
+{"id":"B2a-close-joins-writer-released-after-close-start","round":1,"verdict":"JOINED","expect":"JOINED","matches":true,"ms":414}
+{"id":"B2a-close-joins-writer-released-after-close-start","round":2,"verdict":"JOINED","expect":"JOINED","matches":true,"ms":423}
+{"id":"B2a-close-joins-writer-released-after-close-start","round":3,"verdict":"JOINED","expect":"JOINED","matches":true,"ms":407}
+9:33:33 AM [vite] (client) [optimizer] bundling dependencies...
