@@ -1,4 +1,4 @@
-import { createServer } from 'vite';
+import { createConsumerViteServer } from './consumer-vite-server.mjs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SIGNED_MARKER, SIGNED_PATH } from '../../src/dev/t02-signed-session.js';
@@ -7,7 +7,7 @@ import { schema } from '../../vendor/t02/src/contract.mjs';
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const fail = (code) => { throw Object.assign(new Error(code), { code }); };
 
-export async function startSignedConsumer({ enabled = false, root = ROOT, port = 0, gatewayURL, versions, candidateVersion } = {}) {
+export async function startSignedConsumer({ enabled = false, root = ROOT, port = 0, cacheDir, gatewayURL, versions, candidateVersion } = {}) {
   if (enabled !== true) fail('SIGNED_CONSUMER_DISABLED');
   if (process.versions.node.split('.')[0] !== '22') fail('SIGNED_CONSUMER_NODE22_REQUIRED');
   if (!Number.isInteger(port) || port < 0 || port > 65535) fail('SIGNED_CONSUMER_PORT_INVALID');
@@ -18,7 +18,7 @@ export async function startSignedConsumer({ enabled = false, root = ROOT, port =
   if (!Array.isArray(versions) || versions.length < 2 || !versions.every((value) => typeof value === 'string' && new RegExp(schema.properties.contentVersion.pattern).test(value))
     || new Set(versions).size !== versions.length || !versions.includes(candidateVersion)) fail('SIGNED_CONFIGURATION_REJECTED');
   const configuration = { marker: SIGNED_MARKER, scope: 'local-test-only', production: 'legacy', versions, candidateVersion };
-  const app = await createServer({ root, server: { host: '127.0.0.1', port, strictPort: true, hmr: false }, plugins: [{
+  const app = await createConsumerViteServer({ root, cacheDir, server: { host: '127.0.0.1', port, strictPort: true, hmr: false }, plugins: [{
     name: 't02-signed-test-consumer',
     configureServer(server) {
       server.middlewares.use(async (request, response, next) => {
