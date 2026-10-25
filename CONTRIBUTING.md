@@ -263,4 +263,4 @@ Bug 报告请包含复现步骤、预期行为、实际行为、浏览器与系�
 
 ## T03 工程终判与发布阻断
 
-稳定 CI 检查为 `Commit identity`、`Branch policy`、`Verify`、`Content integration` 与 `Engineering gate`。终判无条件运行，所有必要上游必须恰好为 success。main 的可信 base 发布策略、真实审批缺失阻断、bootstrap 限制与 owner 设置任务见 [安全门禁说明](docs/security-release-gates.md)。`check:publication`、`build:release` 与生产授权继续 BLOCKED；工程 CI 通过不授权晋级、医学批准或部署。
+稳定 CI 检查为 `Commit identity`、`Branch policy`、`Verify`、`Content integration` 与 `Engineering gate`。终判无条件运行，所有必要上游必须恰好为 success。现有legacy网站按正常主题分支→dev→main流程发布，`check:publication`核验完整性，`build:release`可正常构建；不以前置医学、公众表达、来源使用签署或未配置的认证内容审批路径阻止晋级。普通代码审核、可信CI、main来源与制品绑定继续保留，详见[安全门禁说明](docs/security-release-gates.md)及[当前发布策略](docs/t02/local-standard-release.md)。本流程不伪造医学批准，也不自动启用T02签名包正式生产采用。
