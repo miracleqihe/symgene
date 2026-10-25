@@ -14,7 +14,7 @@
 | [S1R-REMEDIATION.patch](S1R-REMEDIATION.patch) | R1 审查整改(commit 989fb7b):审计器缺陷修复 + 新增负向测试(现状即 原始补丁 + 本补丁) |
 | [S1R2-REMEDIATION.patch](S1R2-REMEDIATION.patch) | R2 审查整改(commit 3588967):审计器二轮加固 + #39 兼容(现状 = 原始补丁 + R1 + R2) |
 | [S1R3-REMEDIATION.patch](S1R3-REMEDIATION.patch) | R3 审查整改(commit fc17a9d):条件绕过/表达式 coe/head_ref 与括号索引封堵 |
-| [S1-FINAL.patch](S1-FINAL.patch) | **合并替代**:自基准 22eb347 一步复现最终 .github 状态(= S0+S1+S1R+S1R2 的并集;与逐段补丁二选一,不得叠加使用) |
+| [S1-FINAL.patch](S1-FINAL.patch) | **合并替代**:自基准 22eb347 一步复现最终 .github 状态(= S0+S1+S1R+S1R2+S1R3 的并集,随每轮整改重新导出;与逐段补丁二选一,不得叠加使用) |
 | [verification/VERIFICATION-LOG.md](verification/VERIFICATION-LOG.md) | 补丁 apply/rollback 往返矩阵、测试明细、dev 分支前瞻性审计证据 |
 | [RULESET-MIGRATION-PLAN.md](RULESET-MIGRATION-PLAN.md) | 工作包 C:逐项可行性矩阵(支持/套餐/权限/check 存在/阶段/死锁/恢复)、ruleset JSON、死锁目录 D1–D6 |
 | [REQUIRED-CHECKS-MATRIX.md](REQUIRED-CHECKS-MATRIX.md) | 工作包 C:必需检查矩阵(真实 check 名与证据、可否必需、严格模式交互) |
@@ -31,11 +31,11 @@
 2. `git apply S1-TRUSTED-BOOTSTRAP.patch`(对应 `7a58407`)
 3. `git apply S1R-REMEDIATION.patch`(989fb7b;基于 S0+S1 之后的 .github 状态)
 4. `git apply S1R2-REMEDIATION.patch`(3588967;R2 加固)
-5. `git apply S1R3-REMEDIATION.patch`(fc17a9d;R3 加固)
+5. `git apply S1R3-REMEDIATION.patch`(fc17a9d..5d1d930;R3 加固)
 
 **方式 B(单补丁)**:`git apply S1-FINAL.patch`(= 上述并集;**不得与方式 A 叠加**)。
 
-SHA 校验:`git fetch origin review/t03-main-bootstrap-s0-s1 && git log --oneline 22eb347..FETCH_HEAD` 应依次为 d6fb5fd、7a58407、82b05e5、989fb7b、0ec15ed、d814f3c、3588967、6e61994、34f74b0、08f4534、fc17a9d、c5d0e20、5d1d930、(R3 文档提交);每步 `git apply --check` 必须先通过;最终 `node --test .github/tests/*.test.mjs` 应为 72/72。测试计数沿革:20(R1 初版)→ 42(R1 整改)→ 63(R2 加固)→ 72(R3 加固),历史记录见 verification/VERIFICATION-LOG.md。
+SHA 校验:`git fetch origin review/t03-main-bootstrap-s0-s1 && git log --oneline 22eb347..FETCH_HEAD` 应依次为 d6fb5fd、7a58407、82b05e5、989fb7b、0ec15ed、d814f3c、3588967、6e61994、34f74b0、08f4534、fc17a9d、c5d0e20、5d1d930、0cf720d、(R4 提交,见 verification/VERIFICATION-LOG.md §R4);每步 `git apply --check` 必须先通过;最终 `node --test .github/tests/*.test.mjs` 应为 80/80。测试计数沿革:20(R1 初版)→ 42(R1 整改)→ 63(R2 加固)→ 72(R3 加固)→ 80(R4 加固),历史记录见 verification/VERIFICATION-LOG.md。
 
 ## 当前状态一句话
 

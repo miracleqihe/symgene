@@ -42,11 +42,30 @@ const V2_CANONICAL = `if [[ "$EVENT_NAME" == "pull_request" && "$BASE_REF" == "m
 [[ "$HEAD_REF" == "dev" && "$HEAD_REPOSITORY" == "$BASE_REPOSITORY" ]] || exit 1
 fi`
 
-function normalizeText(s) {
-  return s.replace(/\\\r?\n/g, ' ').replace(/\s+/g, '')
+// Quote-aware shell normalization: whitespace OUTSIDE quotes is removed
+// entirely; every character INSIDE quotes is preserved verbatim. Stripping
+// all whitespace (R3) made "de v" and "dev" normalize identically — a real
+// bypass, because "de v" is a valid git branch name.
+function normalizeShellText(s) {
+  let out = ''
+  let q = null
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i]
+    if (q) {
+      if (q === '"' && ch === '\\') { out += ch + (s[i + 1] ?? ''); i++; continue }
+      if (ch === q) q = null
+      out += ch
+      continue
+    }
+    if (ch === '"' || ch === "'") { q = ch; out += ch; continue }
+    if (ch === '\\' && (s[i + 1] === '\n' || s[i + 1] === '\r')) { i++; continue }
+    if (/\s/.test(ch)) continue
+    out += ch
+  }
+  return out
 }
-const V1_TEMPLATE = normalizeText(V1_CANONICAL)
-const V2_TEMPLATE = normalizeText(V2_CANONICAL)
+const V1_TEMPLATE = normalizeShellText(V1_CANONICAL)
+const V2_TEMPLATE = normalizeShellText(V2_CANONICAL)
 
 // Duplicate keys are valid YAML (last wins — the scanner's Maps behave the
 // same, so conclusions stay consistent), but they are a classic parser-
@@ -83,20 +102,60 @@ export function findDuplicateKeys(text) {
 function auditSwallowedFailures(jobs, guardedJobIds, add) {
   for (const [jobId, jobBlock] of jobs) {
     if (!guardedJobIds.includes(jobId)) continue
+    let runIndent = null
     for (const raw of jobBlock.lines) {
       const line = stripComments(raw)
+      if (!line.trim()) continue
+      const indent = line.length - line.trimStart().length
+      if (runIndent !== null && indent <= runIndent) runIndent = null
+
       if (/^\s*continue-on-error:/i.test(line)) {
         const value = line.replace(/^\s*continue-on-error:\s*/i, '').trim()
         if (value !== 'false') {
           add('FAILURE_SWALLOWED', `job "${jobId}" sets continue-on-error: ${value || '(empty)'}; only the literal false is accepted, anything else (including expressions) can swallow failures`)
         }
-      }
-      if (/\|\|\s*(true|:)\b/.test(line)) {
-        add('FAILURE_SWALLOWED', `job "${jobId}" swallows a failure with "|| true"; gate and publish steps must fail loudly`)
+        continue
       }
       if (/\bset\s+\+e\b/.test(line)) {
         add('FAILURE_SWALLOWED', `job "${jobId}" disables errexit (set +e); failures would be swallowed`)
       }
+
+      const runMatch = line.match(/^\s*(?:-\s+)?run:\s*(.*)$/)
+      if (runMatch) {
+        auditPipeSwallow(runMatch[1].trim(), jobId, add)
+        if (/^[|>]/.test(runMatch[1].trim())) runIndent = indent
+        continue
+      }
+      if (runIndent !== null) {
+        auditPipeSwallow(line, jobId, add)
+      }
+    }
+  }
+}
+
+// Flag `||` operators outside quotes unless the right-hand side is the
+// fail-loud `exit 1` (the v2 gate form). Covers "|| true", "|| :",
+// "|| exit 0", "|| echo ..." and similar swallows; JS script blocks are out
+// of scope ("||" there is the logical operator, not shell failure control).
+function auditPipeSwallow(text, jobId, add) {
+  let q = null
+  let bracketDepth = 0 // inside [[ ]] the "||" is the test operator, not shell pipe
+  for (let i = 0; i < text.length - 1; i++) {
+    const ch = text[i]
+    if (q) {
+      if (ch === '\\') { i++; continue }
+      if (ch === q) q = null
+      continue
+    }
+    if (ch === '"' || ch === "'") { q = ch; continue }
+    if (ch === '[' && text[i + 1] === '[') { bracketDepth++; i++; continue }
+    if (ch === ']' && text[i + 1] === ']' && bracketDepth > 0) { bracketDepth--; i++; continue }
+    if (bracketDepth === 0 && ch === '|' && text[i + 1] === '|') {
+      const rhs = text.slice(i + 2).trim()
+      if (!/^exit\s+1\b/.test(rhs)) {
+        add('FAILURE_SWALLOWED', `job "${jobId}" swallows a failure with "|| ${rhs.slice(0, 30)}"; only "|| exit 1" (fail-loud) is accepted in gate/publish shell steps`)
+      }
+      return
     }
   }
 }
@@ -417,7 +476,7 @@ function auditPullRequestTargetJob(jobBlock, jobId, add) {
     const blockStart = line.match(/^\s*(?:-\s+)?(run|script):\s*(.*)$/)
     if (blockStart) {
       auditUntrustedInterpolation(blockStart[2], jobId, `${blockStart[1]} script`, add)
-      if (/[|>]\s*$/.test(blockStart[2])) blockIndent = indent
+      if (/^[|>]/.test(blockStart[2].trim())) blockIndent = indent
       continue
     }
     if (blockIndent !== null) {
@@ -540,43 +599,21 @@ function auditDeployWorkflow(blocks, fileName) {
 //     positive [[ ... == dev && ... == ... ]] || exit 1.
 // Anything else fails closed (BRANCH_POLICY_WEAKENED when recognizable
 // fragments exist, BRANCH_POLICY_UNRECOGNIZED otherwise).
-const REQUIRED_ENV_BINDINGS = {
-  BASE_REF: '${{github.base_ref}}',
-  HEAD_REF: '${{github.head_ref}}',
-  HEAD_REPOSITORY: '${{github.event.pull_request.head.repo.full_name}}',
-  BASE_REPOSITORY: '${{github.repository}}',
-}
+const BLOCK_HEADER_RE = /^[|>](?:[0-9][+-]?|[+-][0-9]?|[0-9])?$/
 
-function collectStepEnv(blockLines) {
-  const env = new Map()
-  let envIndent = null
-  for (const raw of blockLines) {
-    const line = stripComments(raw)
-    if (!line.trim()) continue
-    const indent = line.length - line.trimStart().length
-    if (envIndent !== null) {
-      if (indent > envIndent) {
-        const m = line.trim().match(/^([A-Za-z_][A-Za-z0-9_]*):\s*(.*)$/)
-        if (m) env.set(m[1], m[2].replace(/\s+/g, ''))
-        continue
-      }
-      envIndent = null
-    }
-    if (/^\s*env:\s*$/.test(line)) envIndent = indent
-  }
-  return env
-}
-
-// Extract exactly the run-block script text (the block scalar after
-// `run: |`, or the inline value) so template equality applies to the
-// executed script alone, not to the surrounding job metadata.
-function extractRunScript(blockLines) {
+// Extract the run-block script for ONE step. Block scalars with chomping
+// and indentation indicators are supported (`|`, `|-`, `>`, `>-`, `|2`,
+// `|-2`, ...); literal and folded normalize equal because outside-quote
+// whitespace is removed. ok=false means the run form cannot be reliably
+// parsed — callers must fail closed.
+function extractRunBlock(blockLines) {
   const lines = blockLines.map(stripComments)
   for (let i = 0; i < lines.length; i++) {
     const m = lines[i].match(/^\s*(?:-\s+)?run:\s*(.*)$/)
     if (!m) continue
-    const value = m[1]
-    if (!/^[|>]\s*$/.test(value)) return normalizeText(value)
+    const value = m[1].trim()
+    if (!/^[|>]/.test(value)) return { script: normalizeShellText(value), ok: true }
+    if (!BLOCK_HEADER_RE.test(value)) return { script: '', ok: false }
     const indent = lines[i].length - lines[i].trimStart().length
     const body = []
     for (let j = i + 1; j < lines.length; j++) {
@@ -586,9 +623,62 @@ function extractRunScript(blockLines) {
       if (li <= indent) break
       body.push(l)
     }
-    return normalizeText(body.join('\n'))
+    return { script: normalizeShellText(body.join('\n')), ok: true }
   }
-  return ''
+  return { script: '', ok: false }
+}
+
+// Environment blocks declared at exactly `indent` (job-level block or one
+// step's own block).
+function collectEnvAt(blockLines, indent) {
+  const env = new Map()
+  let envIndent = null
+  for (const raw of blockLines) {
+    const line = stripComments(raw)
+    if (!line.trim()) continue
+    const li = line.length - line.trimStart().length
+    if (envIndent !== null) {
+      if (li > envIndent) {
+        const m = line.trim().match(/^([A-Za-z_][A-Za-z0-9_]*):\s*(.*)$/)
+        if (m) env.set(m[1], m[2].replace(/\s+/g, ''))
+        continue
+      }
+      envIndent = null
+    }
+    if (li === indent && /^\s*env:\s*$/.test(line)) envIndent = li
+  }
+  return env
+}
+
+// Sequence entries (`- ` items) at exactly `indent`, each with its body lines.
+function splitSequenceEntries(blockLines, indent) {
+  const entries = []
+  const prefix = ' '.repeat(indent)
+  let current = null
+  for (const raw of blockLines) {
+    const line = stripComments(raw)
+    if (!line.trim()) continue
+    if (line.startsWith(prefix) && !line.startsWith(prefix + ' ') && /^-\s/.test(line.slice(prefix.length))) {
+      current = { lines: [raw] }
+      entries.push(current)
+      continue
+    }
+    if (current && line.length - line.trimStart().length > indent) current.lines.push(raw)
+  }
+  return entries
+}
+
+// Branch policy validation binds the template script, the effective
+// environment (job-level merged with the gate step's own block) and the step
+// conditions to ONE actual step. R3 merged env blocks across steps, so a
+// hard-wired gate step could be masked by a later step carrying correct
+// values. Matching is template EQUALITY via the quote-aware normalization;
+// unparseable run forms fail closed.
+const REQUIRED_ENV_BINDINGS = {
+  BASE_REF: '${{github.base_ref}}',
+  HEAD_REF: '${{github.head_ref}}',
+  HEAD_REPOSITORY: '${{github.event.pull_request.head.repo.full_name}}',
+  BASE_REPOSITORY: '${{github.repository}}',
 }
 
 export function auditBranchPolicy(blocks, fileName) {
@@ -602,53 +692,56 @@ export function auditBranchPolicy(blocks, fileName) {
     return violations
   }
 
-  const env = collectStepEnv(policy.lines)
-  for (const [key, expected] of Object.entries(REQUIRED_ENV_BINDINGS)) {
-    if (env.get(key) !== expected) {
-      add('BRANCH_POLICY_ENV_BINDING_WEAKENED',
-        `branch-policy env var ${key} must interpolate the real context ${expected}; found ${env.get(key) ? `"${env.get(key)}"` : 'nothing'} (hard-wired values make the gate vacuous)`)
-    }
-  }
-  const event = env.get('EVENT_NAME')
-  if (event && event !== '${{github.event_name}}') {
-    add('BRANCH_POLICY_ENV_BINDING_WEAKENED', `branch-policy env var EVENT_NAME must interpolate \${{ github.event_name }}; found "${event}"`)
+  const jobEnv = collectEnvAt(policy.lines, 4)
+  const steps = splitSequenceEntries(policy.lines, 6)
+  if (steps.length === 0) {
+    add('BRANCH_POLICY_UNRECOGNIZED', 'branch-policy job has no parseable steps; the auditor only accepts block-form steps')
+    return violations
   }
 
   const jobIf = subBlocks(policy.lines, 4).get('if')
   const jobIfText = jobIf ? (jobIf.inline || jobIf.lines.join(' ')) : ''
-  const script = extractRunScript(policy.lines)
-
-  // Template equality (not containment): the normalized script must be
-  // exactly an accepted gate. Containment allowed the signature to hide in
-  // dead strings, extra statements, or non-executed branches.
-  const sigV1 = script === V1_TEMPLATE
-  const sigV2 = script === V2_TEMPLATE
-
-  // A job-level if is allowed only in the exact v1 gating form. Substring
-  // matching accepted always-false variants ("x == 'main' && false"), so the
-  // condition must equal the v1 gate after whitespace normalization.
   const jobIfOk = !jobIfText || jobIfText.replace(/\s+/g, '') === "github.event_name=='pull_request'&&github.base_ref=='main'"
+  if (!jobIfOk) {
+    add('BRANCH_POLICY_NOT_GATED', `branch-policy job-level if "${jobIfText}" is not the exact v1 main-gating condition; altered conditions can skip the gate exactly when it must run`)
+  }
 
-  // Step-level conditions on the enforcement step are rejected: the gate
-  // must not be conditional.
-  for (const raw of policy.lines) {
-    if (/^\s{6,}if:/.test(stripComments(raw))) {
-      add('BRANCH_POLICY_STEP_CONDITION', 'branch-policy steps must not be conditional; the gate has to execute on every PR to main')
-      break
+  let gateSteps = 0
+  let fragmentStep = null
+  for (const step of steps) {
+    const { script, ok } = extractRunBlock(step.lines)
+    if (!ok) {
+      add('BRANCH_POLICY_UNRECOGNIZED', 'branch-policy step uses a run form the auditor cannot reliably parse (unrecognized block scalar header or empty run); refusing to guess')
+      continue
+    }
+    const isGate = script === V1_TEMPLATE || script === V2_TEMPLATE
+    if (!isGate) {
+      if (script.includes('HEAD_REF') && /dev/.test(script) && script.includes('exit1')) fragmentStep = { step, script }
+      continue
+    }
+    gateSteps++
+    if (subBlocks(step.lines, 8).get('if')) {
+      add('BRANCH_POLICY_STEP_CONDITION', 'the gate step is conditional; it must execute on every PR to main (skipped steps satisfy required checks)')
+    }
+    // effective env = job-level merged with the gate step's own block
+    const stepEnv = collectEnvAt(step.lines, 8)
+    const effective = new Map([...jobEnv, ...stepEnv])
+    for (const [key, expected] of Object.entries(REQUIRED_ENV_BINDINGS)) {
+      if (effective.get(key) !== expected) {
+        add('BRANCH_POLICY_ENV_BINDING_WEAKENED', `gate step env ${key} must interpolate the real context ${expected}; found ${effective.get(key) ? `"${effective.get(key)}"` : 'nothing'} (hard-wired or wrong-step values make the gate vacuous)`)
+      }
+    }
+    const event = effective.get('EVENT_NAME')
+    if (event && event !== '${{github.event_name}}') {
+      add('BRANCH_POLICY_ENV_BINDING_WEAKENED', 'gate step env EVENT_NAME must interpolate ${{ github.event_name }}; found "' + event + '"')
     }
   }
 
-  if (!jobIfOk || !(sigV1 || sigV2)) {
-    if (!jobIfOk) {
-      add('BRANCH_POLICY_NOT_GATED', `branch-policy job-level if "${jobIfText}" can skip the gate on pull_request to main; only a main-gating condition or no if is accepted`)
-    }
-    if (!(sigV1 || sigV2)) {
-      const recognizable = script.includes('HEAD_REF') && /dev/.test(script) && script.includes('exit1')
-      if (recognizable) {
-        add('BRANCH_POLICY_WEAKENED', 'branch-policy script resembles a gate but does not equal an accepted template; a constraint was likely removed, weakened, or wrapped')
-      } else {
-        add('BRANCH_POLICY_UNRECOGNIZED', 'branch-policy script does not equal an accepted gate template (v1 deny-by-default, v2 positive-gate); extend the auditor deliberately before trusting it')
-      }
+  if (gateSteps === 0) {
+    if (fragmentStep) {
+      add('BRANCH_POLICY_WEAKENED', 'a branch-policy step resembles a gate but does not equal an accepted template; a constraint was likely removed, weakened, or quoted differently')
+    } else {
+      add('BRANCH_POLICY_UNRECOGNIZED', 'no branch-policy step equals an accepted gate template (v1 deny-by-default, v2 positive-gate); extend the auditor deliberately before trusting it')
     }
   }
   return violations

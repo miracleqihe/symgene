@@ -72,8 +72,8 @@
   git apply S1R-REMEDIATION.patch && git commit -m "S1R: R1 remediation"
   git apply S1R2-REMEDIATION.patch && git commit -m "S1R2: R2 auditor hardening"
   git apply S1R3-REMEDIATION.patch && git commit -m "S1R3: R3 auditor hardening"
-  # 或单补丁等价方式:git apply S1-FINAL.patch(= 全链并集,不得与逐段叠加)
-  node --test .github/tests/*.test.mjs   # 必须 72 pass / 0 fail(R3 后;沿革 20→42→63→72 见 verification/VERIFICATION-LOG.md)
+  # 或单补丁等价方式:git apply S1-FINAL.patch(= 全链并集 S0..S1R3,随每轮整改重导出;不得与逐段叠加)
+  node --test .github/tests/*.test.mjs   # 必须 80 pass / 0 fail(R4 后;沿革 20→42→63→72→80 见 verification/VERIFICATION-LOG.md)
   git push origin bootstrap/main-sec-22eb347
   gh pr create --repo miracleqihe/symgene --base main --head bootstrap/main-sec-22eb347 \
     --title "main security bootstrap: S0 freeze + S1 governance" \

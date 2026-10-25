@@ -165,3 +165,33 @@ docs.github.com "Status checks":*"A job that is skipped will report its status a
 - `node --test .github/tests/*.test.mjs`:**72 tests / 72 pass / 0 fail**(63 → 72,+9:7 攻击 + 2 对照;零断言删除或放宽)。
 - 兼容:#37 `a799746` + #39 `a7ca006` 双实测 **PASS**(R3 新规则不破坏其文件;保留属性断言全过)。
 - 12 个平台脚本模拟模式通过;`git apply --check` 补丁链(S0→S1→S1R→S1R2→S1R3)与 S1-FINAL 全通过。
+
+
+---
+
+# R4 独立 Review 整改记录(2026-10-24,P1-18..P1-24)
+
+## 复现与修复(8 项新断言:6 红 + 2 控制;另 10 项 Bash 自测)
+
+| Finding | 复现 | 修复 |
+|---|---|---|
+| P1-18 引号语义被空白归一化破坏 | `"de v"` 是合法分支名;R3 归一化后 `"de v"` 门禁与 `"dev"` 模板全等 → 攻击者以 `de v` 分支开 PR 即旁路 | `normalizeShellText`:引号外空白全删、引号内字符逐字保留(含转义);模板常量同法重建 |
+| P1-19 门禁 env 跨步骤污染 | step1 = 门禁脚本 + `HEAD_REF: dev` 硬编码,step2 = 正确 env + 诱饵脚本;R3 合并全部 env 块(后者覆盖)且取第一个 run 块 → 空洞门禁被放行 | 门禁脚本、effective env(job 级 ∪ 该步骤自身)、步骤条件绑定到同一步骤;逐 gate step 校验 |
+| P1-20 块标量识别不完整 | `run: |-` 的内容逃逸 pull_request_target 扫描;`run: >-` 门禁无法通过模板等价 | 块头全集 `\|`,`\|-`,`>`,`>-`,`\|2`,`\|-2`…(BLOCK_HEADER_RE);不可识别头 → 显式失败;折叠/字面在引号感知归一化下语义等价 |
+| P1-21 `|| :` 漏检 | `\|\|\s*(true\|:)` 的 `` 在冒号后无边界 → `|| :` 逃逸 | shell `run:` 块内 `||`(引号外、`[[ ]]` 外)仅允许 RHS=`exit 1`;`|| true`/`:`/`exit 0`/`echo …` 全拒;JS `script:` 块豁免(`\|\|` 为逻辑运算符) |
+| P1-22 mergeStateStatus 枚举错误 | `MERGEABLE` 不是 GraphQL MergeStateStatus 的取值 | `await_merge_state`:满足态=CLEAN,门禁未满足=BLOCKED;UNSTABLE/UNKNOWN/BEHIND/HAS_HOOKS/DIRTY/DRAFT 重试后仍暂态 → BLOCKED(不可定论),绝不即时判 FAIL/PASS;NEG-01/03 改用 |
+| P1-23 NEG-05 测量不可信 | R3 脚本:真实合并、结果与预期不比、neutral 创建失败继续 | 三实验隔离、零合并;逐例断言前置(工作流在场/check-run 可见/App 来源)→ 未满足即 BLOCKED;记录 conclusion+App slug+mergeStateStatus 并与文档预期比对(MEASURED-OK / MEASURED-DEVIATION);check-run 创建需 GitHub App,用户 token 被拒 → case C BLOCKED |
+| P1-24 裁决函数受 set -e 影响 | `out=$("$@" 2>&1)` 在 set -e 下子命令失败即中止脚本,分类代码不可达 | 捕获改 `rc=0; out=$("$@" 2>&1) \|\| rc=$?`;全部裁决行(stdout)可断言;`selftest.sh` 10 项真实 Bash 执行(各裁决分支 + set -e 回归 + 身份/仓守卫)全过 |
+| README S1-FINAL 过期说明 | 说明写"S0+S1+S1R+S1R2 的并集" | 更正为含 S1R3 的全链并集,并注明随每轮整改重导出 |
+
+## 解析器系统性风险评估(R4 结论)
+
+手写解析器的剩余风险不是"已覆盖形态漏检",而是"未来新语法被静默跳过"——该通道已被 fail-closed 全覆盖。升级 actionlint/workflow-schema 属结构化验证选项(需引入依赖,牺牲 npm ci 前运行的抗篡改属性),建议 Owner 在引入第三方工作流语法时再评估;当前以**收窄支持范围 + 显式拒绝**为安全边界(声明见 REQUIRED-CHECKS-MATRIX §4.1)。
+
+## 全量复测(R4 收口时点)
+
+- `node --test`:**80/80**(72 → 80:+8,6 红 2 控制;零断言删除/放宽)。
+- `selftest.sh`:**10/10**(真实 Bash 执行)。
+- 兼容:#37 `a799746` + #39 `a7ca006` **PASS**(R4 规则不误伤:其 `||` 全在 JS script 块,门禁 `|| exit 1` 放行)。
+- 补丁链逐字节复现 + `S1-FINAL` 等价:PASS(见 README 补丁链)。
+- `git diff --check` clean;`npm run verify` 全绿;敏感串 grep CLEAN。

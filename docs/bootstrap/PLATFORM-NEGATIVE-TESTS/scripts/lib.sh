@@ -18,6 +18,7 @@
 #   3. Without LIVE=1, scripts only print their execution plan and the
 #      expected platform response. No write API calls are made.
 
+EXIT_PASS=0
 EXIT_FAIL=1
 EXIT_BLOCKED_AUTH=70
 EXIT_BLOCKED_INPUT=71
@@ -94,7 +95,7 @@ require_identity() {
     local who
     for who in "$@"; do
       if [[ -z "$(identity_var "$who" TOKEN)" || -z "$(identity_var "$who" USER)" ]]; then
-        echo "VERDICT: BLOCKED — identity GH_${who} needs both GH_${who}_TOKEN and GH_${who}_USER; this scenario refuses to run under a single/default identity" >&2
+        echo "VERDICT: BLOCKED — identity GH_${who} needs both GH_${who}_TOKEN and GH_${who}_USER; this scenario refuses to run under a single/default identity"
         exit $EXIT_BLOCKED_IDENTITY
       fi
     done
@@ -105,7 +106,14 @@ require_identity() {
 
 identity_var() {
   # GH_A -> GH_A_TOKEN / GH_A_USER (legacy GH_A token accepted)
-  local who="$1" kind="$2" legacy="GH_${who}" v="GH_${who}_${kind}"
+  # NOTE: local declarations are split — under set -u a combined local line
+  # expands later words before earlier assignments take effect.
+  local who
+  local kind
+  who="$1"
+  kind="$2"
+  local legacy="GH_${who}"
+  local v="GH_${who}_${kind}"
   if [[ -n "${!v:-}" ]]; then printf '%s' "${!v}"
   elif [[ "$kind" == "TOKEN" && -n "${!legacy:-}" ]]; then printf '%s' "${!legacy}"
   fi
@@ -116,11 +124,11 @@ assert_identity() {
   expected=$(identity_var "$who" USER)
   want="GH_${who}_USER=${expected}"
   got=$(GH_TOKEN="$(identity_var "$who" TOKEN)" gh api user --jq .login 2>/dev/null) || {
-    echo "VERDICT: BLOCKED — token for GH_${who} could not authenticate" >&2
+    echo "VERDICT: BLOCKED — token for GH_${who} could not authenticate"
     exit $EXIT_BLOCKED_AUTH
   }
   if [[ "$got" != "$expected" ]]; then
-    echo "VERDICT: BLOCKED — identity misbinding for GH_${who}: token authenticates as '${got}', expected '${expected}' (${want})" >&2
+    echo "VERDICT: BLOCKED — identity misbinding for GH_${who}: token authenticates as '${got}', expected '${expected}' (${want})"
     exit $EXIT_BLOCKED_IDENTITY
   fi
   echo "[live] identity GH_${who} verified as ${got}"
@@ -138,19 +146,20 @@ authed_url() {
 # interferes); harness problems -> BLOCKED.
 expect_accepted() {
   local desc="$1"; shift
+  [[ "${1:-}" == "--" ]] && shift
   local out rc
-  out=$("$@" 2>&1)
-  rc=$?
+  rc=0
+  out=$("$@" 2>&1) || rc=$?
   if [[ $rc -eq 0 ]]; then
     echo "VERDICT: PASS (positive control) — ${desc}"
     return 0
   fi
   if printf '%s' "$out" | grep -Eqi "$DISTRESS_RE"; then
-    echo "VERDICT: BLOCKED — ${desc} failed for a harness/permission reason:" >&2
+    echo "VERDICT: BLOCKED — ${desc} failed for a harness/permission reason:"
     printf '%s\n' "$out" | head -5 >&2
     return $EXIT_BLOCKED_AUTH
   fi
-  echo "VERDICT: FAIL — positive control failed: ${desc}; another gate is interfering with attribution:" >&2
+  echo "VERDICT: FAIL — positive control failed: ${desc}; another gate is interfering with attribution:"
   printf '%s\n' "$out" | head -5 >&2
   return $EXIT_FAIL
 }
@@ -176,6 +185,36 @@ require_actor_not_admin() {
   fi
 }
 
+# mergeStateStatus (GitHub GraphQL MergeStateStatus) has NO "MERGEABLE"
+# value: the satisfied state is CLEAN; BLOCKED means a gate is unsatisfied;
+# UNSTABLE/UNKNOWN/BEHIND/HAS_HOOKS/DIRTY/DRAFT are transient or unrelated —
+# they are retried and never judged PASS/FAIL outright (P1-22).
+await_merge_state() { # <pr-number> <expected: CLEAN|BLOCKED>
+  local n="$1" expected="$2" got i
+  for i in 1 2 3 4 5 6; do
+    got=$(gh pr view "$n" --repo "$TEST_REPO" --json mergeStateStatus --jq .mergeStateStatus 2>/dev/null) || {
+      echo "VERDICT: BLOCKED — cannot read mergeStateStatus for PR ${n}" >&2
+      return $EXIT_BLOCKED_AUTH
+    }
+    case "$got" in
+      "$expected")
+        echo "VERDICT: PASS — mergeStateStatus=${got}"
+        return 0
+        ;;
+      UNSTABLE|UNKNOWN|BEHIND|HAS_HOOKS|DIRTY|DRAFT)
+        sleep 10
+        continue
+        ;;
+      *)
+        echo "VERDICT: FAIL — mergeStateStatus=${got}, expected ${expected}"
+        return $EXIT_FAIL
+        ;;
+    esac
+  done
+  echo "VERDICT: BLOCKED — mergeStateStatus remained transient (${got:-unreadable}) after retries; inconclusive" >&2
+  return $EXIT_BLOCKED_INPUT
+}
+
 # Run gh as a specific lab identity (GH_<NAME> holds a PAT). In live mode a
 # missing token is a hard BLOCKED, never a silent fallback.
 gh_as() {
@@ -185,7 +224,7 @@ gh_as() {
   if [[ -n "$token" ]]; then
     GH_TOKEN="$token" gh "$@"
   elif [[ "${LIVE:-0}" == "1" ]]; then
-    echo "VERDICT: BLOCKED — identity GH_${who} required for a live call is not configured" >&2
+    echo "VERDICT: BLOCKED — identity GH_${who} required for a live call is not configured"
     exit $EXIT_BLOCKED_IDENTITY
   else
     echo "[warn] GH_${who} not set; simulate mode: would call gh $*" >&2
@@ -206,10 +245,10 @@ expect_protected_rejection() {
   local desc="$1" pattern="$2"; shift 2
   [[ "${1:-}" == "--" ]] && shift
   local out rc
-  out=$("$@" 2>&1)
-  rc=$?
+  rc=0
+  out=$("$@" 2>&1) || rc=$?
   if [[ $rc -eq 0 ]]; then
-    echo "VERDICT: FAIL — ${desc} was NOT rejected. Protection is missing or misconfigured. DO NOT ignore this." >&2
+    echo "VERDICT: FAIL — ${desc} was NOT rejected. Protection is missing or misconfigured. DO NOT ignore this."
     return $EXIT_FAIL
   fi
   if printf '%s' "$out" | grep -Eqi "$pattern"; then
@@ -218,11 +257,11 @@ expect_protected_rejection() {
     return 0
   fi
   if printf '%s' "$out" | grep -Eqi "$DISTRESS_RE"; then
-    echo "VERDICT: BLOCKED — failure is a harness/permission problem, not a proven protection rejection:" >&2
+    echo "VERDICT: BLOCKED — failure is a harness/permission problem, not a proven protection rejection:"
     printf '%s\n' "$out" | head -5 >&2
     return $EXIT_BLOCKED_AUTH
   fi
-  echo "VERDICT: BLOCKED — failure with an unrecognized error; not counted as protection:" >&2
+  echo "VERDICT: BLOCKED — failure with an unrecognized error; not counted as protection:"
   printf '%s\n' "$out" | head -5 >&2
   return $EXIT_BLOCKED_INPUT
 }

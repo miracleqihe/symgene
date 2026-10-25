@@ -9,7 +9,7 @@ Owner = `miracleqihe`(网站仓唯一 admin)。配套数据仓(私有)的管理�
 
 - [ ] `gh api repos/miracleqihe/symgene/actions/workflows` 中 deploy-pages 状态仍为 `disabled_manually`
 - [ ] 最近一次 Pages 部署仍为 `22eb347edf30`(2026-09-15)
-- [ ] 本地已完成:补丁链 `git apply --check` 全通过,`node --test .github/tests/*.test.mjs` 63/63(补丁链与 SHA 校验见 verification/VERIFICATION-LOG.md §R2)
+- [ ] 本地已完成:补丁链 `git apply --check` 全通过,`node --test .github/tests/*.test.mjs` 80/80(补丁链与 SHA 校验见 verification/VERIFICATION-LOG.md §R4)
 
 ## 顺序操作
 

@@ -780,3 +780,107 @@ test('P1-13 control: bracket-indexed pull_request.number stays allowed', () => {
   const codes = auditWorkflow(BRACKET_NUMBER_RUN, 'pr-governance.yml').map((v) => v.code)
   assert.ok(!codes.includes('PR_TARGET_UNTRUSTED_INPUT'), `unexpected ${codes}`)
 })
+
+// ===========================================================================
+// R4 adversarial round (2026-10-24, findings P1-18..P1-21).
+// Written before the fix; each must be red on the R3 auditor.
+// ===========================================================================
+
+// --- P1-18: whitespace-stripping normalization destroys quoted semantics ----
+// Git refs may contain spaces ("de v" is a valid branch name). The R3
+// normalizer stripped ALL whitespace, so a gate comparing against "de v"
+// normalized identically to the "dev" template — an attacker simply opens
+// the PR from a branch named "de v" and the gate passes.
+const V2_QUOTED_DE_V = GOOD_CI_V2.replace('[[ "$HEAD_REF" == "dev" &&', '[[ "$HEAD_REF" == "de v" &&')
+
+test('P1-18: quoted "de v" comparison must not normalize to "dev" (template mismatch)', () => {
+  const codes = auditWorkflow(V2_QUOTED_DE_V, 'ci.yml').map((v) => v.code)
+  assert.ok(codes.includes('BRANCH_POLICY_UNRECOGNIZED') || codes.includes('BRANCH_POLICY_WEAKENED'),
+    `expected a BRANCH_POLICY_ violation, got ${codes}`)
+})
+
+test('P1-18 control: folded block scalar (run: >-) still matches the v2 template', () => {
+  const folded = GOOD_CI_V2.replace('        run: |\n', '        run: >-\n')
+  const codes = auditWorkflow(folded, 'ci.yml').map((v) => v.code)
+  assert.ok(!codes.some((c) => c.startsWith('BRANCH_POLICY_')), `unexpected ${codes}`)
+})
+
+// --- P1-19: gate env cross-step pollution -----------------------------------
+// Step 1 carries the gate script with a hard-wired env; step 2 carries the
+// correct env with a decoy script. R3 merged all env blocks (last wins =
+// step 2's correct values) and took the FIRST run block as the script, so
+// the vacuous gate in step 1 was accepted.
+const GATE_STEP_HARDWIRED = GOOD_CI_V2.replace(
+  `        env:
+          EVENT_NAME: \${{ github.event_name }}
+          BASE_REF: \${{ github.base_ref }}
+          HEAD_REF: \${{ github.head_ref }}
+          BASE_REPOSITORY: \${{ github.repository }}
+          HEAD_REPOSITORY: \${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          if [[ "$EVENT_NAME" == "pull_request" && "$BASE_REF" == "main" ]]; then
+            [[ "$HEAD_REF" == "dev" && "$HEAD_REPOSITORY" == "$BASE_REPOSITORY" ]] || exit 1
+          fi
+`,
+  `        env:
+          EVENT_NAME: \${{ github.event_name }}
+          BASE_REF: \${{ github.base_ref }}
+          HEAD_REF: dev
+          BASE_REPOSITORY: \${{ github.repository }}
+          HEAD_REPOSITORY: \${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          if [[ "$EVENT_NAME" == "pull_request" && "$BASE_REF" == "main" ]]; then
+            [[ "$HEAD_REF" == "dev" && "$HEAD_REPOSITORY" == "$BASE_REPOSITORY" ]] || exit 1
+          fi
+
+      - name: Decoy step carrying the correct env (masks step 1 via merge)
+        env:
+          EVENT_NAME: \${{ github.event_name }}
+          BASE_REF: \${{ github.base_ref }}
+          HEAD_REF: \${{ github.head_ref }}
+          BASE_REPOSITORY: \${{ github.repository }}
+          HEAD_REPOSITORY: \${{ github.event.pull_request.head.repo.full_name }}
+        run: echo "decoy"
+`)
+
+test('P1-19: hard-wired gate env is not masked by a later step with correct env', () => {
+  const codes = auditWorkflow(GATE_STEP_HARDWIRED, 'ci.yml').map((v) => v.code)
+  assert.ok(codes.includes('BRANCH_POLICY_ENV_BINDING_WEAKENED'),
+    `expected BRANCH_POLICY_ENV_BINDING_WEAKENED, got ${codes}`)
+})
+
+// --- P1-20: chomping/indent block scalar headers -----------------------------
+const RUN_CHOMP_INLINE = PR_TARGET_SAFE.replace(
+  '          persist-credentials: false\n',
+  '          persist-credentials: false\n      - name: r\n        run: |-\n          echo "\${{ github.event.pull_request.title }}"\n')
+const FOLDED_GATE = GOOD_CI_V2.replace('        run: |\n', '        run: >-\n')
+
+test('P1-20: untrusted input inside a run:|- block is scanned (was evasive)', () => {
+  const codes = auditWorkflow(RUN_CHOMP_INLINE, 'pr-governance.yml').map((v) => v.code)
+  assert.ok(codes.includes('PR_TARGET_UNTRUSTED_INPUT'), `expected PR_TARGET_UNTRUSTED_INPUT, got ${codes}`)
+})
+
+test('P1-20 control: run:|- gate form in ci.yml parses for template equality', () => {
+  const chompedGate = GOOD_CI_V2.replace('        run: |\n', '        run: |-\n')
+  const codes = auditWorkflow(chompedGate, 'ci.yml').map((v) => v.code)
+  assert.ok(!codes.some((c) => c.startsWith('BRANCH_POLICY_')), `unexpected ${codes}`)
+})
+
+// --- P1-21: "|| :" and other swallow forms ----------------------------------
+const OR_COLON = GOOD_DEPLOY.replace('      - run: npm run verify', '      - run: npm run verify || :')
+const OR_EXIT0 = GOOD_DEPLOY.replace('      - run: npm run verify', '      - run: npm run verify || exit 0')
+
+test('P1-21: "|| :" swallow is rejected (R3 regex missed the colon form)', () => {
+  const codes = auditWorkflow(OR_COLON, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }).map((v) => v.code)
+  assert.ok(codes.includes('FAILURE_SWALLOWED'), `expected FAILURE_SWALLOWED, got ${codes}`)
+})
+
+test('P1-21: "|| exit 0" swallow is rejected', () => {
+  const codes = auditWorkflow(OR_EXIT0, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }).map((v) => v.code)
+  assert.ok(codes.includes('FAILURE_SWALLOWED'), `expected FAILURE_SWALLOWED, got ${codes}`)
+})
+
+test('P1-21 control: "|| exit 1" fail-loud form stays accepted in the v2 gate', () => {
+  const codes = auditWorkflow(GOOD_CI_V2, 'ci.yml').map((v) => v.code)
+  assert.ok(!codes.includes('FAILURE_SWALLOWED'), `unexpected ${codes}`)
+})

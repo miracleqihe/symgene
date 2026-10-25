@@ -2,12 +2,12 @@
 # NEG-03 — an approval from the LAST PUSHER must not satisfy the merge gate
 # (require_last_push_approval=true).
 #
-# R3 fix (P1-15): the R2 positive control had B (the PR AUTHOR) approve — a
-# self-approval, which GitHub rejects with 403, so the control could never
-# succeed. The control now uses a THIRD identity C (not the author B, not the
-# last pusher A). Identity binding: GH_A/B/C_TOKEN+USER asserted, pushes via
-# authed URLs, last-pusher evidence from the API. Read-only attribution:
-# mergeStateStatus instead of an actual merge.
+# Identity binding (R2/R3 retained): A/B/C all assert_identity-bound; pushes
+# via authed URLs; last-pusher evidence from the API. Positive control uses
+# the THIRD identity C (not the author B, not the last pusher A) — R3 fix.
+# R4 fix (P1-22): attribution via GraphQL MergeStateStatus — the last
+# pusher's approval must leave the PR BLOCKED; C's approval must make it
+# CLEAN. Transient states are retried, never judged immediately. No merge.
 set -euo pipefail
 . "$(dirname "$0")/lib.sh"
 
@@ -18,13 +18,9 @@ require_identity A B C
 BRANCH="neg03-$RANDOM"
 plan "B authors the PR; A pushes one more commit via A's authed URL (A = last pusher)"
 plan "evidence: last commit author.login == GH_A_USER (API)"
-plan "A approves -> mergeStateStatus must NOT become MERGEABLE (last pusher's approval does not count)"
-plan "positive control: C (not author, not last pusher) approves -> mergeStateStatus = MERGEABLE"
+plan "A approves -> await_merge_state BLOCKED (last pusher's approval does not count)"
+plan "positive control: C (not author, not last pusher) approves -> await_merge_state CLEAN"
 plan "no merge is performed; cleanup closes the PR"
-
-merge_state() {
-  gh pr view "$1" --repo "$TEST_REPO" --json mergeStateStatus --jq .mergeStateStatus
-}
 
 if [[ "$LIVE_MODE" == "1" ]]; then
   LAB_DIR="${LAB_DIR:?LIVE=1 requires LAB_DIR pointing at the lab clone}"
@@ -41,19 +37,8 @@ if [[ "$LIVE_MODE" == "1" ]]; then
   fi
   echo "[live] evidence: last pusher on PR ${N} is ${LAST} (== GH_A_USER)"
   gh_as A api "repos/${TEST_REPO}/pulls/${N}/reviews" -f event=APPROVE >/dev/null
-  STATE=$(merge_state "$N")
-  if [[ "$STATE" == "MERGEABLE" ]]; then
-    echo "VERDICT: FAIL — mergeable with only the last pusher's approval; require_last_push_approval is not enforced" >&2
-    exit $EXIT_FAIL
-  fi
-  echo "VERDICT: PASS — last pusher's approval does not satisfy the gate (mergeStateStatus=${STATE})"
+  await_merge_state "$N" "BLOCKED" || exit $?
   gh_as C api "repos/${TEST_REPO}/pulls/${N}/reviews" -f event=APPROVE >/dev/null
-  STATE=$(merge_state "$N")
-  if [[ "$STATE" == "MERGEABLE" ]]; then
-    echo "VERDICT: PASS (positive control) — C's approval (not author, not last pusher) satisfies the gate"
-  else
-    echo "VERDICT: FAIL — positive control failed (mergeStateStatus=${STATE}); another gate is interfering" >&2
-    exit $EXIT_FAIL
-  fi
+  await_merge_state "$N" "CLEAN" || exit $?
   echo "cleanup (no merge performed): gh pr close ${N} --repo ${TEST_REPO}; git push origin --delete ${BRANCH}"
 fi

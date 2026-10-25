@@ -112,3 +112,13 @@
 | CODEOWNERS 语义误解 | 把 CODEOWNERS 当作自动强制 | **平台事实:CODEOWNERS 本身不阻断任何合并**;只有 branch protection/rulesets 勾选 "Require review from Code Owners" 后才生效;且唯一 Owner 无法自审自己的 PR(D2 死锁);Copilot/AI review 不构成批准 | 启用顺序:先以 PR 加入第二 Owner → 再开启 require_code_owner_review;OWNER-ACTIONS S3-2/S3-3 顺序不可换 |
 
 落地提醒:在 rulesets 尚未启用、Governance 尚未设为必需之前,以上防线只有 CODEOWNERS 与人工审核 —— 这正是本包要求分阶段启用保护的原因。
+
+### 4.1 审计器支持范围声明(R4 收口)
+
+本审计器解析**显式声明的受限子集**,子集之外一律显式失败(UNPARSEABLE/UNSUPPORTED/UNRECOGNIZED),不存在静默漏报通道:
+
+- YAML:块式 map(2 空格缩进)、`run:`/`script:` 块标量(`|`/`>` + chomping `+-` + 缩进指示符)、flow 映射仅限 permissions 值;锚点/别名/多文档/Tab/flow jobs/重复键 → 拒绝。
+- Shell:仅 Branch policy 门禁脚本做**模板全等**(引号感知归一化 —— 引号内字符逐字保留);其余 shell 只做失败吞噬形态识别(continue-on-error、set +e、run 块内非 `exit 1` 的 `||`;`[[ ]]` 内的测试 OR 不算)。
+- 表达式:`${{ }}` 归一化(括号索引→点路径)后按可信集判定(number、base.*),其余 pull_request/head/head_ref 输入在 pull_request_target 执行位置一律拒绝。
+
+**系统性风险评估(R4 结论)**:手写解析器的风险不在"漏检已覆盖形态",而在"未来工作流采用新语法时被静默跳过"——该通道已由 fail-closed 全覆盖(任何不认识的形态都红,而不是忽略)。剩余风险是**误报率**(新形态导致 CI 变红,需人工扩审计器),这是可接受的失败方向。升级到 actionlint/workflow-schema 属结构化验证选项,需要引入依赖决策(审计器当前零依赖、在 npm ci 之前运行是其抗篡改属性),建议由 Owner 在引入第三方工作流语法时再评估;在此之前,以"收窄支持范围 + 显式拒绝"作为安全边界。
