@@ -195,3 +195,37 @@ docs.github.com "Status checks":*"A job that is skipped will report its status a
 - 兼容:#37 `a799746` + #39 `a7ca006` **PASS**(R4 规则不误伤:其 `||` 全在 JS script 块,门禁 `|| exit 1` 放行)。
 - 补丁链逐字节复现 + `S1-FINAL` 等价:PASS(见 README 补丁链)。
 - `git diff --check` clean;`npm run verify` 全绿;敏感串 grep CLEAN。
+
+
+---
+
+# R5 Governance 架构收口记录(2026-10-24)
+
+## 架构变更(R5-A)
+
+- 新增 `.github/tests/lib/mini-yaml.mjs`:声明子集的结构化 YAML 解析器(块 map/序列、引号标量、flow 集合、块标量含 chomping/缩进指示符;锚点/别名/多文档/Tab/重复键一律抛错)。审计器的 Job/Step/Trigger/Permissions/Needs 视图全部来自解析树;解析失败 = PARSE_ERROR(fail closed)。
+- 四个执行契约(基于解析树):branch-policy(模板全等 + 步骤级 env 绑定 + 禁条件)、governance(存在 + 无条件 + 规范命令唯一步骤)、verify(ci/deploy 双侧:存在 + 无条件 + `npm run verify` 规范步骤 + `npm ci` 先序)、deploy(既有白名单/needs/终判/触发器不变量)。
+- 模板匹配:quote-aware + **保留换行**(`exit\n1` 不再等同 `exit 1`);job-if 条件同样 quote-aware(`'ma in'` 不再等同 `'main'`)。
+- `||` 规则、不可信输入扫描(含 `github.head_ref` 与括号索引)、JOB_NAME_DYNAMIC 全部迁移到解析树视图。
+- 解析器升级路径:actionlint/workflow-schema 仍为 Owner 决策选项(引入依赖的供应链/抗篡改权衡见 R4 记录);R5 的结构化解析器将"声明子集 + 显式拒绝"落实到 AST 层。
+
+## 7 项 Finding 处置(全部确认,先红后绿)
+
+1. `exit\n1` 分行绕过模板等价 → 换行保留修复。
+2. `'ma in'` job 条件绕过 → quote-aware job-if 全等修复。
+3. CI Verify job `if: false` → VERIFY_JOB_CONDITIONAL(Verify 纳入必需集范围管制)。
+4. Verify 关键步骤 continue-on-error → verify 纳入 FAILURE_SWALLOWED 管制范围。
+5. Governance 步骤 if:false / echo PASSED → GOVERNANCE_STEP_CONDITIONAL / GOVERNANCE_STEP_CONTRACT(规范命令唯一步骤契约)。
+6. Deploy verify 步骤替换 → VERIFY_STEP_CONTRACT + VERIFY_STEP_ORDER(规范 `npm run verify` + `npm ci` 先序)。
+7. NEG-05 累积工作树 → 三实验重写:每例 reset --hard origin/main 基线、一次性 PR、零合并、逐例记录 check-run id/conclusion/app/HEAD SHA/合并状态;前置条件未满足即 BLOCKED。
+
+## R5-B 可信校验边界
+
+- 新增 `.github/workflows/governance-trusted.yml` + `.github/scripts/trusted-audit.mjs`:pull_request_target 仅运行 base.sha 上的校验器;候选 workflows 以 DATA 形式经 contents API 读取(不执行、不安装、不检出 PR HEAD);绑定 repo/PR 号/base SHA/head SHA(由 PR 号经 API 解析,无 head 插值)/校验器 sha256;裁决(含预声明残留)发布为 PR 评论。
+- **诚实边界:该工作流在进入 main 之前不会在本 PR 上运行(pull_request_target 取 base 分支副本)→ 可信校验尚未在 GitHub 上强制生效**,Bootstrap 步骤与 Owner 操作见 r5/R5-TRUST-BOUNDARY.md。
+- 兼容预声明:GOVERNANCE_JOB_MISSING(#37/#39 尚无 S1 的 governance job,集成时合并)加入 compat KNOWN_RESIDUAL 并从不变量集移出;PARSE_ERROR 加入不变量集。
+
+## 全量复测(R5 收口时点)
+
+- `node --test`:**87/87**(80 → 87:+7 复现断言;零断言删除/放宽)。
+- `selftest.sh` 10/10;#37/#39 兼容 **PASS**(exit 0);本仓工作流(含 governance-trusted.yml)过审计器自查;`git diff --check` clean;`npm run verify` 全绿;12 个平台脚本模拟通过。

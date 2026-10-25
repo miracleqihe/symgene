@@ -44,8 +44,12 @@ const S0_S1_INVARIANT_CODES = new Set([
   'FAILURE_SWALLOWED', 'JOB_NAME_DYNAMIC', 'YAML_DUPLICATE_KEY',
   'UNSUPPORTED_YAML_CONSTRUCT', 'TRIGGER_UNRECOGNIZED',
   'JOB_PERMISSIONS_UNPARSEABLE', 'JOB_PERMISSIONS_VALUE_INVALID', 'JOB_PERMISSION_UNRECOGNIZED',
+  'PARSE_ERROR',
 ])
-const KNOWN_RESIDUAL = new Set(['CHECK_NAME_COLLISION'])
+// GOVERNANCE_JOB_MISSING: S1's governance job is OUR bootstrap addition —
+// #37/#39 do not carry it yet. Resolved at integration by merging S1's
+// ci.yml governance job into their CI; reported here, never suppressed.
+const KNOWN_RESIDUAL = new Set(['CHECK_NAME_COLLISION', 'GOVERNANCE_JOB_MISSING'])
 const deployPath = '.github/workflows/deploy-pages.yml'
 
 function loadWorkflows(root) {

@@ -34,6 +34,7 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+      - run: npm ci
       - run: npm run verify
 
   deploy:
@@ -130,6 +131,18 @@ jobs:
         with:
           persist-credentials: false
       - run: node --test .github/tests/*.test.mjs
+
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run verify
 `
 
 const WEAKENED_CI = GOOD_CI.replace(
@@ -358,6 +371,27 @@ jobs:
           if [[ "$EVENT_NAME" == "pull_request" && "$BASE_REF" == "main" ]]; then
             [[ "$HEAD_REF" == "dev" && "$HEAD_REPOSITORY" == "$BASE_REPOSITORY" ]] || exit 1
           fi
+
+  governance:
+    name: Governance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: node --test .github/tests/*.test.mjs
+
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run verify
 `
 const V2_CONSTRAINT_REMOVED = GOOD_CI_V2.replace(
   '            [[ "$HEAD_REF" == "dev" && "$HEAD_REPOSITORY" == "$BASE_REPOSITORY" ]] || exit 1\n', '')
@@ -604,7 +638,9 @@ test('R2-A2: benign continue-on-error outside gate/publish files stays accepted'
 const DUP_TOP = GOOD_CI.replace('permissions:\n  contents: read', 'permissions:\n  contents: write\npermissions:\n  contents: read')
 const DUP_JOB = GOOD_DEPLOY.replace('  deploy:\n    needs: verify', '  deploy:\n    needs: verify\n  deploy:\n    needs: verify')
 const FLOW_JOBS = `name: Flow\n\non:\n  workflow_dispatch:\n\npermissions:\n  contents: read\n\njobs: {verify: {runs-on: ubuntu-latest, steps: [{run: echo hi}]}}\n`
-const FLOW_JOB_ENTRY = GOOD_DEPLOY.replace('  verify:\n    runs-on: ubuntu-latest', '  verify: {runs-on: ubuntu-latest}\n    runs-on: ubuntu-latest')
+const FLOW_JOB_ENTRY = GOOD_DEPLOY.replace(
+  /  verify:\n(?:    .*\n|.*\n)*?  deploy:\n/,
+  '  verify: {runs-on: ubuntu-latest}\n  deploy:\n')
 const DYNAMIC_NAME = GOOD_CI.replace('    name: Branch policy', '    name: ${{ matrix.policy-name }}')
 
 test('R2-A3: duplicate top-level keys are flagged', () => {
@@ -799,10 +835,11 @@ test('P1-18: quoted "de v" comparison must not normalize to "dev" (template mism
     `expected a BRANCH_POLICY_ violation, got ${codes}`)
 })
 
-test('P1-18 control: folded block scalar (run: >-) still matches the v2 template', () => {
+test('P1-18 control: folded block scalars (run: >-) fail closed (folding changes newline semantics)', () => {
   const folded = GOOD_CI_V2.replace('        run: |\n', '        run: >-\n')
   const codes = auditWorkflow(folded, 'ci.yml').map((v) => v.code)
-  assert.ok(!codes.some((c) => c.startsWith('BRANCH_POLICY_')), `unexpected ${codes}`)
+  assert.ok(codes.includes('BRANCH_POLICY_UNRECOGNIZED') || codes.includes('BRANCH_POLICY_WEAKENED'),
+    `expected a BRANCH_POLICY_ violation, got ${codes}`)
 })
 
 // --- P1-19: gate env cross-step pollution -----------------------------------
@@ -883,4 +920,79 @@ test('P1-21: "|| exit 0" swallow is rejected', () => {
 test('P1-21 control: "|| exit 1" fail-loud form stays accepted in the v2 gate', () => {
   const codes = auditWorkflow(GOOD_CI_V2, 'ci.yml').map((v) => v.code)
   assert.ok(!codes.includes('FAILURE_SWALLOWED'), `unexpected ${codes}`)
+})
+
+// ===========================================================================
+// R5 adversarial round (2026-10-24, findings 1-6; finding 7 = NEG-05 design).
+// Written before the architecture rework: each must be red on the R4 auditor.
+// ===========================================================================
+
+// R5-1: "exit 1" split across two lines — whitespace-collapsing normalization
+// joins them, so the auditor accepted a script that does not enforce the gate.
+const V2_EXIT_SPLIT = GOOD_CI_V2.replace(
+  '[[ "$HEAD_REF" == "dev" && "$HEAD_REPOSITORY" == "$BASE_REPOSITORY" ]] || exit 1',
+  '[[ "$HEAD_REF" == "dev" && "$HEAD_REPOSITORY" == "$BASE_REPOSITORY" ]] || exit\n            1')
+
+test('R5-1: "exit" and "1" on separate lines must not equal the gate template', () => {
+  const codes = auditWorkflow(V2_EXIT_SPLIT, 'ci.yml').map((v) => v.code)
+  assert.ok(codes.includes('BRANCH_POLICY_UNRECOGNIZED') || codes.includes('BRANCH_POLICY_WEAKENED'),
+    `expected a BRANCH_POLICY_ violation, got ${codes}`)
+})
+
+// R5-2: job condition with a space inside the quoted literal — "ma in" is a
+// valid branch name, so the condition is never true for real PRs to main and
+// the gate never runs; whitespace-stripping made it equal the accepted form.
+const V2_IF_MA_IN = GOOD_CI_V2.replace(
+  '  branch-policy:\n    name: Branch policy\n    runs-on: ubuntu-latest',
+  "  branch-policy:\n    name: Branch policy\n    if: github.event_name == 'pull_request' && github.base_ref == 'ma in'\n    runs-on: ubuntu-latest")
+
+test('R5-2: job condition quoting "ma in" must not equal the accepted condition', () => {
+  const codes = auditWorkflow(V2_IF_MA_IN, 'ci.yml').map((v) => v.code)
+  assert.ok(codes.includes('BRANCH_POLICY_NOT_GATED'), `expected BRANCH_POLICY_NOT_GATED, got ${codes}`)
+})
+
+// R5-3: the CI Verify job skipped with if:false (skipped satisfies required checks)
+const CI_VERIFY_IF_FALSE = GOOD_CI.replace(
+  '  verify:\n    name: Verify\n    runs-on: ubuntu-latest',
+  '  verify:\n    name: Verify\n    if: false\n    runs-on: ubuntu-latest')
+
+test('R5-3: CI Verify job must not be conditionally skippable', () => {
+  const codes = auditWorkflow(CI_VERIFY_IF_FALSE, 'ci.yml').map((v) => v.code)
+  assert.ok(codes.includes('VERIFY_JOB_CONDITIONAL'), `expected VERIFY_JOB_CONDITIONAL, got ${codes}`)
+})
+
+// R5-4: continue-on-error on a Verify critical step
+const CI_VERIFY_COE = GOOD_CI.replace(
+  '      - run: npm ci\n      - run: npm run verify',
+  '      - run: npm ci\n      - continue-on-error: true\n      - run: npm run verify')
+
+test('R5-4: continue-on-error on the Verify step is rejected', () => {
+  const codes = auditWorkflow(CI_VERIFY_COE, 'ci.yml').map((v) => v.code)
+  assert.ok(codes.includes('FAILURE_SWALLOWED'), `expected FAILURE_SWALLOWED, got ${codes}`)
+})
+
+// R5-5: Governance step conditioned or replaced by "echo PASSED"
+const GOV_STEP_IF_FALSE = GOOD_CI.replace(
+  '      - run: node --test .github/tests/*.test.mjs',
+  '      - name: gated\n        if: false\n      - run: node --test .github/tests/*.test.mjs')
+const GOV_STEP_ECHO = GOOD_CI.replace(
+  '      - run: node --test .github/tests/*.test.mjs',
+  '      - run: echo PASSED')
+
+test('R5-5: a conditional step inside the Governance job is rejected', () => {
+  const codes = auditWorkflow(GOV_STEP_IF_FALSE, 'ci.yml').map((v) => v.code)
+  assert.ok(codes.includes('GOVERNANCE_STEP_CONDITIONAL'), `expected GOVERNANCE_STEP_CONDITIONAL, got ${codes}`)
+})
+
+test('R5-5: replacing the Governance command with echo PASSED is rejected', () => {
+  const codes = auditWorkflow(GOV_STEP_ECHO, 'ci.yml').map((v) => v.code)
+  assert.ok(codes.includes('GOVERNANCE_STEP_CONTRACT'), `expected GOVERNANCE_STEP_CONTRACT, got ${codes}`)
+})
+
+// R5-6: deploy-pages verify steps replaced (publish chain silently weakened)
+const DEPLOY_VERIFY_REPLACED = GOOD_DEPLOY.replace('      - run: npm run verify', '      - run: echo "verify skipped"')
+
+test('R5-6: deploy verify step must keep its canonical command', () => {
+  const codes = auditWorkflow(DEPLOY_VERIFY_REPLACED, 'deploy-pages.yml', { pagesJobs: { 'deploy-pages.yml': ['deploy'] } }).map((v) => v.code)
+  assert.ok(codes.includes('VERIFY_STEP_CONTRACT'), `expected VERIFY_STEP_CONTRACT, got ${codes}`)
 })

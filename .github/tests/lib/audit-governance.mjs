@@ -1,4 +1,6 @@
 // Governance audit library for the symgene website repository.
+
+import { YamlParseError, parseYaml, workflowJobs, mapGet, asString } from './mini-yaml.mjs'
 //
 // Structural audits over the workflow YAML files. Deliberately dependency
 // free (node stdlib only) so CI can run it before `npm ci` and nobody can
@@ -46,7 +48,13 @@ fi`
 // entirely; every character INSIDE quotes is preserved verbatim. Stripping
 // all whitespace (R3) made "de v" and "dev" normalize identically — a real
 // bypass, because "de v" is a valid git branch name.
+// Quote-aware shell normalization (R5): whitespace OUTSIDE quotes is
+// removed; every character INSIDE quotes is preserved verbatim; line
+// breaks outside quotes collapse to a single '\n' marker (a shell newline
+// is a command terminator — 'exit\n1' is NOT 'exit 1'), and edge
+// newlines are trimmed. Quote content is never altered.
 function normalizeShellText(s) {
+  if (!s) return ''
   let out = ''
   let q = null
   for (let i = 0; i < s.length; i++) {
@@ -59,10 +67,11 @@ function normalizeShellText(s) {
     }
     if (ch === '"' || ch === "'") { q = ch; out += ch; continue }
     if (ch === '\\' && (s[i + 1] === '\n' || s[i + 1] === '\r')) { i++; continue }
+    if (ch === '\n') { out += '\n'; continue }
     if (/\s/.test(ch)) continue
     out += ch
   }
-  return out
+  return out.replace(/\n{2,}/g, '\n').replace(/^\n+|\n+$/g, '')
 }
 const V1_TEMPLATE = normalizeShellText(V1_CANONICAL)
 const V2_TEMPLATE = normalizeShellText(V2_CANONICAL)
@@ -99,35 +108,26 @@ export function findDuplicateKeys(text) {
 // continue-on-error / "|| true" / "set +e" swallow failures that gate and
 // publish chains depend on. Scoped to the jobs whose result is security
 // relevant; reporting bots elsewhere keep their legitimate usage.
-function auditSwallowedFailures(jobs, guardedJobIds, add) {
-  for (const [jobId, jobBlock] of jobs) {
+function auditSwallowedFailures(treeJobs, guardedJobIds, add) {
+  for (const [jobId, job] of treeJobs) {
     if (!guardedJobIds.includes(jobId)) continue
-    let runIndent = null
-    for (const raw of jobBlock.lines) {
-      const line = stripComments(raw)
-      if (!line.trim()) continue
-      const indent = line.length - line.trimStart().length
-      if (runIndent !== null && indent <= runIndent) runIndent = null
-
-      if (/^\s*continue-on-error:/i.test(line)) {
-        const value = line.replace(/^\s*continue-on-error:\s*/i, '').trim()
-        if (value !== 'false') {
-          add('FAILURE_SWALLOWED', `job "${jobId}" sets continue-on-error: ${value || '(empty)'}; only the literal false is accepted, anything else (including expressions) can swallow failures`)
+    // job-level continue-on-error
+    const jobCoe = job.node && job.node.kind === 'map' ? asString(mapGet(job.node, 'continue-on-error')) : null
+    if (jobCoe !== null && jobCoe !== undefined && jobCoe !== 'false') {
+      add('FAILURE_SWALLOWED', `job "${jobId}" sets continue-on-error: ${jobCoe}; only the literal false is accepted`)
+    }
+    for (const step of job.steps) {
+      const coe = step.continueOnError
+      if (coe !== null && coe !== undefined && coe !== 'false') {
+        add('FAILURE_SWALLOWED', `job "${jobId}" step sets continue-on-error: ${coe}; only the literal false is accepted, anything else (including expressions) can swallow failures`)
+      }
+      if (step.run !== null && step.run !== undefined) {
+        for (const line of step.run.split('\n')) {
+          if (/\bset\s+\+e\b/.test(line)) {
+            add('FAILURE_SWALLOWED', `job "${jobId}" disables errexit (set +e); failures would be swallowed`)
+          }
+          auditPipeSwallow(line, jobId, add)
         }
-        continue
-      }
-      if (/\bset\s+\+e\b/.test(line)) {
-        add('FAILURE_SWALLOWED', `job "${jobId}" disables errexit (set +e); failures would be swallowed`)
-      }
-
-      const runMatch = line.match(/^\s*(?:-\s+)?run:\s*(.*)$/)
-      if (runMatch) {
-        auditPipeSwallow(runMatch[1].trim(), jobId, add)
-        if (/^[|>]/.test(runMatch[1].trim())) runIndent = indent
-        continue
-      }
-      if (runIndent !== null) {
-        auditPipeSwallow(line, jobId, add)
       }
     }
   }
@@ -346,6 +346,25 @@ function auditSyntaxSubset(text, triggers, add) {
 export function auditWorkflow(text, fileName, { pagesJobs = {} } = {}) {
   const violations = []
   const add = (code, message) => violations.push({ file: fileName, code, message })
+
+  // R5-A: structured parse first. Any construct outside the declared subset
+  // throws and becomes a violation — never a silent pass-through.
+  let tree
+  try {
+    tree = parseYaml(text)
+  } catch (e) {
+    if (e instanceof YamlParseError) {
+      const msg = e.message
+      const code = /duplicate key/.test(msg) ? 'YAML_DUPLICATE_KEY'
+        : /multi-document|tab indentation|anchor|alias/.test(msg) ? 'UNSUPPORTED_YAML_CONSTRUCT'
+        : 'PARSE_ERROR'
+      add(code, `structured parse failed: ${msg}`)
+      return violations
+    }
+    throw e
+  }
+  const treeJobs = workflowJobs(tree)
+
   const blocks = topLevelBlocks(text)
   const allowedPagesJobs = pagesJobs[fileName] ?? []
 
@@ -394,6 +413,15 @@ export function auditWorkflow(text, fileName, { pagesJobs = {} } = {}) {
       add('UNSUPPORTED_YAML_CONSTRUCT', `job "${jobId}" uses a flow mapping; the auditor only parses block-form jobs and fails closed otherwise`)
       continue
     }
+    const jv = treeJobs.get(jobId)
+    if (jv && jv.node && jv.node.kind === 'map' && jv.node.flow) {
+      add('UNSUPPORTED_YAML_CONSTRUCT', `job "${jobId}" is declared as a flow mapping; the declared subset requires block-form jobs`)
+      continue
+    }
+    const stepsNode = jv && jv.node && jv.node.kind === 'map' ? mapGet(jv.node, 'steps') : null
+    if (stepsNode && stepsNode.flow) {
+      add('UNSUPPORTED_YAML_CONSTRUCT', `job "${jobId}" declares steps as a flow sequence; the declared subset requires block-form steps`)
+    }
     const nameEntry = subBlocks(jobBlock.lines, 4).get('name')
     if (nameEntry && (nameEntry.inline || '').includes('${{')) {
       add('JOB_NAME_DYNAMIC', `job "${jobId}" has a dynamic display name; check-run names must be static for impersonation detection`)
@@ -402,41 +430,158 @@ export function auditWorkflow(text, fileName, { pagesJobs = {} } = {}) {
     const isPagesJob = allowedPagesJobs.includes(jobId)
     auditPermissionMap(perm, { isPagesJob, jobId, add })
 
+    if (jv && jv.steps.some((s) => s.node && s.node.flow)) {
+      add('UNSUPPORTED_YAML_CONSTRUCT', `job "${jobId}" has flow-mapping steps; the declared subset requires block-form steps`)
+    }
     // pull_request_target is the one trigger that gets a write-capable token
     // for the base branch: it must never act on attacker-controlled PR input.
     if (triggers.includes('pull_request_target')) {
-      auditPullRequestTargetJob(jobBlock, jobId, add)
+      auditPullRequestTargetJob(treeJobs.get(jobId), jobId, add)
     }
   }
 
   if (fileName === 'deploy-pages.yml') {
-    auditSwallowedFailures(jobs, [...jobs.keys()], add)
+    auditSwallowedFailures(treeJobs, [...jobs.keys()], add)
+    violations.push(...auditVerifyContract(treeJobs))
     violations.push(...auditDeployWorkflow(blocks, fileName))
   }
   if (fileName === 'ci.yml') {
-    auditSwallowedFailures(jobs, ['branch-policy', 'governance'], add)
-    // Skipped jobs SATISFY required checks (official docs), so a conditional
-    // Governance job would silently vacate the gate. It must be unconditional.
-    const governance = jobs.get('governance')
-    if (governance && subBlocks(governance.lines, 4).get('if')) {
-      add('GOVERNANCE_JOB_CONDITIONAL', 'the governance job has a job-level if; skipped jobs satisfy required checks, so it must run on every CI event unconditionally')
+    auditSwallowedFailures(treeJobs, ['branch-policy', 'governance', 'verify'], add)
+    // Skipped jobs SATISFY required checks (official docs), so conditional
+    // gate jobs would silently vacate the required set.
+    for (const [jobId, cond] of [['governance', 'GOVERNANCE_JOB_CONDITIONAL'], ['verify', 'VERIFY_JOB_CONDITIONAL']]) {
+      const jv = treeJobs.get(jobId)
+      if (jv && jv.if !== null && jv.if !== undefined) {
+        add(cond, `the ${jobId} job has a job-level if ("${jv.if}"); skipped jobs satisfy required checks, so it must run on every CI event unconditionally`)
+      }
     }
-    violations.push(...auditBranchPolicy(blocks, fileName))
+    violations.push(...auditBranchPolicy(blocks, treeJobs, fileName))
+    violations.push(...auditGovernanceContract(treeJobs, fileName))
+    violations.push(...auditVerifyContract(treeJobs))
+  }
+  return violations
+}
+
+// Governance execution contract: the job exists unconditionally and runs the
+// canonical test command in exactly one unconditional step (R5-5).
+const GOVERNANCE_RUN = normalizeShellText('node --test .github/tests/*.test.mjs')
+function auditGovernanceContract(treeJobs, fileName) {
+  const violations = []
+  const add = (code, message) => violations.push({ file: fileName, code, message })
+  const gov = treeJobs.get('governance')
+  if (!gov) {
+    add('GOVERNANCE_JOB_MISSING', 'ci.yml has no "governance" job; the trusted-governance audit is not part of the required chain (S1 must be present)')
+    return violations
+  }
+  const runSteps = gov.steps.filter((s) => s.run !== null && s.run !== undefined)
+  if (runSteps.length !== 1 || normalizeShellText(runSteps[0].run) !== GOVERNANCE_RUN) {
+    const got = runSteps.map((s) => normalizeShellText(s.run).slice(0, 40)).join(' | ') || '(none)'
+    add('GOVERNANCE_STEP_CONTRACT', `the governance job must run exactly one canonical step ("node --test .github/tests/*.test.mjs"); found: ${got}`)
+  }
+  for (const s of gov.steps) {
+    if (s.if !== null && s.if !== undefined) {
+      add('GOVERNANCE_STEP_CONDITIONAL', `governance step "${s.name ?? s.run ?? '?'}" is conditional ("${s.if}"); skipped steps satisfy required checks`)
+    }
+    if (s.continueOnError !== null && s.continueOnError !== undefined && s.continueOnError !== 'false') {
+      add('FAILURE_SWALLOWED', `governance step sets continue-on-error: ${s.continueOnError}`)
+    }
+  }
+  return violations
+}
+
+// Verify execution contract for the CI and publish chains (R5-3/4/6):
+// the verify job exists unconditionally, runs the canonical `npm run verify`
+// step after `npm ci`, and nothing in the job swallows failures.
+const VERIFY_RUN = normalizeShellText('npm run verify')
+const NPM_CI_RUN = normalizeShellText('npm ci')
+function auditVerifyContract(treeJobs) {
+  const violations = []
+  const addV = (code, message) => violations.push({ file: 'verify contract', code, message })
+  const verify = treeJobs.get('verify')
+  if (!verify) {
+    addV('VERIFY_JOB_MISSING', 'no "verify" job found; the canonical verification step is not part of the chain')
+    return violations
+  }
+  if (verify.if !== null && verify.if !== undefined) {
+    addV('VERIFY_JOB_CONDITIONAL', `the verify job has a job-level if ("${verify.if}"); skipped jobs satisfy required checks`)
+  }
+  const runSteps = verify.steps.filter((s) => s.run !== null && s.run !== undefined)
+  const verifyIdx = runSteps.findIndex((s) => normalizeShellText(s.run) === VERIFY_RUN)
+  const ciIdx = runSteps.findIndex((s) => normalizeShellText(s.run) === NPM_CI_RUN)
+  if (verifyIdx === -1) {
+    addV('VERIFY_STEP_CONTRACT', 'the verify job does not contain the canonical "npm run verify" step; verification may be skipped or replaced')
+  } else {
+    if (verify.steps.find((s) => normalizeShellText(s.run) === VERIFY_RUN)?.if) {
+      addV('VERIFY_STEP_CONDITIONAL', 'the canonical verify step is conditional; it must execute unconditionally')
+    }
+    if (ciIdx === -1) {
+      addV('VERIFY_STEP_ORDER', 'the verify job has no "npm ci" step before "npm run verify"; the chain may run against unmanaged dependencies')
+    } else if (ciIdx > verifyIdx) {
+      addV('VERIFY_STEP_ORDER', '"npm ci" must run before "npm run verify"')
+    }
+  }
+  for (const s of verify.steps) {
+    if (s.continueOnError !== null && s.continueOnError !== undefined && s.continueOnError !== 'false') {
+      addV('FAILURE_SWALLOWED', `verify step sets continue-on-error: ${s.continueOnError}`)
+    }
+    if (s.if !== null && s.if !== undefined && normalizeShellText(s.run ?? '') === VERIFY_RUN) {
+      addV('VERIFY_STEP_CONDITIONAL', 'the canonical verify step is conditional')
+    }
   }
   return violations
 }
 
 // pull_request_target jobs get a write-capable token for the base branch.
 // Interpolation of attacker-controlled PR fields into scripts or step inputs
-// is code injection; only pull_request.number (integer) and pull_request.base.*
-// (trusted base) may be interpolated. head.sha|ref additionally must never
-// reach ref/repository (checkout) or any executed/input position. Display
-// `name:` labels stay exempt.
+// is code injection; only pull_request.number and pull_request.base.* may be
+// interpolated. head.sha|ref additionally must never reach ref/repository
+// (checkout) or any executed/input position. Display `name:` labels are
+// exempt. Scans operate on the PARSED step structure (run text and every
+// with:/env input value), so block scalars cannot hide content (R5-A).
 const PR_TRUSTED_FIELDS = /^(number|base\.)/
+
+function flattenNodeStrings(node, out) {
+  if (node === null || node === undefined) return
+  if (typeof node === 'string') { out.push(node); return }
+  if (node.kind === 'block') { out.push(node.text); return }
+  if (node.kind === 'seq') { for (const it of node.items) flattenNodeStrings(it, out); return }
+  if (node.kind === 'map') { for (const [k, v] of node.entries) { out.push(k); flattenNodeStrings(v, out) } }
+}
+
+function auditPullRequestTargetJob(job, jobId, add) {
+  for (const step of job.steps) {
+    if (step.node && step.node.kind === 'map') {
+      const withNode = mapGet(step.node, 'with')
+      if (withNode && withNode.kind === 'map') {
+        for (const [key, value] of withNode.entries) {
+          const sv = typeof value === 'string' ? value : (value && value.kind === 'block' ? value.text : String(value ?? ''))
+          if (/^(ref|repository)$/.test(key) && /pull_request\.head/.test(sv)) {
+            add('PR_TARGET_HEAD_CHECKOUT', `job "${jobId}" resolves ${key} from pull_request.head; pull_request_target workflows must only use the trusted base commit`)
+            continue
+          }
+          const targets = []
+          flattenNodeStrings(value, targets)
+          for (const s of targets) auditUntrustedInterpolation(s, jobId, `with input "${key}"`, add)
+        }
+      }
+      const envNode = mapGet(step.node, 'env')
+      if (envNode && envNode.kind === 'map') {
+        for (const [key, value] of envNode.entries) {
+          auditUntrustedInterpolation(typeof value === 'string' ? value : String(value ?? ''), jobId, `env input "${key}"`, add)
+        }
+      }
+    }
+    if (step.run !== null && step.run !== undefined) {
+      for (const line of step.run.split('\n')) {
+        auditUntrustedInterpolation(line, jobId, 'run script', add)
+      }
+    }
+  }
+}
 
 function auditUntrustedInterpolation(text, jobId, where, add) {
   for (const m of text.matchAll(/\$\{\{\s*([^}]+?)\s*\}\}/g)) {
-    // Normalize bracket indexing to dot paths so `github['event']...` cannot
+    // normalize bracket indexing to dot paths so `github['event']...` cannot
     // evade the scanner; strip whitespace.
     const expr = m[1]
       .replace(/\[\s*'([^']+)'\s*\]/g, '.$1')
@@ -454,48 +599,6 @@ function auditUntrustedInterpolation(text, jobId, where, add) {
       add('PR_TARGET_HEAD_REFERENCE', `job "${jobId}" ${where} consumes pull_request.head.sha/ref; head-controlled input must not reach executed scripts or step inputs`)
     } else {
       add('PR_TARGET_UNTRUSTED_INPUT', `job "${jobId}" ${where} interpolates attacker-controlled pull_request.${field}; only pull_request.number and pull_request.base.* may be interpolated`)
-    }
-  }
-}
-
-function auditPullRequestTargetJob(jobBlock, jobId, add) {
-  let blockIndent = null // tracks run:| / script:| block scalars
-  let withIndent = null // tracks with: blocks (inputs, not display labels)
-  for (const raw of jobBlock.lines) {
-    const line = stripComments(raw)
-    if (!line.trim()) continue
-    const indent = line.length - line.trimStart().length
-    if (blockIndent !== null && indent <= blockIndent) blockIndent = null
-    if (withIndent !== null && indent <= withIndent) withIndent = null
-
-    if (/(^|[\s{[])(ref|repository)\s*:\s*.*pull_request\.head/.test(line)) {
-      add('PR_TARGET_HEAD_CHECKOUT', `job "${jobId}" resolves ref/repository from pull_request.head; pull_request_target workflows must only use the trusted base commit`)
-      continue
-    }
-
-    const blockStart = line.match(/^\s*(?:-\s+)?(run|script):\s*(.*)$/)
-    if (blockStart) {
-      auditUntrustedInterpolation(blockStart[2], jobId, `${blockStart[1]} script`, add)
-      if (/^[|>]/.test(blockStart[2].trim())) blockIndent = indent
-      continue
-    }
-    if (blockIndent !== null) {
-      auditUntrustedInterpolation(line, jobId, 'script', add)
-      continue
-    }
-
-    if (/^\s*with:\s*$/.test(line)) {
-      withIndent = indent
-      continue
-    }
-    if (withIndent !== null) {
-      auditUntrustedInterpolation(line, jobId, 'with input', add)
-      continue
-    }
-
-    const kv = line.match(/^\s*([A-Za-z_-]+):\s*(.+)$/)
-    if (kv && !['name', 'uses', 'if', 'needs', 'runs-on', 'timeout-minutes', 'shell', 'working-directory'].includes(kv[1])) {
-      auditUntrustedInterpolation(kv[2], jobId, `input "${kv[1]}"`, add)
     }
   }
 }
@@ -681,50 +784,40 @@ const REQUIRED_ENV_BINDINGS = {
   BASE_REPOSITORY: '${{github.repository}}',
 }
 
-export function auditBranchPolicy(blocks, fileName) {
+export function auditBranchPolicy(blocks, treeJobs, fileName) {
   const violations = []
   const add = (code, message) => violations.push({ file: fileName, code, message })
 
-  const jobs = subBlocks(blocks.get('jobs')?.lines ?? [], 2)
-  const policy = jobs.get('branch-policy')
+  const policy = treeJobs.get('branch-policy')
   if (!policy) {
     add('BRANCH_POLICY_JOB_MISSING', 'ci.yml has no "branch-policy" job; promotion from dev to main is no longer enforced in CI')
     return violations
   }
 
-  const jobEnv = collectEnvAt(policy.lines, 4)
-  const steps = splitSequenceEntries(policy.lines, 6)
-  if (steps.length === 0) {
-    add('BRANCH_POLICY_UNRECOGNIZED', 'branch-policy job has no parseable steps; the auditor only accepts block-form steps')
-    return violations
-  }
-
-  const jobIf = subBlocks(policy.lines, 4).get('if')
-  const jobIfText = jobIf ? (jobIf.inline || jobIf.lines.join(' ')) : ''
-  const jobIfOk = !jobIfText || jobIfText.replace(/\s+/g, '') === "github.event_name=='pull_request'&&github.base_ref=='main'"
+  // job-level if: exact v1 gating condition (quote-aware comparison)
+  const acceptedJobIf = normalizeShellText("github.event_name == 'pull_request' && github.base_ref == 'main'")
+  const jobIfOk = !policy.if || normalizeShellText(policy.if) === acceptedJobIf
   if (!jobIfOk) {
-    add('BRANCH_POLICY_NOT_GATED', `branch-policy job-level if "${jobIfText}" is not the exact v1 main-gating condition; altered conditions can skip the gate exactly when it must run`)
+    add('BRANCH_POLICY_NOT_GATED', `branch-policy job-level if "${policy.if}" is not the exact v1 main-gating condition; altered conditions (e.g. quoted "ma in") can skip the gate exactly when it must run`)
   }
 
+  const jobEnv = collectEnvNode(policy.node, null)
   let gateSteps = 0
   let fragmentStep = null
-  for (const step of steps) {
-    const { script, ok } = extractRunBlock(step.lines)
-    if (!ok) {
-      add('BRANCH_POLICY_UNRECOGNIZED', 'branch-policy step uses a run form the auditor cannot reliably parse (unrecognized block scalar header or empty run); refusing to guess')
-      continue
-    }
+  for (const step of policy.steps) {
+    if (step.run === null || step.run === undefined) continue
+    const script = normalizeShellText(step.run)
     const isGate = script === V1_TEMPLATE || script === V2_TEMPLATE
     if (!isGate) {
       if (script.includes('HEAD_REF') && /dev/.test(script) && script.includes('exit1')) fragmentStep = { step, script }
       continue
     }
     gateSteps++
-    if (subBlocks(step.lines, 8).get('if')) {
+    if (step.if !== null && step.if !== undefined) {
       add('BRANCH_POLICY_STEP_CONDITION', 'the gate step is conditional; it must execute on every PR to main (skipped steps satisfy required checks)')
     }
     // effective env = job-level merged with the gate step's own block
-    const stepEnv = collectEnvAt(step.lines, 8)
+    const stepEnv = collectEnvNode(step.env, null)
     const effective = new Map([...jobEnv, ...stepEnv])
     for (const [key, expected] of Object.entries(REQUIRED_ENV_BINDINGS)) {
       if (effective.get(key) !== expected) {
@@ -745,6 +838,17 @@ export function auditBranchPolicy(blocks, fileName) {
     }
   }
   return violations
+}
+
+// env map node (parsed) -> normalized key/value map
+function collectEnvNode(envNode, _unused) {
+  const env = new Map()
+  if (envNode && envNode.kind === 'map') {
+    for (const [k, v] of envNode.entries) {
+      env.set(k, typeof v === 'string' ? v.replace(/\s+/g, '') : String(v ?? '').replace(/\s+/g, ''))
+    }
+  }
+  return env
 }
 
 export function auditCodeowners(text, fileName = '.github/CODEOWNERS') {
