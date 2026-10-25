@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { existsSync, lstatSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -13,11 +13,11 @@ import { DEVELOPMENT_STORAGE_PREFIX, LEDGER_KEY } from '../../src/dev/t02-storag
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const EVIDENCE = resolve(ROOT, '../../.t02-evidence/extended-2026-10-15/website');
-const HASH_FILES = ['scripts/t02/dev-consumer.mjs', 'scripts/t02/dev-consumer-browser.mjs', 'src/dev/t02-consumer.jsx', 'src/dev/t02-consumer.css', 'src/dev/t02-session.js', 'src/dev/t02-storage.js', 'src/content/adapter.js', 'src/search.js', 'src/storage/constants.js', 'src/storage/migrations.js', 'src/storage/operations.js', 'src/storage/storage.js', 'src/storage/importExport.js', 'content-pack.lock', 'vendor/t02/provenance.json'];
+const HASH_FILES = ['scripts/t02/consumer-vite-server.mjs', 'scripts/t02/dev-consumer.mjs', 'scripts/t02/dev-consumer-browser.mjs', 'src/dev/t02-consumer.jsx', 'src/dev/t02-consumer.css', 'src/dev/t02-session.js', 'src/dev/t02-storage.js', 'src/content/adapter.js', 'src/search.js', 'src/storage/constants.js', 'src/storage/migrations.js', 'src/storage/operations.js', 'src/storage/storage.js', 'src/storage/importExport.js', 'content-pack.lock', 'vendor/t02/provenance.json'];
 const sha256 = (value) => createHash('sha256').update(value).digest('hex');
 const fail = (code) => { throw Object.assign(new Error(code), { code }); };
 
-export async function runDevelopmentBrowser({ evidenceDir = join(EVIDENCE, 'react-browser'), playwrightModule = process.env.SYM_T02_PLAYWRIGHT_MODULE } = {}) {
+export async function runDevelopmentBrowser({ evidenceDir = join(EVIDENCE, 'react-browser'), playwrightModule = process.env.SYM_T02_PLAYWRIGHT_MODULE, onStage = () => {} } = {}) {
   if (process.versions.node.split('.')[0] !== '22') fail('DEV_BROWSER_NODE22_REQUIRED');
   if (!resolve(evidenceDir).startsWith(EVIDENCE + '/')) fail('DEV_BROWSER_EVIDENCE_OUTSIDE_GIT_REQUIRED');
   mkdirSync(EVIDENCE, { recursive: true });
@@ -27,6 +27,7 @@ export async function runDevelopmentBrowser({ evidenceDir = join(EVIDENCE, 'reac
     if (!existsSync(component)) mkdirSync(component);
     if (!lstatSync(component).isDirectory() || lstatSync(component).isSymbolicLink()) fail('DEV_BROWSER_EVIDENCE_UNSAFE');
   }
+  rmSync(join(evidenceDir, 'result.json'), { force: true });
   const bootstrap = await loadDevelopmentBootstrap();
   const candidate = bootstrap.packs.find((item) => item.contentVersion === bootstrap.candidateVersion);
   const seed = adaptVerifiedBundle(candidate.bundle, { allowSimulation: true }).seedData;
@@ -39,12 +40,15 @@ export async function runDevelopmentBrowser({ evidenceDir = join(EVIDENCE, 'reac
   const modulePath = playwrightModule ?? join(homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs');
   const { chromium } = await import(pathToFileURL(modulePath));
   const playwrightVersion = JSON.parse(readFileSync(join(dirname(modulePath), 'package.json'))).version;
+  onStage({ stage: 'start', consumer: 'development' });
   const server = await startDevelopmentConsumer({ enabled: true });
   let browser;
   let debugPage;
+  let completedReport;
   let checks = 0;
   const check = (value, code) => { if (!value) fail(code); checks++; };
   try {
+    onStage({ stage: 'ready', consumer: 'development', origin: new URL(server.url).origin });
     browser = await chromium.launch({ headless: true, args: ['--disable-background-networking', '--disable-component-update', '--no-first-run'] });
     const origin = new URL(server.url).origin;
     let externalRequests = 0;
@@ -63,7 +67,9 @@ export async function runDevelopmentBrowser({ evidenceDir = join(EVIDENCE, 'reac
     }, { original });
     const page = await context.newPage();
     debugPage = page;
-    page.on('pageerror', () => pageErrors++);
+    page.on('domcontentloaded', () => onStage({ stage: 'domcontentloaded', consumer: 'development' }));
+    page.on('pageerror', (cause) => { pageErrors++; onStage({ stage: 'pageerror', consumer: 'development', message: cause.message }); });
+    page.on('response', (response) => { if (new URL(response.url()).pathname.endsWith('/bootstrap')) onStage({ stage: 'snapshot-fetch', consumer: 'development', status: response.status() }); });
     page.on('console', (message) => { if (message.type() === 'error') consoleErrors++; });
     const state = async () => {
       await page.getByTestId('consumer-state').waitFor({ state: 'attached' });
@@ -77,6 +83,7 @@ export async function runDevelopmentBrowser({ evidenceDir = join(EVIDENCE, 'reac
     }, { original, prefix: DEVELOPMENT_STORAGE_PREFIX });
     await page.goto(server.url, { waitUntil: 'networkidle' });
     check(await page.getByRole('heading', { name: '内容包消费演练', exact: true }).count() === 1, 'DEV_BROWSER_REACT_NOT_MOUNTED');
+    onStage({ stage: 'react-mount', consumer: 'development' });
     check(await page.evaluate(() => localStorage instanceof Storage && Object.getPrototypeOf(localStorage) === Storage.prototype), 'DEV_BROWSER_NATIVE_STORAGE_MISSING');
     check(Object.values((await state()).counts).every((count) => count === 0), 'DEV_BROWSER_UNTRUSTED_CONTENT_VISIBLE');
     check(await protectedUnchanged(), 'DEV_BROWSER_ORIGINAL_STORAGE_CHANGED');
@@ -189,12 +196,23 @@ export async function runDevelopmentBrowser({ evidenceDir = join(EVIDENCE, 'reac
       export: { bytes: exported.length, sha256: sha256(exported), actualDownloadAndUpload: true },
       final: expired, screenshots: [...viewports.map(({ width }) => `react-${width}.png`), 'react-expired.png'].map((name) => ({ name, sha256: sha256(readFileSync(join(evidenceDir, name))) })),
       limits: ['synthetic_only', 'independent_development_ui_not_production_main', 'controlled_synthetic_trust_injection', 'simulated_clock_offset', 'no_personal_profiles', 'no_authenticated_production_retraction_channel', 'no_formal_human_acceptance'] };
-    writeFileSync(join(evidenceDir, 'result.json'), JSON.stringify(report, null, 2) + '\n');
+    completedReport = report;
     return report;
   } catch (error) {
     if (debugPage && !debugPage.isClosed()) await debugPage.screenshot({ path: join(evidenceDir, 'failure.png'), fullPage: true }).catch(() => {});
     throw error;
-  } finally { if (browser) await browser.close(); await server.app.close(); }
+  } finally {
+    const closed = await Promise.allSettled([browser?.close(), server.app.close()]);
+    onStage({ stage: 'closed', consumer: 'development', serverClosed: !server.app.httpServer.listening });
+    const errors = closed.filter((result) => result.status === 'rejected').map((result) => result.reason);
+    if (errors.length) {
+      const cleanupErrors = errors.map(error => ({ code: error.code ?? error.message,
+        cleanupIncomplete: error.cleanupIncomplete === true, ...(error.cleanupIncomplete ? { cacheDir: error.cacheDir } : {}) }));
+      writeFileSync(join(evidenceDir, 'failure.json'), JSON.stringify({ status: 'FAIL', code: 'DEV_BROWSER_CLEANUP_FAILED', checks, cleanupErrors }, null, 2) + '\n');
+      throw new AggregateError(errors, 'DEV_BROWSER_CLEANUP_FAILED');
+    }
+    if (completedReport) writeFileSync(join(evidenceDir, 'result.json'), JSON.stringify(completedReport, null, 2) + '\n');
+  }
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

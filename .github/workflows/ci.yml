@@ -11,47 +11,123 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
+  identity:
+    name: Commit identity
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Isolated platform evidence: no checkout, import, npm or PR code runs here.
+      # Trusted publication accepts it only when base/head/merge workflow blobs match.
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const pr = context.payload.pull_request
+            const evidence = {
+              repository: context.repo.owner + '/' + context.repo.repo,
+              repositoryId: context.payload.repository.id,
+              number: pr?.number,
+              headRepositoryId: pr?.head.repo.id,
+              headRef: pr?.head.ref, baseRef: pr?.base.ref,
+              headSha: pr?.head.sha, baseSha: pr?.base.sha,
+              mergeSha: context.sha, ref: context.ref,
+              workflowSha: process.env.GITHUB_WORKFLOW_SHA,
+              workflowRef: process.env.GITHUB_WORKFLOW_REF,
+              eventName: context.eventName, action: context.payload.action,
+              runId: context.runId, runAttempt: Number(process.env.GITHUB_RUN_ATTEMPT),
+            }
+            core.info('SYMGENE_CI_CONTEXT_V1 ' + JSON.stringify(evidence))
+            const fs = require('node:fs')
+            fs.mkdirSync('work/security', { recursive: true })
+            fs.writeFileSync('work/security/ci-identity.json', JSON.stringify(evidence, null, 2) + '\n')
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ci-identity-${{ github.run_id }}-${{ github.run_attempt }}
+          path: work/security/ci-identity.json
+          if-no-files-found: error
+          retention-days: 14
+
   branch-policy:
     name: Branch policy
-    if: github.event_name == 'pull_request' && github.base_ref == 'main'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - name: Require same-repository dev promotion for main
+      - name: Enforce same-repository dev promotion when targeting main
         env:
+          EVENT_NAME: ${{ github.event_name }}
           BASE_REF: ${{ github.base_ref }}
           HEAD_REF: ${{ github.head_ref }}
           BASE_REPOSITORY: ${{ github.repository }}
           HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
         run: |
-          if [[ "$BASE_REF" == "main" ]] && \
-             [[ "$HEAD_REF" != "dev" || "$HEAD_REPOSITORY" != "$BASE_REPOSITORY" ]]; then
-            echo "Pull requests to main must promote the dev branch from this repository."
-            echo "Received: $HEAD_REPOSITORY:$HEAD_REF -> $BASE_REPOSITORY:$BASE_REF"
-            exit 1
+          if [[ "$EVENT_NAME" == "pull_request" && "$BASE_REF" == "main" ]]; then
+            [[ "$HEAD_REF" == "dev" && "$HEAD_REPOSITORY" == "$BASE_REPOSITORY" ]] || exit 1
           fi
 
   verify:
     name: Verify
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - run: npm run verify
-      - run: npx playwright install --with-deps chromium
-      - run: sudo apt-get install -y fonts-noto-cjk
+      - name: Configure bounded official Ubuntu package downloads
+        timeout-minutes: 1
+        shell: bash
+        run: |
+          . /etc/os-release
+          test "$ID" = ubuntu
+          test "$VERSION_ID" = 24.04
+          test -f /etc/apt/apt-mirrors.txt
+          # Preserve the runner's signed Ubuntu sources; replace only its slow mirror list.
+          printf '%s\n' 'https://archive.ubuntu.com/ubuntu' | sudo tee /etc/apt/apt-mirrors.txt
+          printf '%s\n' 'Acquire::Retries "2";' 'Acquire::http::Timeout "20";' 'Acquire::https::Timeout "20";' 'DPkg::Lock::Timeout "30";' | sudo tee /etc/apt/apt.conf.d/zzzz-symgene-ci-downloads
+          # runner-images also installs zz-retries; our leaf must sort after it.
+          sudo apt-config dump Acquire::Retries Acquire::http::Timeout Acquire::https::Timeout DPkg::Lock::Timeout
+          test "$(sudo apt-config shell VALUE Acquire::Retries)" = "VALUE='2'"
+          test "$(sudo apt-config shell VALUE Acquire::http::Timeout)" = "VALUE='20'"
+          test "$(sudo apt-config shell VALUE Acquire::https::Timeout)" = "VALUE='20'"
+          test "$(sudo apt-config shell VALUE DPkg::Lock::Timeout)" = "VALUE='30'"
+      - name: Install locked Playwright Chromium and system dependencies
+        timeout-minutes: 8
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Install the Chinese font required by browser evidence
+        timeout-minutes: 3
+        run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends fonts-noto-cjk
+      - name: Execute the built legacy production entry in Chromium
+        run: |
+          node --test tests/browser/legacy-runtime.test.mjs
+          node scripts/security/verify-production-runtime.mjs
+      - name: Real Chromium T02 concurrent startup (three pairs, six probes)
+        timeout-minutes: 5
+        env:
+          T02_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          node --test tests/browser/content-concurrency.test.mjs
+          node scripts/t02/consumer-concurrency.mjs --producer-root "$GITHUB_WORKSPACE" --evidence-dir "$RUNNER_TEMP/t02-concurrency" --profile ci
+      - name: Upload T02 matrix, errors and cleanup evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: t02-concurrency-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/t02-concurrency/
+          if-no-files-found: error
+          retention-days: 14
       - name: Reproducible review at 390, 768, 1366 and 1920 pixels
         run: npm run review:browser
         env:
           REVIEW_SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: content-review-${{ github.event.pull_request.head.sha || github.sha }}
@@ -59,15 +135,49 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  publication-approval:
-    name: Publication approval
-    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+  content-integration:
+    name: Content integration
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          # The scope audit checks ancestry and compares protected bytes to T03_BASE.
+          # A depth-one PR merge checkout does not contain that baseline commit.
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run check:publication
+      - run: npm run check:content
+      - run: npm run check:legacy-content
+      # R4: the T03 delivery-scope audit is now a mandatory engineering check. It is
+      # time-boxed by scripts/security/t03-scope-state.json: while active it audits every
+      # changed path against T03_BASE, and the owner retires it with a reviewed flip of
+      # `active` once the T03 family has landed. It runs inside this job so the trusted
+      # audit job contract (CI_JOBS in scripts/security/policy.mjs) stays unchanged.
+      - run: node scripts/security/check-t03-scope.mjs
+      - run: node --test tests/storage.test.mjs tests/content-*.test.mjs
+      - run: git diff --check
+
+  gate:
+    name: Engineering gate
+    if: always()
+    needs: [identity, branch-policy, verify, content-integration]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Deliberately inline: the terminal decision does not import a PR script.
+      # A changed PR workflow is still candidate CI, not production authority.
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        with:
+          script: |
+            const needs = JSON.parse(process.env.NEEDS_JSON)
+            const expected = ['identity', 'branch-policy', 'verify', 'content-integration']
+            if (expected.some(name => needs[name]?.result !== 'success')) {
+              core.setFailed('Every required upstream job must finish with exactly success.')
+            }
