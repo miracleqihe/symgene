@@ -1,0 +1,59 @@
+# Governance (trusted base) — R5-B 可信校验工作流
+#
+# 信任模型(R5-B):
+#   Candidate validation —— 候选分支上的 Governance 自检(候选可同时改审计器与
+#   测试,属自检,不是可信校验)。
+#   Trusted validation —— 本工作流:pull_request_target 只运行受保护基准
+#   (base.sha)上的校验器;候选变更仅以【数据】形式被读取(候选的
+#   .github/workflows 文件内容),候选脚本/依赖/PR HEAD 一律不执行、不安装、
+#   不检出。
+#
+# 生效边界(诚实声明):pull_request_target 运行的是 base 分支上的工作流副本。
+# 本文件随本 PR 进入 main 之前,main 上不存在它 → 本工作流在该 PR 上【不会】
+# 运行,可信校验尚未在 GitHub 上强制生效。Bootstrap 过渡:本 PR 的 .github
+# 落入 main 后,本工作流即自动对所有后续 PR 生效;将其设为必需检查是 Owner
+# 步骤(见 docs/bootstrap/OWNER-ACTIONS.md)。
+#
+# 绑定:仓库身份、PR 编号、base SHA、head SHA(由脚本经 API 以 PR 号解析,
+# 不做 head 输入插值)、校验器内容摘要 —— 全部写入结论输出。
+
+name: Governance (trusted base)
+
+on:
+  pull_request_target:
+    branches: [main, dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: governance-trusted-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  trusted-audit:
+    name: Governance (trusted)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Check out trusted base validation logic
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+
+      - name: Audit candidate workflow files as data
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: node .github/scripts/trusted-audit.mjs
+
+      - name: Publish the trusted verdict on the pull request
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          node .github/scripts/trusted-audit.mjs --publish-only

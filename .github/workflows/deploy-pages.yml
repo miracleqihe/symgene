@@ -1,8 +1,11 @@
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches: [main]
+  # S0 freeze (base 22eb347): the automatic publish-on-push trigger to main
+  # has been removed. Publishing is manual-only via workflow_dispatch and
+  # stays gated by the github-pages environment branch policy (ref main).
+  # Restoring the push trigger requires a reviewed pull request to this
+  # file; do not re-enable this workflow expecting push events to deploy.
   workflow_dispatch:
 
 permissions:
