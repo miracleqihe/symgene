@@ -1,0 +1,50 @@
+{
+  "lockVersion": 1,
+  "adoption": "legacy",
+  "candidate": {
+    "path": "content-packs/sim-4",
+    "contentVersion": "sim-4",
+    "manifestSha256": "953fa24a361bd2fd489ed8d930599c9610b45fce43285deda41cd116d2fbbfa3",
+    "packageDigest": "b0166fa70e0900b548ded179c5c54211366dc3e3f9ef818513abea63fe53b057",
+    "schemaRange": "^1.0.0"
+  },
+  "simulationArchives": [
+    {
+      "path": "content-packs/sim-3",
+      "contentVersion": "sim-3",
+      "manifestSha256": "b65319b2c6948a4ab26146516cdb7381fe9bbbac14877f70c3559fa53e7f105e",
+      "packageDigest": "a28b68716b9fce01ee87b432ed1f4028d9e16029f001dc7c025429f81581ad7a",
+      "schemaRange": "^1.0.0"
+    },
+    {
+      "path": "content-packs/sim-4",
+      "contentVersion": "sim-4",
+      "manifestSha256": "953fa24a361bd2fd489ed8d930599c9610b45fce43285deda41cd116d2fbbfa3",
+      "packageDigest": "b0166fa70e0900b548ded179c5c54211366dc3e3f9ef818513abea63fe53b057",
+      "schemaRange": "^1.0.0"
+    }
+  ],
+  "policy": {
+    "minimumCounts": {
+      "entities": 7,
+      "sources": 1,
+      "claims": 1,
+      "contentEntries": 2,
+      "scenarios": 1,
+      "resources": 2,
+      "rights": 1,
+      "reviews": 28,
+      "redirects": 1,
+      "retractions": 0
+    },
+    "minimumLegacyCounts": {
+      "drugs": 1,
+      "disorders": 1,
+      "cases": 1,
+      "resources": 1,
+      "institutions": 1
+    }
+  },
+  "publisherIdentity": "not_configured",
+  "scope": "local_simulation_only"
+}

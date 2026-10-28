@@ -1,0 +1,75 @@
+name: Trusted engineering audit
+
+# This workflow only becomes trusted after it is independently reviewed into base.
+# No PR files or dependencies are ever executed with this token.
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, edited, reopened, synchronize, ready_for_review, labeled]
+  # Review events run PR-controlled workflow code. A trusted independent issuer
+  # is required for immediate re-evaluation; ineffective scheduled polling is paused.
+  workflow_dispatch:
+    inputs:
+      pull_request_number:
+        description: Open main promotion PR for an engineering audit from trusted main
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+  checks: read
+
+concurrency:
+  group: publication-policy-${{ github.event.pull_request.number || inputs.pull_request_number || github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  publication:
+    name: Trusted engineering audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Reject untrusted audit workflow refs before loading repository code
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            if (context.repo.owner + '/' + context.repo.repo !== 'miracleqihe/symgene' ||
+                !['pull_request_target', 'workflow_dispatch'].includes(context.eventName) ||
+                context.ref !== 'refs/heads/main' ||
+                !/^[a-f0-9]{40}$/.test(context.sha || '') ||
+                process.env.GITHUB_WORKFLOW_REF !== 'miracleqihe/symgene/.github/workflows/publication-policy.yml@refs/heads/main') {
+              throw new Error('TRUSTED_AUDIT_WORKFLOW_REJECTED')
+            }
+            const { data: branch } = await github.rest.repos.getBranch({ ...context.repo, branch: 'main' })
+            if (branch.commit.sha !== context.sha ||
+                (context.eventName === 'pull_request_target' && context.payload.pull_request?.base?.sha !== context.sha)) {
+              throw new Error('TRUSTED_AUDIT_BASE_CHANGED')
+            }
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          path: trusted-base
+          persist-credentials: false
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const { pathToFileURL } = require('node:url')
+            const file = pathToFileURL(process.cwd() + '/trusted-base/scripts/security/trusted-pr.mjs').href
+            const { inspectTrustedPr } = await import(file)
+            const numbers = [context.payload.pull_request?.number || Number(context.payload.inputs?.pull_request_number)]
+            for (const number of numbers) {
+              try {
+                const evidence = await inspectTrustedPr({ github, context, number })
+                core.info(JSON.stringify(evidence))
+                if (evidence.engineering?.status !== 'PASS' || evidence.engineering?.code !== 'TRUSTED_ENGINEERING_AUDIT_PASS') {
+                  throw new Error('TRUSTED_ENGINEERING_AUDIT_NOT_PASS')
+                }
+              } catch (error) {
+                core.error(JSON.stringify({ number, status: 'BLOCKED', code: error.code || error.message,
+                  platformRequirement: error.platformRequirement, httpStatus: error.httpStatus }))
+                core.setFailed('BLOCKED: trusted engineering evidence could not be verified.')
+              }
+            }
+            core.info('Engineering audit only. T02_FORMAL_ADOPTION_BLOCKED; no production deployment authorization.')

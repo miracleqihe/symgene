@@ -10,47 +10,168 @@ permissions:
 
 concurrency:
   group: pages-production
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  verify:
+  authorization:
+    name: Main workflow identity
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      sha: ${{ steps.context.outputs.sha }}
+    steps:
+      - name: Require the exact main workflow ref before checkout
+        id: context
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            if (context.repo.owner + '/' + context.repo.repo !== 'miracleqihe/symgene' ||
+                context.ref !== 'refs/heads/main' ||
+                !['push', 'workflow_dispatch'].includes(context.eventName) ||
+                !/^[a-f0-9]{40}$/.test(context.sha || '') ||
+                !Number.isSafeInteger(context.runId) || context.runId < 1 ||
+                !/^[1-9][0-9]*$/.test(process.env.GITHUB_RUN_ATTEMPT || '') ||
+                process.env.GITHUB_WORKFLOW_REF !== 'miracleqihe/symgene/.github/workflows/deploy-pages.yml@refs/heads/main') {
+              throw new Error('DEPLOY_CONTEXT_REJECTED')
+            }
+            const { data } = await github.rest.repos.getBranch({ ...context.repo, branch: 'main' })
+            if (data.commit.sha !== context.sha) throw new Error('DEPLOY_MAIN_CHANGED')
+            core.setOutput('sha', data.commit.sha)
+
+  verify:
+    name: Production verification
+    needs: authorization
     permissions:
       contents: read
+      actions: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    outputs:
+      artifact_id: ${{ steps.artifact.outputs.artifact-id }}
+      artifact_digest: ${{ steps.binding.outputs.digest }}
+      legacy_status: ${{ steps.eligibility.outputs.legacy_status }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && 'main' || github.sha }}
-      - uses: actions/setup-node@v4
+          ref: ${{ needs.authorization.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
-          cache: npm
       - run: npm ci
+      - name: Verify legacy integrity under the checked-in publication policy
+        run: npm run check:publication
       - run: npm run verify
-      - uses: actions/upload-artifact@v4
+      - name: Install locked Chromium for production runtime verification
+        timeout-minutes: 8
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Execute the actual production legacy entry in Chromium
+        timeout-minutes: 3
+        run: node scripts/security/verify-production-runtime.mjs
+      - name: Validate legacy production source and the actual build
+        id: eligibility
+        run: node scripts/security/production-gate.mjs
+        env:
+          CURRENT_MAIN_SHA: ${{ needs.authorization.outputs.sha }}
+          EXPECTED_ENVIRONMENT: github-pages
+      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+      # Package Pages directly so no composite action can resolve a mutable nested tag.
+      - name: Package the verified public directory
+        run: |
+          test -z "$(find dist -type l -print -quit)"
+          tar --directory dist --exclude=.git --exclude=.github -cf "$RUNNER_TEMP/artifact.tar" .
+      - id: artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: site-dist
-          path: dist
+          name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/artifact.tar
+          if-no-files-found: error
           retention-days: 1
+      - id: binding
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          ARTIFACT_ID: ${{ steps.artifact.outputs.artifact-id }}
+        with:
+          script: |
+            const { data } = await github.rest.actions.getArtifact({ ...context.repo, artifact_id: Number(process.env.ARTIFACT_ID) })
+            if (!/^sha256:[a-f0-9]{64}$/.test(data.digest || '')) throw new Error('ARTIFACT_DIGEST_MISSING')
+            core.setOutput('digest', data.digest)
+
+  gate:
+    name: Deployment gate
+    if: always()
+    needs: [authorization, verify]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        with:
+          script: |
+            const needs = JSON.parse(process.env.NEEDS_JSON)
+            if (['authorization', 'verify'].some(name => needs[name]?.result !== 'success')) {
+              core.setFailed('Main identity and production verification must both finish with exactly success.')
+            }
+            if (needs.verify?.outputs?.legacy_status !== 'LEGACY_ENGINEERING_ELIGIBLE') {
+              core.setFailed('Verified legacy build evidence is required; engineering eligibility does not authorize T02 adoption.')
+            }
 
   deploy:
-    needs: verify
+    needs: [authorization, verify, gate]
     permissions:
       contents: read
+      actions: read
       pages: write
       id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/download-artifact@v4
+      # No checkout, npm, cache or PR code executes with deployment credentials.
+      - name: Verify the current run and exact artifact before Pages consumes it
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          ARTIFACT_ID: ${{ needs.verify.outputs.artifact_id }}
+          ARTIFACT_DIGEST: ${{ needs.verify.outputs.artifact_digest }}
+          AUTHORIZED_SHA: ${{ needs.authorization.outputs.sha }}
+          EXPECTED_ENVIRONMENT: github-pages
+          NEEDS_JSON: ${{ toJSON(needs) }}
         with:
-          name: site-dist
-          path: dist
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
+          script: |
+            const needs = JSON.parse(process.env.NEEDS_JSON)
+            if (['authorization', 'verify', 'gate'].some(name => needs[name]?.result !== 'success')) throw new Error('DEPLOY_APPROVAL_MISSING')
+            if (needs.verify?.outputs?.legacy_status !== 'LEGACY_ENGINEERING_ELIGIBLE') throw new Error('LEGACY_ELIGIBILITY_MISSING')
+            if (!['push', 'workflow_dispatch'].includes(context.eventName) ||
+                !Number.isSafeInteger(context.runId) || context.runId < 1 ||
+                !/^[1-9][0-9]*$/.test(process.env.GITHUB_RUN_ATTEMPT || '') ||
+                !Number.isSafeInteger(Number(process.env.ARTIFACT_ID)) || Number(process.env.ARTIFACT_ID) < 1 ||
+                !/^[a-f0-9]{40}$/.test(process.env.AUTHORIZED_SHA || '') ||
+                context.ref !== 'refs/heads/main' || process.env.EXPECTED_ENVIRONMENT !== 'github-pages' ||
+                process.env.GITHUB_WORKFLOW_REF !== 'miracleqihe/symgene/.github/workflows/deploy-pages.yml@refs/heads/main' ||
+                context.repo.owner + '/' + context.repo.repo !== 'miracleqihe/symgene' ||
+                context.sha !== process.env.AUTHORIZED_SHA) throw new Error('DEPLOY_CONTEXT_REJECTED')
+            const [{ data: branch }, { data: run }, { data: artifact }] = await Promise.all([
+              github.rest.repos.getBranch({ ...context.repo, branch: 'main' }),
+              github.rest.actions.getWorkflowRun({ ...context.repo, run_id: context.runId }),
+              github.rest.actions.getArtifact({ ...context.repo, artifact_id: Number(process.env.ARTIFACT_ID) }),
+            ])
+            const expectedName = `github-pages-${context.runId}-${process.env.GITHUB_RUN_ATTEMPT}`
+            if (branch.commit.sha !== context.sha || run.id !== context.runId ||
+                run.run_attempt !== Number(process.env.GITHUB_RUN_ATTEMPT) || run.head_sha !== context.sha ||
+                run.head_branch !== 'main' || run.event !== context.eventName ||
+                run.repository.full_name !== 'miracleqihe/symgene' || run.path !== '.github/workflows/deploy-pages.yml' ||
+                artifact.id !== Number(process.env.ARTIFACT_ID) || artifact.name !== expectedName || artifact.expired !== false ||
+                artifact.workflow_run?.id !== context.runId || artifact.workflow_run?.head_sha !== context.sha ||
+                artifact.workflow_run?.head_branch !== 'main' ||
+                !/^sha256:[a-f0-9]{64}$/.test(process.env.ARTIFACT_DIGEST || '') ||
+                artifact.digest !== process.env.ARTIFACT_DIGEST) throw new Error('ARTIFACT_BINDING_REJECTED')
+            const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, { ...context.repo, run_id: context.runId, per_page: 100 })
+            const matching = artifacts.filter(a => a.name === expectedName && a.expired === false)
+            if (matching.length !== 1 || matching[0].id !== artifact.id || matching[0].digest !== artifact.digest) throw new Error('ARTIFACT_AMBIGUOUS')
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+        with:
+          artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
