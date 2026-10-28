@@ -1,0 +1,494 @@
+{
+  "row": {
+    "id": "A1-single-dev-cold-warm",
+    "title": "One development consumer; cold owned cache, then two warm runs on one explicit cache",
+    "round": 1,
+    "expect": "PASS",
+    "observed": {
+      "verdict": "PASS",
+      "probes": [
+        {
+          "kind": "development",
+          "status": "PASS",
+          "complete": true,
+          "pid": 55944,
+          "durationMs": 1244,
+          "cachePolicy": "per-instance-owned",
+          "cacheDir": "<tmpdir>/symgene-t02-vite-FW0EyQ",
+          "port": 57388,
+          "http504Count": 0,
+          "externalRequests": 0,
+          "pageErrors": [],
+          "consoleErrors": [],
+          "requestFailures": [],
+          "httpErrors": [],
+          "cleanupErrors": [],
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "closedPorts": [
+            {
+              "port": 57388,
+              "reachable": false
+            }
+          ],
+          "timeline": [
+            {
+              "kind": "development",
+              "stage": "start",
+              "elapsedMs": 0,
+              "pid": 55944,
+              "loadavg": [
+                22.63525390625,
+                35.62646484375,
+                32.24072265625
+              ],
+              "freeMemory": 77545472
+            },
+            {
+              "kind": "development",
+              "stage": "ready",
+              "elapsedMs": 115,
+              "port": 57388,
+              "cacheDir": "<tmpdir>/symgene-t02-vite-FW0EyQ"
+            },
+            {
+              "kind": "development",
+              "stage": "domcontentloaded",
+              "elapsedMs": 1066
+            },
+            {
+              "kind": "development",
+              "stage": "response",
+              "elapsedMs": 1129,
+              "path": "/symgene/t02-dev/bootstrap",
+              "status": 200
+            },
+            {
+              "kind": "development",
+              "stage": "react-mount",
+              "elapsedMs": 1163
+            },
+            {
+              "kind": "development",
+              "stage": "snapshot",
+              "elapsedMs": 1214,
+              "fresh": true,
+              "sequence": 1
+            },
+            {
+              "kind": "development",
+              "stage": "closed",
+              "elapsedMs": 1244,
+              "serverClosed": true,
+              "browserClosed": true,
+              "ownedCacheRemoved": true,
+              "ports": [
+                {
+                  "port": 57388,
+                  "reachable": false
+                }
+              ],
+              "cleanupErrors": []
+            }
+          ]
+        },
+        {
+          "kind": "development",
+          "status": "PASS",
+          "complete": true,
+          "pid": 55944,
+          "durationMs": 491,
+          "cachePolicy": "explicit-caller-owned",
+          "cacheDir": "<tmpdir>/t02-faultlab-warm-6vumil",
+          "port": 57408,
+          "http504Count": 0,
+          "externalRequests": 0,
+          "pageErrors": [],
+          "consoleErrors": [],
+          "requestFailures": [],
+          "httpErrors": [],
+          "cleanupErrors": [],
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": null,
+          "closedPorts": [
+            {
+              "port": 57408,
+              "reachable": false
+            }
+          ],
+          "timeline": [
+            {
+              "kind": "development",
+              "stage": "start",
+              "elapsedMs": 0,
+              "pid": 55944,
+              "loadavg": [
+                21.302734375,
+                35.13427734375,
+                32.0869140625
+              ],
+              "freeMemory": 192970752
+            },
+            {
+              "kind": "development",
+              "stage": "ready",
+              "elapsedMs": 35,
+              "port": 57408,
+              "cacheDir": "<tmpdir>/t02-faultlab-warm-6vumil"
+            },
+            {
+              "kind": "development",
+              "stage": "domcontentloaded",
+              "elapsedMs": 373
+            },
+            {
+              "kind": "development",
+              "stage": "response",
+              "elapsedMs": 407,
+              "path": "/symgene/t02-dev/bootstrap",
+              "status": 200
+            },
+            {
+              "kind": "development",
+              "stage": "react-mount",
+              "elapsedMs": 430
+            },
+            {
+              "kind": "development",
+              "stage": "snapshot",
+              "elapsedMs": 468,
+              "fresh": true,
+              "sequence": 1
+            },
+            {
+              "kind": "development",
+              "stage": "closed",
+              "elapsedMs": 491,
+              "serverClosed": true,
+              "browserClosed": true,
+              "ownedCacheRemoved": null,
+              "ports": [
+                {
+                  "port": 57408,
+                  "reachable": false
+                }
+              ],
+              "cleanupErrors": []
+            }
+          ]
+        },
+        {
+          "kind": "development",
+          "status": "PASS",
+          "complete": true,
+          "pid": 55944,
+          "durationMs": 400,
+          "cachePolicy": "explicit-caller-owned",
+          "cacheDir": "<tmpdir>/t02-faultlab-warm-6vumil",
+          "port": 57417,
+          "http504Count": 0,
+          "externalRequests": 0,
+          "pageErrors": [],
+          "consoleErrors": [],
+          "requestFailures": [],
+          "httpErrors": [],
+          "cleanupErrors": [],
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": null,
+          "closedPorts": [
+            {
+              "port": 57417,
+              "reachable": false
+            }
+          ],
+          "timeline": [
+            {
+              "kind": "development",
+              "stage": "start",
+              "elapsedMs": 0,
+              "pid": 55944,
+              "loadavg": [
+                21.302734375,
+                35.13427734375,
+                32.0869140625
+              ],
+              "freeMemory": 165363712
+            },
+            {
+              "kind": "development",
+              "stage": "ready",
+              "elapsedMs": 30,
+              "port": 57417,
+              "cacheDir": "<tmpdir>/t02-faultlab-warm-6vumil"
+            },
+            {
+              "kind": "development",
+              "stage": "domcontentloaded",
+              "elapsedMs": 274
+            },
+            {
+              "kind": "development",
+              "stage": "response",
+              "elapsedMs": 326,
+              "path": "/symgene/t02-dev/bootstrap",
+              "status": 200
+            },
+            {
+              "kind": "development",
+              "stage": "react-mount",
+              "elapsedMs": 348
+            },
+            {
+              "kind": "development",
+              "stage": "snapshot",
+              "elapsedMs": 384,
+              "fresh": true,
+              "sequence": 1
+            },
+            {
+              "kind": "development",
+              "stage": "closed",
+              "elapsedMs": 400,
+              "serverClosed": true,
+              "browserClosed": true,
+              "ownedCacheRemoved": null,
+              "ports": [
+                {
+                  "port": 57417,
+                  "reachable": false
+                }
+              ],
+              "cleanupErrors": []
+            }
+          ]
+        }
+      ],
+      "warmCache": "<tmpdir>/t02-faultlab-warm-6vumil"
+    },
+    "durationMs": 2200,
+    "leakCheck": {
+      "chromiumBefore": 0,
+      "chromiumAfter": 0,
+      "newChromiumPids": [],
+      "newTempCaches": [],
+      "verdict": "no-orphan-chromium"
+    },
+    "verdict": "PASS",
+    "matchesExpectation": true
+  },
+  "before": {
+    "tag": "before A1-single-dev-cold-warm r1",
+    "at": "2026-10-24T16:15:01.476Z",
+    "chromiumPids": [],
+    "chromiumComms": [],
+    "loadavg": [
+      22.64,
+      35.63,
+      32.24
+    ],
+    "freeMemory": 77479936,
+    "symgeneTempCaches": [
+      "symgene-t02-probe-0fIGHE",
+      "symgene-t02-probe-0kzNvA",
+      "symgene-t02-probe-1DolHT",
+      "symgene-t02-probe-1tf6aj",
+      "symgene-t02-probe-2L1aY2",
+      "symgene-t02-probe-2VdlRC",
+      "symgene-t02-probe-3VUKWJ",
+      "symgene-t02-probe-4T9anE",
+      "symgene-t02-probe-5D11oW",
+      "symgene-t02-probe-5hlPbJ",
+      "symgene-t02-probe-6KpH3V",
+      "symgene-t02-probe-A6zaZn",
+      "symgene-t02-probe-AbSh37",
+      "symgene-t02-probe-B93nJC",
+      "symgene-t02-probe-BDnj2d",
+      "symgene-t02-probe-BeXfFu",
+      "symgene-t02-probe-FXEwxX",
+      "symgene-t02-probe-GRkke9",
+      "symgene-t02-probe-IX7srS",
+      "symgene-t02-probe-InBW9H",
+      "symgene-t02-probe-JJxGnY",
+      "symgene-t02-probe-Jgddvw",
+      "symgene-t02-probe-KXpmVy",
+      "symgene-t02-probe-MpQ98O",
+      "symgene-t02-probe-N4Ba4n",
+      "symgene-t02-probe-NNg2DS",
+      "symgene-t02-probe-OAwjZi",
+      "symgene-t02-probe-OQb7mH",
+      "symgene-t02-probe-Oh2TxN",
+      "symgene-t02-probe-OtwZyb",
+      "symgene-t02-probe-QUWctk",
+      "symgene-t02-probe-R8ATlQ",
+      "symgene-t02-probe-RBhMRu",
+      "symgene-t02-probe-RVldaf",
+      "symgene-t02-probe-SastjJ",
+      "symgene-t02-probe-UXtBUA",
+      "symgene-t02-probe-Voc08q",
+      "symgene-t02-probe-WXQLmq",
+      "symgene-t02-probe-a3zyu6",
+      "symgene-t02-probe-afijMV",
+      "symgene-t02-probe-b1jeXB",
+      "symgene-t02-probe-dATLge",
+      "symgene-t02-probe-dlVuah",
+      "symgene-t02-probe-e4fgxa",
+      "symgene-t02-probe-gQX7h5",
+      "symgene-t02-probe-hsVOks",
+      "symgene-t02-probe-i0EhtT",
+      "symgene-t02-probe-iiJgwg",
+      "symgene-t02-probe-jgSzOg",
+      "symgene-t02-probe-lYOIzQ",
+      "symgene-t02-probe-lzIaUE",
+      "symgene-t02-probe-mpXFEX",
+      "symgene-t02-probe-nHtXFU",
+      "symgene-t02-probe-ocksY3",
+      "symgene-t02-probe-pJHRiM",
+      "symgene-t02-probe-s593tq",
+      "symgene-t02-probe-syIMjP",
+      "symgene-t02-probe-t1K1AT",
+      "symgene-t02-probe-tJuP4h",
+      "symgene-t02-probe-vkZ1jI",
+      "symgene-t02-probe-xBt8Ih",
+      "symgene-t02-probe-xPh8op",
+      "symgene-t02-probe-zoH2u8",
+      "symgene-t02-probe-zuV3wm",
+      "symgene-t02-vite-1QY47X",
+      "symgene-t02-vite-3KTtRn",
+      "symgene-t02-vite-6giVJI",
+      "symgene-t02-vite-7GzVyl",
+      "symgene-t02-vite-C5U0xU",
+      "symgene-t02-vite-DZXkC3",
+      "symgene-t02-vite-G3azv2",
+      "symgene-t02-vite-IsreSG",
+      "symgene-t02-vite-Ss9kwR",
+      "symgene-t02-vite-Tw9a7O",
+      "symgene-t02-vite-UJb3Bf",
+      "symgene-t02-vite-V2Hk7y",
+      "symgene-t02-vite-VBQSy5",
+      "symgene-t02-vite-VnKGGO",
+      "symgene-t02-vite-YNYghK",
+      "symgene-t02-vite-apXwhd",
+      "symgene-t02-vite-cOWip7",
+      "symgene-t02-vite-e5fJUD",
+      "symgene-t02-vite-hkuxV3",
+      "symgene-t02-vite-hqspkN",
+      "symgene-t02-vite-julqg3",
+      "symgene-t02-vite-kVnZKY",
+      "symgene-t02-vite-npoOrN",
+      "symgene-t02-vite-peRYpo",
+      "symgene-t02-vite-s2IkX3",
+      "symgene-t02-vite-txqxOk",
+      "symgene-t02-vite-ydW3fX",
+      "symgene-t02-vite-z21v0h"
+    ]
+  },
+  "after": {
+    "tag": "after A1-single-dev-cold-warm r1",
+    "at": "2026-10-24T16:15:03.677Z",
+    "chromiumPids": [],
+    "chromiumComms": [],
+    "loadavg": [
+      21.3,
+      35.13,
+      32.09
+    ],
+    "freeMemory": 209797120,
+    "symgeneTempCaches": [
+      "symgene-t02-probe-0fIGHE",
+      "symgene-t02-probe-0kzNvA",
+      "symgene-t02-probe-1DolHT",
+      "symgene-t02-probe-1tf6aj",
+      "symgene-t02-probe-2L1aY2",
+      "symgene-t02-probe-2VdlRC",
+      "symgene-t02-probe-3VUKWJ",
+      "symgene-t02-probe-4T9anE",
+      "symgene-t02-probe-5D11oW",
+      "symgene-t02-probe-5hlPbJ",
+      "symgene-t02-probe-6KpH3V",
+      "symgene-t02-probe-A6zaZn",
+      "symgene-t02-probe-AbSh37",
+      "symgene-t02-probe-B93nJC",
+      "symgene-t02-probe-BDnj2d",
+      "symgene-t02-probe-BeXfFu",
+      "symgene-t02-probe-FXEwxX",
+      "symgene-t02-probe-GRkke9",
+      "symgene-t02-probe-IX7srS",
+      "symgene-t02-probe-InBW9H",
+      "symgene-t02-probe-JJxGnY",
+      "symgene-t02-probe-Jgddvw",
+      "symgene-t02-probe-KXpmVy",
+      "symgene-t02-probe-MpQ98O",
+      "symgene-t02-probe-N4Ba4n",
+      "symgene-t02-probe-NNg2DS",
+      "symgene-t02-probe-OAwjZi",
+      "symgene-t02-probe-OQb7mH",
+      "symgene-t02-probe-Oh2TxN",
+      "symgene-t02-probe-OtwZyb",
+      "symgene-t02-probe-QUWctk",
+      "symgene-t02-probe-R8ATlQ",
+      "symgene-t02-probe-RBhMRu",
+      "symgene-t02-probe-RVldaf",
+      "symgene-t02-probe-SastjJ",
+      "symgene-t02-probe-UXtBUA",
+      "symgene-t02-probe-Voc08q",
+      "symgene-t02-probe-WXQLmq",
+      "symgene-t02-probe-a3zyu6",
+      "symgene-t02-probe-afijMV",
+      "symgene-t02-probe-b1jeXB",
+      "symgene-t02-probe-dATLge",
+      "symgene-t02-probe-dlVuah",
+      "symgene-t02-probe-e4fgxa",
+      "symgene-t02-probe-gQX7h5",
+      "symgene-t02-probe-hsVOks",
+      "symgene-t02-probe-i0EhtT",
+      "symgene-t02-probe-iiJgwg",
+      "symgene-t02-probe-jgSzOg",
+      "symgene-t02-probe-lYOIzQ",
+      "symgene-t02-probe-lzIaUE",
+      "symgene-t02-probe-mpXFEX",
+      "symgene-t02-probe-nHtXFU",
+      "symgene-t02-probe-ocksY3",
+      "symgene-t02-probe-pJHRiM",
+      "symgene-t02-probe-s593tq",
+      "symgene-t02-probe-syIMjP",
+      "symgene-t02-probe-t1K1AT",
+      "symgene-t02-probe-tJuP4h",
+      "symgene-t02-probe-vkZ1jI",
+      "symgene-t02-probe-xBt8Ih",
+      "symgene-t02-probe-xPh8op",
+      "symgene-t02-probe-zoH2u8",
+      "symgene-t02-probe-zuV3wm",
+      "symgene-t02-vite-1QY47X",
+      "symgene-t02-vite-3KTtRn",
+      "symgene-t02-vite-6giVJI",
+      "symgene-t02-vite-7GzVyl",
+      "symgene-t02-vite-C5U0xU",
+      "symgene-t02-vite-DZXkC3",
+      "symgene-t02-vite-G3azv2",
+      "symgene-t02-vite-IsreSG",
+      "symgene-t02-vite-Ss9kwR",
+      "symgene-t02-vite-Tw9a7O",
+      "symgene-t02-vite-UJb3Bf",
+      "symgene-t02-vite-V2Hk7y",
+      "symgene-t02-vite-VBQSy5",
+      "symgene-t02-vite-VnKGGO",
+      "symgene-t02-vite-YNYghK",
+      "symgene-t02-vite-apXwhd",
+      "symgene-t02-vite-cOWip7",
+      "symgene-t02-vite-e5fJUD",
+      "symgene-t02-vite-hkuxV3",
+      "symgene-t02-vite-hqspkN",
+      "symgene-t02-vite-julqg3",
+      "symgene-t02-vite-kVnZKY",
+      "symgene-t02-vite-npoOrN",
+      "symgene-t02-vite-peRYpo",
+      "symgene-t02-vite-s2IkX3",
+      "symgene-t02-vite-txqxOk",
+      "symgene-t02-vite-ydW3fX",
+      "symgene-t02-vite-z21v0h"
+    ]
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "probes": 6,
+  "completed": 6,
+  "closedPorts": [
+    {
+      "port": 43181,
+      "reachable": false
+    },
+    {
+      "port": 53200,
+      "reachable": false
+    },
+    {
+      "port": 43182,
+      "reachable": false
+    },
+    {
+      "port": 53232,
+      "reachable": false
+    },
+    {
+      "port": 53236,
+      "reachable": false
+    },
+    {
+      "port": 53233,
+      "reachable": false
+    },
+    {
+      "port": 53237,
+      "reachable": false
+    },
+    {
+      "port": 53258,
+      "reachable": false
+    },
+    {
+      "port": 53259,
+      "reachable": false
+    }
+  ],
+  "workers": [
+    {
+      "executionId": "3ce7c847-1006-48a3-b190-118cd74a7f01",
+      "childPid": 7738,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "reportReceived": true,
+      "reportValid": true,
+      "exitObserved": true,
+      "closeObserved": true,
+      "supervisorDeadlineExceeded": false
+    },
+    {
+      "executionId": "26231563-ab88-4abc-b35c-443e1ebe5e3e",
+      "childPid": 7739,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "reportReceived": true,
+      "reportValid": true,
+      "exitObserved": true,
+      "closeObserved": true,
+      "supervisorDeadlineExceeded": false
+    },
+    {
+      "executionId": "d1d9500f-106b-49bf-aeb1-734d8513f643",
+      "childPid": 8231,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "reportReceived": true,
+      "reportValid": true,
+      "exitObserved": true,
+      "closeObserved": true,
+      "supervisorDeadlineExceeded": false
+    },
+    {
+      "executionId": "f7f21bcc-329c-46d8-9053-50560cad7087",
+      "childPid": 8232,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "reportReceived": true,
+      "reportValid": true,
+      "exitObserved": true,
+      "closeObserved": true,
+      "supervisorDeadlineExceeded": false
+    },
+    {
+      "executionId": "7dfd520b-00f5-4d89-a981-8c94f18c48a1",
+      "childPid": 8685,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "reportReceived": true,
+      "reportValid": true,
+      "exitObserved": true,
+      "closeObserved": true,
+      "supervisorDeadlineExceeded": false
+    },
+    {
+      "executionId": "1753084e-e506-4cd0-a5de-ed22cb7536d9",
+      "childPid": 8686,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "reportReceived": true,
+      "reportValid": true,
+      "exitObserved": true,
+      "closeObserved": true,
+      "supervisorDeadlineExceeded": false
+    }
+  ]
+}

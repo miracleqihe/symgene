@@ -1,0 +1,102 @@
+{
+  "id": "B9R2b-permanent-deletion-failure-eperm",
+  "title": "Permanent deletion failure (uchg held): rm retries must exhaust, close rejects with EPERM after the retry window, cache retained",
+  "expect": "RETRY-EXHAUSTED-FAIL",
+  "rounds": [
+    {
+      "id": "B9R2b-permanent-deletion-failure-eperm",
+      "title": "Permanent deletion failure (uchg held): rm retries must exhaust, close rejects with EPERM after the retry window, cache retained",
+      "round": 1,
+      "expect": "RETRY-EXHAUSTED-FAIL",
+      "observed": {
+        "verdict": "RETRY-EXHAUSTED-FAIL",
+        "transient": false,
+        "rejected": {
+          "name": "Error",
+          "code": "EPERM",
+          "message": "EPERM: operation not permitted, unlink '<tmpdir>/symgene-t02-vite-5366QG/deps/@remotion_player.js'",
+          "cleanupIncomplete": false
+        },
+        "closeMs": 6869,
+        "depsOptimized": true,
+        "endpointOpenAfterClose": false,
+        "cacheRetained": true,
+        "retryWindowNote": "linear backoff ~10/20/30/40/50ms; flag cleared at +80ms in the transient variant"
+      },
+      "durationMs": 23739,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "RETRY-EXHAUSTED-FAIL",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B9R2b-permanent-deletion-failure-eperm",
+      "title": "Permanent deletion failure (uchg held): rm retries must exhaust, close rejects with EPERM after the retry window, cache retained",
+      "round": 2,
+      "expect": "RETRY-EXHAUSTED-FAIL",
+      "observed": {
+        "verdict": "RETRY-EXHAUSTED-FAIL",
+        "transient": false,
+        "rejected": {
+          "name": "Error",
+          "code": "EPERM",
+          "message": "EPERM: operation not permitted, unlink '<tmpdir>/symgene-t02-vite-1ByE4C/deps/@remotion_player.js'",
+          "cleanupIncomplete": false
+        },
+        "closeMs": 6788,
+        "depsOptimized": true,
+        "endpointOpenAfterClose": false,
+        "cacheRetained": true,
+        "retryWindowNote": "linear backoff ~10/20/30/40/50ms; flag cleared at +80ms in the transient variant"
+      },
+      "durationMs": 24104,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "RETRY-EXHAUSTED-FAIL",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B9R2b-permanent-deletion-failure-eperm",
+      "title": "Permanent deletion failure (uchg held): rm retries must exhaust, close rejects with EPERM after the retry window, cache retained",
+      "round": 3,
+      "expect": "RETRY-EXHAUSTED-FAIL",
+      "observed": {
+        "verdict": "RETRY-EXHAUSTED-FAIL",
+        "transient": false,
+        "rejected": {
+          "name": "Error",
+          "code": "EPERM",
+          "message": "EPERM: operation not permitted, unlink '<tmpdir>/symgene-t02-vite-Udsr02/deps/@remotion_player.js'",
+          "cleanupIncomplete": false
+        },
+        "closeMs": 6728,
+        "depsOptimized": true,
+        "endpointOpenAfterClose": false,
+        "cacheRetained": true,
+        "retryWindowNote": "linear backoff ~10/20/30/40/50ms; flag cleared at +80ms in the transient variant"
+      },
+      "durationMs": 23993,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "RETRY-EXHAUSTED-FAIL",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

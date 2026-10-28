@@ -1,0 +1,5 @@
+[
+  { "round": 1, "durationMs": 6687, "rejected": { "code": "EPERM" }, "cacheRetained": true },
+  { "round": 2, "durationMs": 6721, "rejected": { "code": "EPERM" }, "cacheRetained": true },
+  { "round": 3, "durationMs": 6735, "rejected": { "code": "EPERM" }, "cacheRetained": true }
+]

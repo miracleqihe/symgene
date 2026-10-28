@@ -1,0 +1,72 @@
+{
+  "id": "B2a-close-joins-writer-released-after-close-start",
+  "title": "Writer released only after close() began: late write must land inside the drain, before cache removal",
+  "expect": "JOINED",
+  "rounds": [
+    {
+      "id": "B2a-close-joins-writer-released-after-close-start",
+      "title": "Writer released only after close() began: late write must land inside the drain, before cache removal",
+      "round": 1,
+      "expect": "JOINED",
+      "observed": {
+        "verdict": "JOINED",
+        "cacheRemoved": true,
+        "writerReleasedAfterCloseStart": true
+      },
+      "durationMs": 414,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "JOINED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B2a-close-joins-writer-released-after-close-start",
+      "title": "Writer released only after close() began: late write must land inside the drain, before cache removal",
+      "round": 2,
+      "expect": "JOINED",
+      "observed": {
+        "verdict": "JOINED",
+        "cacheRemoved": true,
+        "writerReleasedAfterCloseStart": true
+      },
+      "durationMs": 423,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "JOINED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B2a-close-joins-writer-released-after-close-start",
+      "title": "Writer released only after close() began: late write must land inside the drain, before cache removal",
+      "round": 3,
+      "expect": "JOINED",
+      "observed": {
+        "verdict": "JOINED",
+        "cacheRemoved": true,
+        "writerReleasedAfterCloseStart": true
+      },
+      "durationMs": 407,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "JOINED",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

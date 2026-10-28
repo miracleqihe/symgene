@@ -1,0 +1,3 @@
+{"id":"0-0-fresh-instance","order":"parallel","processes":"separate","cache":"default","ports":"fixed","temperature":"fresh-instance","status":"PASS","durations":[1052,1070]}
+{"id":"1-0-fresh-instance","order":"parallel","processes":"separate","cache":"default","ports":"ephemeral","consumers":["signed","signed"],"temperature":"fresh-instance","status":"PASS","durations":[987,956]}
+{"id":"2-0-fresh-instance","order":"parallel","processes":"separate","cache":"default","ports":"ephemeral","consumers":["development","development"],"temperature":"fresh-instance","status":"PASS","durations":[1158,1170]}

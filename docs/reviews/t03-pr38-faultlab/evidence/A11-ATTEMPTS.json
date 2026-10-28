@@ -1,0 +1,38 @@
+{
+  "experiment": "A11-close-during-traffic",
+  "purpose": "Reconcile every A11 attempt ever executed against the formal RELIABILITY-MATRIX, after independent review found that the published '1/8 rounds hit the 15s shutdown deadline' could not be derived from the formal matrix alone.",
+  "attemptModel": "one attempt = one experiment round of A11",
+  "harnessVersions": {
+    "v1": "initial harness; probe/summary plumbing defects (playwright imported from the harness directory); A11 verdict semantics: closeError===null required for CLEAN",
+    "v2": "playwright import fixed; verdict semantics still v1 (any deadline hit => DIRTY)",
+    "v3": "verdict semantics aligned with the PR contract: CLOSE-CLEAN (joined, cache removed, endpoint closed) and CLOSE-BOUNDED-FAIL (deadline reject, endpoint closed, cache retained, error visible) are both spec-compliant; anything else is CLOSE-DIRTY"
+  },
+  "attempts": [
+    { "attempt": 1, "run": "run1-harness-v1", "round": 1, "status": "INVALID-HARNESS-DEFECT", "recordedVerdict": "THREW", "behavior": "no experiment executed: playwright import failed (ERR_MODULE_NOT_FOUND) before any resource was created", "durationMs": 62, "deadlineHit": false, "evidenceSource": "wpA-run.log", "rawEvidenceFile": null, "rawEvidenceNote": "per-round evidence files of run1 were overwritten by later same-name runs; the run log survives" },
+    { "attempt": 2, "run": "run1-harness-v1", "round": 2, "status": "INVALID-HARNESS-DEFECT", "recordedVerdict": "THREW", "behavior": "no experiment executed (same harness defect)", "durationMs": 60, "deadlineHit": false, "evidenceSource": "wpA-run.log", "rawEvidenceFile": null },
+    { "attempt": 3, "run": "run1-harness-v1", "round": 3, "status": "INVALID-HARNESS-DEFECT", "recordedVerdict": "THREW", "behavior": "no experiment executed (same harness defect)", "durationMs": 61, "deadlineHit": false, "evidenceSource": "wpA-run.log", "rawEvidenceFile": null },
+    { "attempt": 4, "run": "run2-harness-v2", "round": 1, "status": "VALID-HISTORICAL", "recordedVerdict": "DIRTY", "recordedSemantics": "v2", "behaviorReclassifiedUnderFinalSemantics": "CLOSE-BOUNDED-FAIL", "reclassificationBasis": "durationMs 15360 matches the 15s deadline signature; the identical signature is recorded as CLOSE-BOUNDED-FAIL in run3 r4 with full evidence. The recorded v2 verdict DIRTY is preserved verbatim and is not rewritten.", "durationMs": 15360, "deadlineHit": true, "evidenceSource": "wpA-run2.log", "rawEvidenceFile": null, "rawEvidenceNote": "overwritten by run3 same-name files", "loadavgProxyOneMinute": 14.62, "loadavgProxySource": "A9-midstart-shutdown-r1.json before.audit at 16:25:31Z (nearest surviving run2 record)" },
+    { "attempt": 5, "run": "run2-harness-v2", "round": 2, "status": "VALID-HISTORICAL", "recordedVerdict": "CLOSE-CLEAN", "durationMs": 6613, "deadlineHit": false, "evidenceSource": "wpA-run2.log", "rawEvidenceFile": null, "loadavgProxyOneMinute": 14.62, "loadavgProxySource": "A9-midstart-shutdown-r1.json before.audit at 16:25:31Z" },
+    { "attempt": 6, "run": "run2-harness-v2", "round": 3, "status": "VALID-HISTORICAL", "recordedVerdict": "CLOSE-CLEAN", "durationMs": 6483, "deadlineHit": false, "evidenceSource": "wpA-run2.log", "rawEvidenceFile": null, "loadavgProxyOneMinute": 14.18, "loadavgProxySource": "A10-restart-after-init-failure-r1.json before.audit at 16:25:36Z" },
+    { "attempt": 7, "run": "run3-harness-v3", "round": 1, "status": "VALID-FORMAL", "recordedVerdict": "CLOSE-CLEAN", "durationMs": 7040, "deadlineHit": false, "evidenceSource": "A11-close-during-traffic-r1.json", "loadavgOneMinute": 105.19, "loadavgFiveMinute": 42.85 },
+    { "attempt": 8, "run": "run3-harness-v3", "round": 2, "status": "VALID-FORMAL", "recordedVerdict": "CLOSE-CLEAN", "durationMs": 6504, "deadlineHit": false, "evidenceSource": "A11-close-during-traffic-r2.json", "loadavgOneMinute": 100.02, "loadavgFiveMinute": 43.85 },
+    { "attempt": 9, "run": "run3-harness-v3", "round": 3, "status": "VALID-FORMAL", "recordedVerdict": "CLOSE-CLEAN", "durationMs": 6545, "deadlineHit": false, "evidenceSource": "A11-close-during-traffic-r3.json", "loadavgOneMinute": 96.5, "loadavgFiveMinute": 44.05 },
+    { "attempt": 10, "run": "run3-harness-v3", "round": 4, "status": "VALID-FORMAL", "recordedVerdict": "CLOSE-BOUNDED-FAIL", "durationMs": 15477, "deadlineHit": true, "evidenceSource": "A11-close-during-traffic-r4.json", "observedOutcome": { "closeError": "T02_CONSUMER_SHUTDOWN_TIMEOUT", "endpointClosed": true, "cacheRetained": true, "cleanupIncomplete": true, "orphanChromium": 0 }, "loadavgOneMinute": 93.41, "loadavgFiveMinute": 44.28 },
+    { "attempt": 11, "run": "run3-harness-v3", "round": 5, "status": "VALID-FORMAL", "recordedVerdict": "CLOSE-CLEAN", "durationMs": 6577, "deadlineHit": false, "evidenceSource": "A11-close-during-traffic-r5.json", "loadavgOneMinute": 80.28, "loadavgFiveMinute": 43.82 }
+  ],
+  "statistics": {
+    "totalAttempts": 11,
+    "invalidHarnessDefectAttempts": 3,
+    "validAttempts": 8,
+    "validDenominatorDefinition": "attempts in which the experiment actually executed (server created, close() invoked); harness-defect attempts are excluded",
+    "deadlineHitsAmongValidAttempts": 2,
+    "fractionAmongValidAttempts": "2/8",
+    "formalFinalSemanticsRounds": 5,
+    "deadlineHitsAmongFormalRounds": 1,
+    "fractionAmongFormalRounds": "1/5",
+    "correctionOfPriorClaim": "The previously published '1/8 rounds hit the deadline' mixed the formal-round hit count (1) with the valid-attempt denominator (8). The reconciled figures are 2/8 across all valid attempts and 1/5 across the formal final-semantics rounds. No attempt was reclassified as PASS; the correction only fixes the denominator and surfaces the run2 bounded-fail round.",
+    "loadCaveat": "Every valid attempt ran under elevated system load. run2 proxies: 1-min loadavg ~14-15 on 10 cores. run3 (formal): 1-min loadavg 80.28-105.19 recorded in the rounds' own audits; no lab work was concurrent with run3 A11 (verified by artifact timestamps), so the spike is external system load. There is no normal-load sample, and n is far too small for any probability statement. The bounded-fail rate must not be read as a normal-load timeout probability for PR #38.",
+    "loadResponseNote": "Within run3 the deadline hit occurred at a 1-min loadavg of 93.41 while the cleanest round ran at 105.19 - no monotonic load-response is derivable from n=5."
+  },
+  "conclusion": "A11 supports the qualitative claim only: 'under elevated system load, close() during live traffic can occasionally require the full 15s deadline (2 of 8 valid attempts; 1 of 5 formal rounds), and when it does, the PR contract holds (endpoint closed, cache retained, cleanupIncomplete marked, error visible, no false PASS).' Quantitative probability claims are unsupported and withdrawn."
+}

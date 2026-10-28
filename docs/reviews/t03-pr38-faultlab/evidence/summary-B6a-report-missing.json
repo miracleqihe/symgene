@@ -1,0 +1,108 @@
+{
+  "id": "B6a-report-missing",
+  "title": "No report at all must fail",
+  "expect": "FAIL-DETECTED",
+  "rounds": [
+    {
+      "id": "B6a-report-missing",
+      "title": "No report at all must fail",
+      "round": 1,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "61089ea4-303e-4166-a6d3-8018d5074842",
+          "childPid": 70948,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": false,
+          "reportCount": 0,
+          "reportValid": false,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_NO_REPORT"
+          }
+        }
+      },
+      "durationMs": 134,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B6a-report-missing",
+      "title": "No report at all must fail",
+      "round": 2,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "3caf8211-cfcc-46cb-a20a-5569963b449b",
+          "childPid": 70982,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": false,
+          "reportCount": 0,
+          "reportValid": false,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_NO_REPORT"
+          }
+        }
+      },
+      "durationMs": 231,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B6a-report-missing",
+      "title": "No report at all must fail",
+      "round": 3,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "d6d02088-24e6-435d-ab7f-1893f34f14e0",
+          "childPid": 71019,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": false,
+          "reportCount": 0,
+          "reportValid": false,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_NO_REPORT"
+          }
+        }
+      },
+      "durationMs": 147,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

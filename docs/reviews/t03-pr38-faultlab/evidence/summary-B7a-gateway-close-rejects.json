@@ -1,0 +1,420 @@
+{
+  "id": "B7a-gateway-close-rejects",
+  "title": "Gateway close() rejects after a fully successful signed probe",
+  "expect": "FAIL-DETECTED",
+  "rounds": [
+    {
+      "id": "B7a-gateway-close-rejects",
+      "title": "Gateway close() rejects after a fully successful signed probe",
+      "round": 1,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "probe": {
+          "kind": "signed",
+          "status": "FAIL",
+          "complete": true,
+          "pid": 70142,
+          "durationMs": 519,
+          "cachePolicy": "per-instance-owned",
+          "cacheDir": "<tmpdir>/symgene-t02-vite-WV4KU8",
+          "port": 63449,
+          "http504Count": 0,
+          "externalRequests": 0,
+          "pageErrors": [],
+          "consoleErrors": [],
+          "requestFailures": [],
+          "httpErrors": [],
+          "cleanupErrors": [
+            "FAULTLAB_GATEWAY_CLOSE_REJECTED"
+          ],
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "closedPorts": [
+            {
+              "port": 63447,
+              "reachable": false
+            },
+            {
+              "port": 63449,
+              "reachable": false
+            }
+          ],
+          "timeline": [
+            {
+              "kind": "signed",
+              "stage": "start",
+              "elapsedMs": 0,
+              "pid": 70142,
+              "loadavg": [
+                19.6787109375,
+                32.6904296875,
+                29.1240234375
+              ],
+              "freeMemory": 68796416
+            },
+            {
+              "kind": "signed",
+              "stage": "fixture-adopted",
+              "elapsedMs": 37,
+              "fixtureMode": "producer"
+            },
+            {
+              "kind": "signed",
+              "stage": "ready",
+              "elapsedMs": 62,
+              "port": 63449,
+              "cacheDir": "<tmpdir>/symgene-t02-vite-WV4KU8"
+            },
+            {
+              "kind": "signed",
+              "stage": "domcontentloaded",
+              "elapsedMs": 400
+            },
+            {
+              "kind": "signed",
+              "stage": "response",
+              "elapsedMs": 424,
+              "path": "/symgene/t02-signed/configuration",
+              "status": 200
+            },
+            {
+              "kind": "signed",
+              "stage": "response",
+              "elapsedMs": 432,
+              "path": "/symgene/t02-signed/snapshot",
+              "status": 200
+            },
+            {
+              "kind": "signed",
+              "stage": "react-mount",
+              "elapsedMs": 447
+            },
+            {
+              "kind": "signed",
+              "stage": "response",
+              "elapsedMs": 488,
+              "path": "/symgene/t02-signed/snapshot",
+              "status": 200
+            },
+            {
+              "kind": "signed",
+              "stage": "snapshot",
+              "elapsedMs": 491,
+              "fresh": true,
+              "sequence": 1
+            },
+            {
+              "kind": "signed",
+              "stage": "closed",
+              "elapsedMs": 519,
+              "serverClosed": true,
+              "browserClosed": true,
+              "ownedCacheRemoved": true,
+              "ports": [
+                {
+                  "port": 63447,
+                  "reachable": false
+                },
+                {
+                  "port": 63449,
+                  "reachable": false
+                }
+              ],
+              "cleanupErrors": [
+                "FAULTLAB_GATEWAY_CLOSE_REJECTED"
+              ]
+            }
+          ]
+        }
+      },
+      "durationMs": 575,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B7a-gateway-close-rejects",
+      "title": "Gateway close() rejects after a fully successful signed probe",
+      "round": 2,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "probe": {
+          "kind": "signed",
+          "status": "FAIL",
+          "complete": true,
+          "pid": 70142,
+          "durationMs": 471,
+          "cachePolicy": "per-instance-owned",
+          "cacheDir": "<tmpdir>/symgene-t02-vite-eMs4wh",
+          "port": 63462,
+          "http504Count": 0,
+          "externalRequests": 0,
+          "pageErrors": [],
+          "consoleErrors": [],
+          "requestFailures": [],
+          "httpErrors": [],
+          "cleanupErrors": [
+            "FAULTLAB_GATEWAY_CLOSE_REJECTED"
+          ],
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "closedPorts": [
+            {
+              "port": 63460,
+              "reachable": false
+            },
+            {
+              "port": 63462,
+              "reachable": false
+            }
+          ],
+          "timeline": [
+            {
+              "kind": "signed",
+              "stage": "start",
+              "elapsedMs": 0,
+              "pid": 70142,
+              "loadavg": [
+                19.6787109375,
+                32.6904296875,
+                29.1240234375
+              ],
+              "freeMemory": 108609536
+            },
+            {
+              "kind": "signed",
+              "stage": "fixture-adopted",
+              "elapsedMs": 23,
+              "fixtureMode": "producer"
+            },
+            {
+              "kind": "signed",
+              "stage": "ready",
+              "elapsedMs": 32,
+              "port": 63462,
+              "cacheDir": "<tmpdir>/symgene-t02-vite-eMs4wh"
+            },
+            {
+              "kind": "signed",
+              "stage": "domcontentloaded",
+              "elapsedMs": 367
+            },
+            {
+              "kind": "signed",
+              "stage": "response",
+              "elapsedMs": 391,
+              "path": "/symgene/t02-signed/configuration",
+              "status": 200
+            },
+            {
+              "kind": "signed",
+              "stage": "response",
+              "elapsedMs": 397,
+              "path": "/symgene/t02-signed/snapshot",
+              "status": 200
+            },
+            {
+              "kind": "signed",
+              "stage": "react-mount",
+              "elapsedMs": 413
+            },
+            {
+              "kind": "signed",
+              "stage": "response",
+              "elapsedMs": 449,
+              "path": "/symgene/t02-signed/snapshot",
+              "status": 200
+            },
+            {
+              "kind": "signed",
+              "stage": "snapshot",
+              "elapsedMs": 452,
+              "fresh": true,
+              "sequence": 1
+            },
+            {
+              "kind": "signed",
+              "stage": "closed",
+              "elapsedMs": 471,
+              "serverClosed": true,
+              "browserClosed": true,
+              "ownedCacheRemoved": true,
+              "ports": [
+                {
+                  "port": 63460,
+                  "reachable": false
+                },
+                {
+                  "port": 63462,
+                  "reachable": false
+                }
+              ],
+              "cleanupErrors": [
+                "FAULTLAB_GATEWAY_CLOSE_REJECTED"
+              ]
+            }
+          ]
+        }
+      },
+      "durationMs": 532,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B7a-gateway-close-rejects",
+      "title": "Gateway close() rejects after a fully successful signed probe",
+      "round": 3,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "probe": {
+          "kind": "signed",
+          "status": "FAIL",
+          "complete": true,
+          "pid": 70142,
+          "durationMs": 459,
+          "cachePolicy": "per-instance-owned",
+          "cacheDir": "<tmpdir>/symgene-t02-vite-J0eOmB",
+          "port": 63475,
+          "http504Count": 0,
+          "externalRequests": 0,
+          "pageErrors": [],
+          "consoleErrors": [],
+          "requestFailures": [],
+          "httpErrors": [],
+          "cleanupErrors": [
+            "FAULTLAB_GATEWAY_CLOSE_REJECTED"
+          ],
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "closedPorts": [
+            {
+              "port": 63473,
+              "reachable": false
+            },
+            {
+              "port": 63475,
+              "reachable": false
+            }
+          ],
+          "timeline": [
+            {
+              "kind": "signed",
+              "stage": "start",
+              "elapsedMs": 0,
+              "pid": 70142,
+              "loadavg": [
+                19.6787109375,
+                32.6904296875,
+                29.1240234375
+              ],
+              "freeMemory": 71319552
+            },
+            {
+              "kind": "signed",
+              "stage": "fixture-adopted",
+              "elapsedMs": 22,
+              "fixtureMode": "producer"
+            },
+            {
+              "kind": "signed",
+              "stage": "ready",
+              "elapsedMs": 34,
+              "port": 63475,
+              "cacheDir": "<tmpdir>/symgene-t02-vite-J0eOmB"
+            },
+            {
+              "kind": "signed",
+              "stage": "domcontentloaded",
+              "elapsedMs": 349
+            },
+            {
+              "kind": "signed",
+              "stage": "response",
+              "elapsedMs": 372,
+              "path": "/symgene/t02-signed/configuration",
+              "status": 200
+            },
+            {
+              "kind": "signed",
+              "stage": "response",
+              "elapsedMs": 379,
+              "path": "/symgene/t02-signed/snapshot",
+              "status": 200
+            },
+            {
+              "kind": "signed",
+              "stage": "react-mount",
+              "elapsedMs": 395
+            },
+            {
+              "kind": "signed",
+              "stage": "response",
+              "elapsedMs": 438,
+              "path": "/symgene/t02-signed/snapshot",
+              "status": 200
+            },
+            {
+              "kind": "signed",
+              "stage": "snapshot",
+              "elapsedMs": 441,
+              "fresh": true,
+              "sequence": 1
+            },
+            {
+              "kind": "signed",
+              "stage": "closed",
+              "elapsedMs": 459,
+              "serverClosed": true,
+              "browserClosed": true,
+              "ownedCacheRemoved": true,
+              "ports": [
+                {
+                  "port": 63473,
+                  "reachable": false
+                },
+                {
+                  "port": 63475,
+                  "reachable": false
+                }
+              ],
+              "cleanupErrors": [
+                "FAULTLAB_GATEWAY_CLOSE_REJECTED"
+              ]
+            }
+          ]
+        }
+      },
+      "durationMs": 518,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

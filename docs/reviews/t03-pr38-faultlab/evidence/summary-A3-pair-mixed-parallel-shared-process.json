@@ -1,0 +1,714 @@
+{
+  "id": "A3-pair-mixed-parallel-shared-process",
+  "title": "Mixed pair starting simultaneously inside one worker; isolated caches",
+  "expect": "PASS",
+  "rounds": [
+    {
+      "id": "A3-pair-mixed-parallel-shared-process",
+      "title": "Mixed pair starting simultaneously inside one worker; isolated caches",
+      "round": 1,
+      "expect": "PASS",
+      "observed": {
+        "verdict": "PASS",
+        "worker": {
+          "executionId": "03f0950c-bd88-43b7-a0f4-aadd90993f09",
+          "childPid": 62674,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": true,
+          "exitObserved": true,
+          "closeObserved": true,
+          "supervisorDeadlineExceeded": false,
+          "status": "PASS"
+        },
+        "probes": [
+          {
+            "kind": "development",
+            "status": "PASS",
+            "complete": true,
+            "pid": 62674,
+            "durationMs": 1486,
+            "cachePolicy": "per-instance-owned",
+            "cacheDir": "<tmpdir>/symgene-t02-vite-OSj2jH",
+            "port": 61079,
+            "http504Count": 0,
+            "externalRequests": 0,
+            "pageErrors": [],
+            "consoleErrors": [],
+            "requestFailures": [],
+            "httpErrors": [],
+            "cleanupErrors": [],
+            "serverClosed": true,
+            "browserClosed": true,
+            "ownedCacheRemoved": true,
+            "closedPorts": [
+              {
+                "port": 61079,
+                "reachable": false
+              }
+            ],
+            "timeline": [
+              {
+                "kind": "development",
+                "stage": "start",
+                "elapsedMs": 0,
+                "pid": 62674,
+                "loadavg": [
+                  6.9599609375,
+                  12.9345703125,
+                  20.7978515625
+                ],
+                "freeMemory": 107593728
+              },
+              {
+                "kind": "development",
+                "stage": "ready",
+                "elapsedMs": 119,
+                "port": 61079,
+                "cacheDir": "<tmpdir>/symgene-t02-vite-OSj2jH"
+              },
+              {
+                "kind": "development",
+                "stage": "domcontentloaded",
+                "elapsedMs": 1326
+              },
+              {
+                "kind": "development",
+                "stage": "response",
+                "elapsedMs": 1392,
+                "path": "/symgene/t02-dev/bootstrap",
+                "status": 200
+              },
+              {
+                "kind": "development",
+                "stage": "react-mount",
+                "elapsedMs": 1422
+              },
+              {
+                "kind": "development",
+                "stage": "snapshot",
+                "elapsedMs": 1464,
+                "fresh": true,
+                "sequence": 1
+              },
+              {
+                "kind": "development",
+                "stage": "closed",
+                "elapsedMs": 1486,
+                "serverClosed": true,
+                "browserClosed": true,
+                "ownedCacheRemoved": true,
+                "ports": [
+                  {
+                    "port": 61079,
+                    "reachable": false
+                  }
+                ],
+                "cleanupErrors": []
+              }
+            ]
+          },
+          {
+            "kind": "signed",
+            "status": "PASS",
+            "complete": true,
+            "pid": 62674,
+            "durationMs": 1466,
+            "cachePolicy": "per-instance-owned",
+            "cacheDir": "<tmpdir>/symgene-t02-vite-3T5q18",
+            "port": 61080,
+            "http504Count": 0,
+            "externalRequests": 0,
+            "pageErrors": [],
+            "consoleErrors": [],
+            "requestFailures": [],
+            "httpErrors": [],
+            "cleanupErrors": [],
+            "serverClosed": true,
+            "browserClosed": true,
+            "ownedCacheRemoved": true,
+            "closedPorts": [
+              {
+                "port": 61077,
+                "reachable": false
+              },
+              {
+                "port": 61080,
+                "reachable": false
+              }
+            ],
+            "timeline": [
+              {
+                "kind": "signed",
+                "stage": "start",
+                "elapsedMs": 0,
+                "pid": 62674,
+                "loadavg": [
+                  6.9599609375,
+                  12.9345703125,
+                  20.7978515625
+                ],
+                "freeMemory": 118554624
+              },
+              {
+                "kind": "signed",
+                "stage": "fixture-adopted",
+                "elapsedMs": 64,
+                "fixtureMode": "website-synthetic"
+              },
+              {
+                "kind": "signed",
+                "stage": "ready",
+                "elapsedMs": 488,
+                "port": 61080,
+                "cacheDir": "<tmpdir>/symgene-t02-vite-3T5q18"
+              },
+              {
+                "kind": "signed",
+                "stage": "domcontentloaded",
+                "elapsedMs": 1319
+              },
+              {
+                "kind": "signed",
+                "stage": "response",
+                "elapsedMs": 1370,
+                "path": "/symgene/t02-signed/configuration",
+                "status": 200
+              },
+              {
+                "kind": "signed",
+                "stage": "response",
+                "elapsedMs": 1376,
+                "path": "/symgene/t02-signed/snapshot",
+                "status": 200
+              },
+              {
+                "kind": "signed",
+                "stage": "react-mount",
+                "elapsedMs": 1392
+              },
+              {
+                "kind": "signed",
+                "stage": "response",
+                "elapsedMs": 1439,
+                "path": "/symgene/t02-signed/snapshot",
+                "status": 200
+              },
+              {
+                "kind": "signed",
+                "stage": "snapshot",
+                "elapsedMs": 1445,
+                "fresh": true,
+                "sequence": 1
+              },
+              {
+                "kind": "signed",
+                "stage": "closed",
+                "elapsedMs": 1466,
+                "serverClosed": true,
+                "browserClosed": true,
+                "ownedCacheRemoved": true,
+                "ports": [
+                  {
+                    "port": 61077,
+                    "reachable": false
+                  },
+                  {
+                    "port": 61080,
+                    "reachable": false
+                  }
+                ],
+                "cleanupErrors": []
+              }
+            ]
+          }
+        ]
+      },
+      "durationMs": 1846,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "PASS",
+      "matchesExpectation": true
+    },
+    {
+      "id": "A3-pair-mixed-parallel-shared-process",
+      "title": "Mixed pair starting simultaneously inside one worker; isolated caches",
+      "round": 2,
+      "expect": "PASS",
+      "observed": {
+        "verdict": "PASS",
+        "worker": {
+          "executionId": "77ca45d6-7d68-40f2-89ac-53b1e265fa43",
+          "childPid": 62732,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": true,
+          "exitObserved": true,
+          "closeObserved": true,
+          "supervisorDeadlineExceeded": false,
+          "status": "PASS"
+        },
+        "probes": [
+          {
+            "kind": "development",
+            "status": "PASS",
+            "complete": true,
+            "pid": 62732,
+            "durationMs": 935,
+            "cachePolicy": "per-instance-owned",
+            "cacheDir": "<tmpdir>/symgene-t02-vite-U4d7st",
+            "port": 61118,
+            "http504Count": 0,
+            "externalRequests": 0,
+            "pageErrors": [],
+            "consoleErrors": [],
+            "requestFailures": [],
+            "httpErrors": [],
+            "cleanupErrors": [],
+            "serverClosed": true,
+            "browserClosed": true,
+            "ownedCacheRemoved": true,
+            "closedPorts": [
+              {
+                "port": 61118,
+                "reachable": false
+              }
+            ],
+            "timeline": [
+              {
+                "kind": "development",
+                "stage": "start",
+                "elapsedMs": 0,
+                "pid": 62732,
+                "loadavg": [
+                  6.9599609375,
+                  12.9345703125,
+                  20.7978515625
+                ],
+                "freeMemory": 702103552
+              },
+              {
+                "kind": "development",
+                "stage": "ready",
+                "elapsedMs": 108,
+                "port": 61118,
+                "cacheDir": "<tmpdir>/symgene-t02-vite-U4d7st"
+              },
+              {
+                "kind": "development",
+                "stage": "domcontentloaded",
+                "elapsedMs": 820
+              },
+              {
+                "kind": "development",
+                "stage": "response",
+                "elapsedMs": 861,
+                "path": "/symgene/t02-dev/bootstrap",
+                "status": 200
+              },
+              {
+                "kind": "development",
+                "stage": "react-mount",
+                "elapsedMs": 874
+              },
+              {
+                "kind": "development",
+                "stage": "snapshot",
+                "elapsedMs": 912,
+                "fresh": true,
+                "sequence": 1
+              },
+              {
+                "kind": "development",
+                "stage": "closed",
+                "elapsedMs": 935,
+                "serverClosed": true,
+                "browserClosed": true,
+                "ownedCacheRemoved": true,
+                "ports": [
+                  {
+                    "port": 61118,
+                    "reachable": false
+                  }
+                ],
+                "cleanupErrors": []
+              }
+            ]
+          },
+          {
+            "kind": "signed",
+            "status": "PASS",
+            "complete": true,
+            "pid": 62732,
+            "durationMs": 940,
+            "cachePolicy": "per-instance-owned",
+            "cacheDir": "<tmpdir>/symgene-t02-vite-0hOXjI",
+            "port": 61119,
+            "http504Count": 0,
+            "externalRequests": 0,
+            "pageErrors": [],
+            "consoleErrors": [],
+            "requestFailures": [],
+            "httpErrors": [],
+            "cleanupErrors": [],
+            "serverClosed": true,
+            "browserClosed": true,
+            "ownedCacheRemoved": true,
+            "closedPorts": [
+              {
+                "port": 61116,
+                "reachable": false
+              },
+              {
+                "port": 61119,
+                "reachable": false
+              }
+            ],
+            "timeline": [
+              {
+                "kind": "signed",
+                "stage": "start",
+                "elapsedMs": 0,
+                "pid": 62732,
+                "loadavg": [
+                  6.9599609375,
+                  12.9345703125,
+                  20.7978515625
+                ],
+                "freeMemory": 699498496
+              },
+              {
+                "kind": "signed",
+                "stage": "fixture-adopted",
+                "elapsedMs": 61,
+                "fixtureMode": "website-synthetic"
+              },
+              {
+                "kind": "signed",
+                "stage": "ready",
+                "elapsedMs": 275,
+                "port": 61119,
+                "cacheDir": "<tmpdir>/symgene-t02-vite-0hOXjI"
+              },
+              {
+                "kind": "signed",
+                "stage": "domcontentloaded",
+                "elapsedMs": 796
+              },
+              {
+                "kind": "signed",
+                "stage": "response",
+                "elapsedMs": 843,
+                "path": "/symgene/t02-signed/configuration",
+                "status": 200
+              },
+              {
+                "kind": "signed",
+                "stage": "response",
+                "elapsedMs": 849,
+                "path": "/symgene/t02-signed/snapshot",
+                "status": 200
+              },
+              {
+                "kind": "signed",
+                "stage": "react-mount",
+                "elapsedMs": 865
+              },
+              {
+                "kind": "signed",
+                "stage": "response",
+                "elapsedMs": 917,
+                "path": "/symgene/t02-signed/snapshot",
+                "status": 200
+              },
+              {
+                "kind": "signed",
+                "stage": "snapshot",
+                "elapsedMs": 922,
+                "fresh": true,
+                "sequence": 1
+              },
+              {
+                "kind": "signed",
+                "stage": "closed",
+                "elapsedMs": 940,
+                "serverClosed": true,
+                "browserClosed": true,
+                "ownedCacheRemoved": true,
+                "ports": [
+                  {
+                    "port": 61116,
+                    "reachable": false
+                  },
+                  {
+                    "port": 61119,
+                    "reachable": false
+                  }
+                ],
+                "cleanupErrors": []
+              }
+            ]
+          }
+        ]
+      },
+      "durationMs": 1309,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "PASS",
+      "matchesExpectation": true
+    },
+    {
+      "id": "A3-pair-mixed-parallel-shared-process",
+      "title": "Mixed pair starting simultaneously inside one worker; isolated caches",
+      "round": 3,
+      "expect": "PASS",
+      "observed": {
+        "verdict": "PASS",
+        "worker": {
+          "executionId": "c113f9c1-74fd-4915-b475-46130190c450",
+          "childPid": 62773,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": true,
+          "exitObserved": true,
+          "closeObserved": true,
+          "supervisorDeadlineExceeded": false,
+          "status": "PASS"
+        },
+        "probes": [
+          {
+            "kind": "development",
+            "status": "PASS",
+            "complete": true,
+            "pid": 62773,
+            "durationMs": 1123,
+            "cachePolicy": "per-instance-owned",
+            "cacheDir": "<tmpdir>/symgene-t02-vite-CoYDjt",
+            "port": 61143,
+            "http504Count": 0,
+            "externalRequests": 0,
+            "pageErrors": [],
+            "consoleErrors": [],
+            "requestFailures": [],
+            "httpErrors": [],
+            "cleanupErrors": [],
+            "serverClosed": true,
+            "browserClosed": true,
+            "ownedCacheRemoved": true,
+            "closedPorts": [
+              {
+                "port": 61143,
+                "reachable": false
+              }
+            ],
+            "timeline": [
+              {
+                "kind": "development",
+                "stage": "start",
+                "elapsedMs": 0,
+                "pid": 62773,
+                "loadavg": [
+                  6.9599609375,
+                  12.9345703125,
+                  20.7978515625
+                ],
+                "freeMemory": 521060352
+              },
+              {
+                "kind": "development",
+                "stage": "ready",
+                "elapsedMs": 112,
+                "port": 61143,
+                "cacheDir": "<tmpdir>/symgene-t02-vite-CoYDjt"
+              },
+              {
+                "kind": "development",
+                "stage": "domcontentloaded",
+                "elapsedMs": 994
+              },
+              {
+                "kind": "development",
+                "stage": "response",
+                "elapsedMs": 1045,
+                "path": "/symgene/t02-dev/bootstrap",
+                "status": 200
+              },
+              {
+                "kind": "development",
+                "stage": "react-mount",
+                "elapsedMs": 1068
+              },
+              {
+                "kind": "development",
+                "stage": "snapshot",
+                "elapsedMs": 1104,
+                "fresh": true,
+                "sequence": 1
+              },
+              {
+                "kind": "development",
+                "stage": "closed",
+                "elapsedMs": 1123,
+                "serverClosed": true,
+                "browserClosed": true,
+                "ownedCacheRemoved": true,
+                "ports": [
+                  {
+                    "port": 61143,
+                    "reachable": false
+                  }
+                ],
+                "cleanupErrors": []
+              }
+            ]
+          },
+          {
+            "kind": "signed",
+            "status": "PASS",
+            "complete": true,
+            "pid": 62773,
+            "durationMs": 1093,
+            "cachePolicy": "per-instance-owned",
+            "cacheDir": "<tmpdir>/symgene-t02-vite-D4aH90",
+            "port": 61146,
+            "http504Count": 0,
+            "externalRequests": 0,
+            "pageErrors": [],
+            "consoleErrors": [],
+            "requestFailures": [],
+            "httpErrors": [],
+            "cleanupErrors": [],
+            "serverClosed": true,
+            "browserClosed": true,
+            "ownedCacheRemoved": true,
+            "closedPorts": [
+              {
+                "port": 61141,
+                "reachable": false
+              },
+              {
+                "port": 61146,
+                "reachable": false
+              }
+            ],
+            "timeline": [
+              {
+                "kind": "signed",
+                "stage": "start",
+                "elapsedMs": 0,
+                "pid": 62773,
+                "loadavg": [
+                  6.9599609375,
+                  12.9345703125,
+                  20.7978515625
+                ],
+                "freeMemory": 518389760
+              },
+              {
+                "kind": "signed",
+                "stage": "fixture-adopted",
+                "elapsedMs": 67,
+                "fixtureMode": "website-synthetic"
+              },
+              {
+                "kind": "signed",
+                "stage": "ready",
+                "elapsedMs": 307,
+                "port": 61146,
+                "cacheDir": "<tmpdir>/symgene-t02-vite-D4aH90"
+              },
+              {
+                "kind": "signed",
+                "stage": "domcontentloaded",
+                "elapsedMs": 952
+              },
+              {
+                "kind": "signed",
+                "stage": "response",
+                "elapsedMs": 981,
+                "path": "/symgene/t02-signed/configuration",
+                "status": 200
+              },
+              {
+                "kind": "signed",
+                "stage": "response",
+                "elapsedMs": 985,
+                "path": "/symgene/t02-signed/snapshot",
+                "status": 200
+              },
+              {
+                "kind": "signed",
+                "stage": "react-mount",
+                "elapsedMs": 986
+              },
+              {
+                "kind": "signed",
+                "stage": "response",
+                "elapsedMs": 1059,
+                "path": "/symgene/t02-signed/snapshot",
+                "status": 200
+              },
+              {
+                "kind": "signed",
+                "stage": "snapshot",
+                "elapsedMs": 1065,
+                "fresh": true,
+                "sequence": 1
+              },
+              {
+                "kind": "signed",
+                "stage": "closed",
+                "elapsedMs": 1093,
+                "serverClosed": true,
+                "browserClosed": true,
+                "ownedCacheRemoved": true,
+                "ports": [
+                  {
+                    "port": 61141,
+                    "reachable": false
+                  },
+                  {
+                    "port": 61146,
+                    "reachable": false
+                  }
+                ],
+                "cleanupErrors": []
+              }
+            ]
+          }
+        ]
+      },
+      "durationMs": 1465,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "PASS",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

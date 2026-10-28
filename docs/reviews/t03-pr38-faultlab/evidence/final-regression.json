@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-24T16:49:11.223Z",
+  "steps": [
+    {
+      "name": "unit-content-concurrency",
+      "command": "node --test tests/content-concurrency.test.mjs",
+      "exitCode": 0,
+      "tests": 8,
+      "pass": 8,
+      "fail": 0
+    },
+    {
+      "name": "browser-504-regression",
+      "command": "node --test tests/browser/content-concurrency.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "matrix-ci-profile",
+      "command": "node scripts/t02/consumer-concurrency.mjs --producer-root <producer> --evidence-dir <evidence>/matrix-ci --profile ci",
+      "exitCode": 0,
+      "result": {
+        "status": "LOCAL TEST PASS",
+        "cases": 3,
+        "probes": 6,
+        "errorStatistics": {
+          "http504Count": 0,
+          "httpErrors": 0,
+          "consoleErrors": 0,
+          "requestFailures": 0,
+          "pageErrors": 0,
+          "externalRequests": 0,
+          "cleanupErrors": 0
+        },
+        "workersClean": true
+      }
+    }
+  ],
+  "failedSteps": 0,
+  "note": "Bounded regression: T02 concurrency unit suite, real-Chromium 504 regression, CI-profile matrix (3 cases / 6 probes, website-synthetic). Full verify (423+37) was out of lab scope; see PR description CI run 40005458722."
+}

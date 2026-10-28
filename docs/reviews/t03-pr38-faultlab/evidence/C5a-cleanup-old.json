@@ -1,0 +1,16 @@
+{
+  "impl": "old",
+  "rejected": {
+    "name": "Error",
+    "code": "ERR_MODULE_NOT_FOUND",
+    "message": "Cannot find module '<tmpdir>/t02-faultlab-diff-producer-FJ30o4/missing-playwrigh"
+  },
+  "leakedListeners": 3,
+  "listenersAfter": [
+    "node    93274 <redacted-user>   14u  IPv4 0x1326be5b72cecbb5      0t0  TCP 127.0.0.1:52830",
+    "node    93274 <redacted-user>   15u  IPv4 0x3ae89b193426d146      0t0  TCP 127.0.0.1:52831",
+    "node    93274 <redacted-user>   28u  IPv4  0xed85c589ed3920c      0t0  TCP 127.0.0.1:52832"
+  ],
+  "closesRecorded": [],
+  "staleReportLeft": false
+}

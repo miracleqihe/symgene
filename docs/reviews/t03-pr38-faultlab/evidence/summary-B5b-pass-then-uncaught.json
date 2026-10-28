@@ -1,0 +1,108 @@
+{
+  "id": "B5b-pass-then-uncaught",
+  "title": "PASS report then uncaught exception must fail",
+  "expect": "FAIL-DETECTED",
+  "rounds": [
+    {
+      "id": "B5b-pass-then-uncaught",
+      "title": "PASS report then uncaught exception must fail",
+      "round": 1,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "a3c97527-1add-4114-9d9f-9d97c0668aad",
+          "childPid": 70838,
+          "exitCode": 1,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": true,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_EXIT_FAILED"
+          }
+        }
+      },
+      "durationMs": 126,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B5b-pass-then-uncaught",
+      "title": "PASS report then uncaught exception must fail",
+      "round": 2,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "d926b668-c151-492e-9439-6390b82c4089",
+          "childPid": 70877,
+          "exitCode": 1,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": true,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_EXIT_FAILED"
+          }
+        }
+      },
+      "durationMs": 123,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B5b-pass-then-uncaught",
+      "title": "PASS report then uncaught exception must fail",
+      "round": 3,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "9f391090-c4ab-4172-b381-d0c618f9f73c",
+          "childPid": 70912,
+          "exitCode": 1,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": true,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_EXIT_FAILED"
+          }
+        }
+      },
+      "durationMs": 128,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

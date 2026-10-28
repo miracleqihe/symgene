@@ -1,0 +1,87 @@
+{
+  "id": "R11B-EXP3-close-decomposition-control",
+  "title": "Product close() with no flag: baseline decomposition of drain + Vite close time",
+  "expect": "RECORDED",
+  "rounds": [
+    {
+      "id": "R11B-EXP3-close-decomposition-control",
+      "title": "Product close() with no flag: baseline decomposition of drain + Vite close time",
+      "round": 1,
+      "expect": "RECORDED",
+      "observed": {
+        "verdict": "RECORDED",
+        "flagMode": "none",
+        "rejected": null,
+        "closeMs": 3,
+        "endpointOpenAfterClose": false,
+        "cacheRetained": false,
+        "depsOptimized": true,
+        "flaggedFile": null
+      },
+      "durationMs": 17586,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "RECORDED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "R11B-EXP3-close-decomposition-control",
+      "title": "Product close() with no flag: baseline decomposition of drain + Vite close time",
+      "round": 2,
+      "expect": "RECORDED",
+      "observed": {
+        "verdict": "RECORDED",
+        "flagMode": "none",
+        "rejected": null,
+        "closeMs": 3,
+        "endpointOpenAfterClose": false,
+        "cacheRetained": false,
+        "depsOptimized": true,
+        "flaggedFile": null
+      },
+      "durationMs": 16854,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "RECORDED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "R11B-EXP3-close-decomposition-control",
+      "title": "Product close() with no flag: baseline decomposition of drain + Vite close time",
+      "round": 3,
+      "expect": "RECORDED",
+      "observed": {
+        "verdict": "RECORDED",
+        "flagMode": "none",
+        "rejected": null,
+        "closeMs": 4,
+        "endpointOpenAfterClose": false,
+        "cacheRetained": false,
+        "depsOptimized": true,
+        "flaggedFile": null
+      },
+      "durationMs": 16898,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "RECORDED",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

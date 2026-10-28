@@ -1,0 +1,108 @@
+{
+  "id": "B5a-pass-then-nonzero-exit",
+  "title": "PASS report then exit code 7 must fail",
+  "expect": "FAIL-DETECTED",
+  "rounds": [
+    {
+      "id": "B5a-pass-then-nonzero-exit",
+      "title": "PASS report then exit code 7 must fail",
+      "round": 1,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "78228025-2119-47b3-9eaa-4764741ef82e",
+          "childPid": 70724,
+          "exitCode": 7,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": true,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_EXIT_FAILED"
+          }
+        }
+      },
+      "durationMs": 123,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B5a-pass-then-nonzero-exit",
+      "title": "PASS report then exit code 7 must fail",
+      "round": 2,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "65dcb621-6c37-481e-8865-c87bc2392885",
+          "childPid": 70771,
+          "exitCode": 7,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": true,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_EXIT_FAILED"
+          }
+        }
+      },
+      "durationMs": 127,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B5a-pass-then-nonzero-exit",
+      "title": "PASS report then exit code 7 must fail",
+      "round": 3,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "9f4abbfc-542e-49eb-8f5f-9af32c64e1aa",
+          "childPid": 70804,
+          "exitCode": 7,
+          "signal": null,
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": true,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_EXIT_FAILED"
+          }
+        }
+      },
+      "durationMs": 134,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

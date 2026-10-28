@@ -1,0 +1,108 @@
+{
+  "id": "B4-pass-report-then-sigterm",
+  "title": "Worker emits a PASS report, then receives SIGTERM: supervisor must fail the run",
+  "expect": "FAIL-DETECTED",
+  "rounds": [
+    {
+      "id": "B4-pass-report-then-sigterm",
+      "title": "Worker emits a PASS report, then receives SIGTERM: supervisor must fail the run",
+      "round": 1,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "200730a4-531b-4af9-863b-1c2c1f79f69b",
+          "childPid": 70611,
+          "exitCode": null,
+          "signal": "SIGTERM",
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": true,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_EXIT_FAILED"
+          }
+        }
+      },
+      "durationMs": 123,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B4-pass-report-then-sigterm",
+      "title": "Worker emits a PASS report, then receives SIGTERM: supervisor must fail the run",
+      "round": 2,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "ed85fbe3-b75c-46f0-acd3-f3644cffe4fc",
+          "childPid": 70644,
+          "exitCode": null,
+          "signal": "SIGTERM",
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": true,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_EXIT_FAILED"
+          }
+        }
+      },
+      "durationMs": 125,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B4-pass-report-then-sigterm",
+      "title": "Worker emits a PASS report, then receives SIGTERM: supervisor must fail the run",
+      "round": 3,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "worker": {
+          "executionId": "be34249b-1475-4393-9aba-38ad6d672aa8",
+          "childPid": 70678,
+          "exitCode": null,
+          "signal": "SIGTERM",
+          "timedOut": false,
+          "reportReceived": true,
+          "reportCount": 1,
+          "reportValid": true,
+          "status": "FAIL",
+          "error": {
+            "code": "T02_PROBE_CHILD_EXIT_FAILED"
+          }
+        }
+      },
+      "durationMs": 122,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

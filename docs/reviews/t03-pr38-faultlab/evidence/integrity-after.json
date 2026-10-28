@@ -1,0 +1,55 @@
+{
+  "verifiedAt": "2026-10-24T19:27:33.838Z",
+  "headCommit": null,
+  "method": "full verification of the git tree at HEAD: every package blob hashed via git cat-file and compared with the index; presence checks both directions (index->tree, tree->index)",
+  "counts": {
+    "actualFilesInPackage": 230,
+    "indexEntries": 230,
+    "missingFilesCount": 0,
+    "unindexedFilesCount": 0,
+    "hashMismatchesCount": 0,
+    "hashVerifiedOkCount": 227,
+    "integrityAnchorsCount": 3
+  },
+  "integrityAnchors": [
+    "ENVIRONMENT.json",
+    "EVIDENCE-INDEX.json",
+    "EVIDENCE-INDEX.md"
+  ],
+  "missingFiles": [],
+  "unindexedFiles": [],
+  "hashMismatches": [],
+  "schema": {
+    "sourceCommitField": "sourceCommits (ok)"
+  },
+  "integrityProtection": {
+    "index": "EVIDENCE-INDEX.md records the SHA-256 of EVIDENCE-INDEX.json and ENVIRONMENT.json; the git commit SHA anchors every file, and any later edit of a published file without regenerating the index shows up here as a hash mismatch",
+    "evolution": {
+      "metricDefinition": "indexEntries = published files (evidence + top-level deliverables + integrity anchors). Local evidence file counts are a different metric (files in the local evidence directory, including harness-internal ones never published).",
+      "history": [
+        {
+          "phase": "R0 initial package",
+          "localEvidenceFiles": 172,
+          "indexEntries": 181,
+          "prFiles": 184,
+          "note": "prFiles = indexEntries + 3 integrity-anchor files not yet indexed; 13 *.log files needed an explicit force-add against the repo-wide ignore rule"
+        },
+        {
+          "phase": "R1 remediation",
+          "localEvidenceFiles": "grew (A11 ledger, temp-dir ledger, B9R* rounds, logs)",
+          "indexEntries": 198,
+          "prFiles": 200,
+          "note": "same +3 anchor gap; evidence/wpB-b9r2.log was indexed but gitignored -> dangling reference discovered by review"
+        },
+        {
+          "phase": "R1.1 closure",
+          "indexEntries": 201,
+          "prFiles": 201,
+          "note": "zero dangling, zero unindexed; wpB-b9r2.log force-added after rescan"
+        }
+      ]
+    }
+  },
+  "verdict": "CONSISTENT",
+  "note": "final closure counts, verified against the packaged tree of the final closure commit; the exact-SHA verification output is posted as a review comment on PR #41 (a commit cannot contain the verification of itself). The checker repro/verify-evidence-integrity.mjs re-runs this against any HEAD."
+}

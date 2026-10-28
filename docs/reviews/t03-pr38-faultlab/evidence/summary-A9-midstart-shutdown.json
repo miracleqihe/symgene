@@ -1,0 +1,183 @@
+{
+  "id": "A9-midstart-shutdown",
+  "title": "SIGTERM the case worker the moment its first server reports ready",
+  "expect": "KILLED-CLEANLY",
+  "rounds": [
+    {
+      "id": "A9-midstart-shutdown",
+      "title": "SIGTERM the case worker the moment its first server reports ready",
+      "round": 1,
+      "expect": "KILLED-CLEANLY",
+      "observed": {
+        "verdict": "KILLED-CLEANLY",
+        "exit": {
+          "exitCode": 143,
+          "signal": null
+        },
+        "readyPorts": [
+          61624,
+          61628
+        ],
+        "portChecks": [
+          {
+            "port": 61624,
+            "open": false
+          },
+          {
+            "port": 61628,
+            "open": false
+          }
+        ],
+        "chromiumPidsAfter": [],
+        "readyEvents": [
+          {
+            "kind": "signed",
+            "stage": "ready",
+            "elapsedMs": 92,
+            "port": 61624,
+            "cacheDir": "<tmpdir>/symgene-t02-vite-N0disf"
+          },
+          {
+            "kind": "development",
+            "stage": "ready",
+            "elapsedMs": 320,
+            "port": 61628,
+            "cacheDir": "<tmpdir>/symgene-t02-vite-YITuxZ"
+          }
+        ],
+        "outputTail": ""
+      },
+      "durationMs": 1735,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [
+          "symgene-t02-probe-O51w8x",
+          "symgene-t02-vite-YITuxZ"
+        ],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "KILLED-CLEANLY",
+      "matchesExpectation": true
+    },
+    {
+      "id": "A9-midstart-shutdown",
+      "title": "SIGTERM the case worker the moment its first server reports ready",
+      "round": 2,
+      "expect": "KILLED-CLEANLY",
+      "observed": {
+        "verdict": "KILLED-CLEANLY",
+        "exit": {
+          "exitCode": 143,
+          "signal": null
+        },
+        "readyPorts": [
+          61635,
+          61636
+        ],
+        "portChecks": [
+          {
+            "port": 61635,
+            "open": false
+          },
+          {
+            "port": 61636,
+            "open": false
+          }
+        ],
+        "chromiumPidsAfter": [],
+        "readyEvents": [
+          {
+            "kind": "development",
+            "stage": "ready",
+            "elapsedMs": 102,
+            "port": 61635,
+            "cacheDir": "<tmpdir>/symgene-t02-vite-PCungi"
+          },
+          {
+            "kind": "signed",
+            "stage": "ready",
+            "elapsedMs": 288,
+            "port": 61636,
+            "cacheDir": "<tmpdir>/symgene-t02-vite-4kFxvE"
+          }
+        ],
+        "outputTail": ""
+      },
+      "durationMs": 1426,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [
+          "symgene-t02-probe-O7BZR2",
+          "symgene-t02-vite-PCungi"
+        ],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "KILLED-CLEANLY",
+      "matchesExpectation": true
+    },
+    {
+      "id": "A9-midstart-shutdown",
+      "title": "SIGTERM the case worker the moment its first server reports ready",
+      "round": 3,
+      "expect": "KILLED-CLEANLY",
+      "observed": {
+        "verdict": "KILLED-CLEANLY",
+        "exit": {
+          "exitCode": 143,
+          "signal": null
+        },
+        "readyPorts": [
+          61641,
+          61642
+        ],
+        "portChecks": [
+          {
+            "port": 61641,
+            "open": false
+          },
+          {
+            "port": 61642,
+            "open": false
+          }
+        ],
+        "chromiumPidsAfter": [],
+        "readyEvents": [
+          {
+            "kind": "development",
+            "stage": "ready",
+            "elapsedMs": 105,
+            "port": 61641,
+            "cacheDir": "<tmpdir>/symgene-t02-vite-YFNh4I"
+          },
+          {
+            "kind": "signed",
+            "stage": "ready",
+            "elapsedMs": 280,
+            "port": 61642,
+            "cacheDir": "<tmpdir>/symgene-t02-vite-m6ZVdW"
+          }
+        ],
+        "outputTail": ""
+      },
+      "durationMs": 1404,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [
+          "symgene-t02-probe-Ta04bK",
+          "symgene-t02-vite-YFNh4I"
+        ],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "KILLED-CLEANLY",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

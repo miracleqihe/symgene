@@ -1,0 +1,62 @@
+{
+  "purpose": "R1.1-B: direct evidence for the deletion-retry mechanism behind B9R2a/B9R2b, with honest limits.",
+  "errorNature": "The EPERM in every drill comes from the darwin kernel denying unlink(2) on an APFS file carrying the user-immutable flag (chflags uchg). It is a real filesystem failure; only the flag timing is scenario-controlled. No error is simulated in JavaScript.",
+  "tracingAvailability": {
+    "fs_usage": "requires root (attempted, refused)",
+    "dtrace": "requires privileges (attempted, refused)",
+    "sudo": "no passwordless sudo",
+    "consequence": "per-attempt syscall observation is impossible in this environment; mechanism-level claims rest on the rm() public contract with second-scale timing margins, and the product-path first-attempt ordering remains PARTIAL"
+  },
+  "experiments": {
+    "EXP1_rmTransientRecovery": {
+      "design": "fs.promises.rm(dir, {recursive, force, maxRetries: 5, retryDelay: 1000}) on a dir whose deps/locked.js carries uchg from t=0; flag cleared at +3.5s. Linear backoff puts attempts at ~0/1/3/6/10/15s.",
+      "rounds": [
+        { "round": 1, "verdict": "RM-RETRIES-PROVEN", "durationMs": 6008, "flagClearedAtMs": 3515, "dirRemoved": true },
+        { "round": 2, "verdict": "RM-RETRIES-PROVEN", "durationMs": 6103, "flagClearedAtMs": 3515, "dirRemoved": true },
+        { "round": 3, "verdict": "RM-RETRIES-PROVEN", "durationMs": 6109, "flagClearedAtMs": 3515, "dirRemoved": true }
+      ],
+      "proof": "rm succeeded at ~6s, ~2.5s AFTER the clearance: attempts at 0/1/3s must have failed against the still-set flag, and at least one attempt happened after clearance. Both 'first attempts hit the protection' and 'deletion was re-attempted' hold at the rm() contract layer.",
+      "evidence": ["R11B-EXP1-rm-transient-recovery-r1..3.json"]
+    },
+    "EXP2_rmExhaustionBoundedObservation": {
+      "design": "same rm() with the flag held; bounded at 45s.",
+      "rounds": [
+        { "round": 1, "verdict": "RM-EXHAUSTION-UNSETTLED-OBSERVED", "durationMs": 45119 },
+        { "round": 2, "verdict": "RM-EXHAUSTION-UNSETTLED-OBSERVED", "durationMs": 45232 },
+        { "round": 3, "verdict": "RM-EXHAUSTION-UNSETTLED-OBSERVED", "durationMs": 45166 }
+      ],
+      "finding": "On darwin/Node v22.23.4, fs.promises.rm with maxRetries:5, retryDelay:1000 against a user-immutable file did NOT reject within 45s, although the retry loop demonstrably runs (EXP1 succeeds mid-window). The naive 'linear backoff exhausts at ~15s' reading of the docs did not reproduce at this delay. Recorded as observed platform behavior; NOT attributed to PR #38.",
+      "evidence": ["R11B-EXP2-rm-permanent-exhaustion-r1..3.json"]
+    },
+    "EXP3_productCloseDecomposition": {
+      "design": "product app.close() via createConsumerViteServer with optimizeDeps.include (no browser), identical setup except the uchg flag.",
+      "controlRounds": { "closeMs": [3, 3, 4], "cacheRetained": [false, false, false] },
+      "flaggedRounds": { "closeMs": [6776, 6805, 6730], "rejected": "EPERM", "cleanupIncomplete": false, "cacheRetained": [true, true, true] },
+      "evidence": ["R11B-EXP3-close-decomposition-control-r1..3.json", "R11B-EXP3-close-decomposition-flagged-r1..3.json"]
+    },
+    "EXP4_unitRmWindow": {
+      "design": "unit fs.promises.rm(dir, {recursive, force, maxRetries: 5, retryDelay: 10}) on a uchg dir - the product's exact parameters.",
+      "rounds": [
+        { "round": 1, "durationMs": 6687, "rejected": { "code": "EPERM" } },
+        { "round": 2, "durationMs": 6721, "rejected": { "code": "EPERM" } },
+        { "round": 3, "durationMs": 6735, "rejected": { "code": "EPERM" } }
+      ],
+      "evidence": ["R11B-EXP4-rm-window-unit.json"]
+    }
+  },
+  "b9r2bDurationAttribution": {
+    "question": "why did permanent-EPERM rounds take ~6.7-6.9s?",
+    "answer": "unit rm(5,10) with a uchg file rejects after 6.69-6.74s (EXP4); product close() flagged = 6.73-6.81s (EXP3, lab B9R2b 6.73-6.81s, public driver 6803ms); product close() unflagged = 3-4ms (EXP3 control). The entire delta is the rm() retry/backoff window; drain and Vite close contribute ~3ms in this path. The window is bounded (~6.8s << the 15s shutdown deadline) and ends in a visible EPERM rejection with cleanupIncomplete=false - no other wait or timeout path is involved.",
+    "note": "Node's documented 'linear backoff' would naively predict ~150ms at retryDelay:10; the empirically observed window is ~6.7s. That is a Node/darwin implementation behavior recorded as observed, not explained, and it is not a #38 defect: the product contract (reject, retain cache, visible failure) held in 3/3 lab rounds + the independent driver run."
+  },
+  "claims": {
+    "rmFirstAttemptHitsProtection_unitLevel": "CONFIRMED (EXP1: attempts at 0/1/3s failed against the set flag)",
+    "firstAttemptReturnsRealEperm": "CONFIRMED (kernel EPERM from APFS user-immutable flag, not simulated)",
+    "rmRetriesAfterFailure": "CONFIRMED at rm() contract layer (EXP1 success ~2.5s after clearance)",
+    "clearanceBetweenFirstFailureAndFinalSuccess": "CONFIRMED at rm() contract layer (EXP1)",
+    "closeResolvesAndCacheFullyRemoved_productPath": "CONFIRMED (B9R2a lab 3/3 + public driver b9r2a: close resolved, cache fully removed)",
+    "productPathFirstAttemptOrdering": "PARTIAL/UNVERIFIED - requires syscall tracing unavailable here; outcome-level contract verified instead",
+    "b9r2bDurationAttribution": "CONFIRMED (EXP3+EXP4: ~6.7s is the rm window; no other wait path)"
+  },
+  "publishedDriver": "repro/b9-delete-failure-drill.mjs (verified: ALL-DRILLS-PASS, exit 0, against a 9dfc403 checkout with module sha256 c8110b64… verified in-preflight)"
+}

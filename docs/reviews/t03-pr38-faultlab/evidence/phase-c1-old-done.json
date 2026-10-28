@@ -1,0 +1,164 @@
+{
+  "phase": "c1-old",
+  "result": [
+    {
+      "round": 1,
+      "startMs": 79,
+      "observations": [
+        {
+          "kind": "development",
+          "http504": 0,
+          "httpErrors": [],
+          "requestFailures": [],
+          "pageErrors": [],
+          "consoleErrors": [],
+          "mounted": true,
+          "fresh": true,
+          "error": null
+        },
+        {
+          "kind": "signed",
+          "http504": 0,
+          "httpErrors": [],
+          "requestFailures": [],
+          "pageErrors": [],
+          "consoleErrors": [],
+          "mounted": true,
+          "fresh": true,
+          "error": null
+        }
+      ],
+      "newTempCaches": [],
+      "chromiumAfter": 0,
+      "reproduced": false
+    },
+    {
+      "round": 2,
+      "startMs": 39,
+      "observations": [
+        {
+          "kind": "development",
+          "http504": 3,
+          "httpErrors": [
+            {
+              "path": "/node_modules/.vite/deps/react.js",
+              "status": 504
+            },
+            {
+              "path": "/node_modules/.vite/deps/react-dom_client.js",
+              "status": 504
+            },
+            {
+              "path": "/node_modules/.vite/deps/react_jsx-dev-runtime.js",
+              "status": 504
+            }
+          ],
+          "requestFailures": [
+            {
+              "path": "/node_modules/.vite/deps/react.js",
+              "text": "net::ERR_ABORTED"
+            },
+            {
+              "path": "/node_modules/.vite/deps/react-dom_client.js",
+              "text": "net::ERR_ABORTED"
+            },
+            {
+              "path": "/node_modules/.vite/deps/react_jsx-dev-runtime.js",
+              "text": "net::ERR_ABORTED"
+            }
+          ],
+          "pageErrors": [],
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)",
+            "Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)",
+            "Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)"
+          ],
+          "mounted": false,
+          "fresh": false,
+          "error": {
+            "name": "TimeoutError",
+            "message": "locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n  - waiting for getByTestId('consumer-state')\n"
+          }
+        },
+        {
+          "kind": "signed",
+          "http504": 0,
+          "httpErrors": [],
+          "requestFailures": [],
+          "pageErrors": [],
+          "consoleErrors": [],
+          "mounted": true,
+          "fresh": true,
+          "error": null
+        }
+      ],
+      "newTempCaches": [],
+      "chromiumAfter": 0,
+      "reproduced": true
+    },
+    {
+      "round": 3,
+      "startMs": 51,
+      "observations": [
+        {
+          "kind": "development",
+          "http504": 0,
+          "httpErrors": [],
+          "requestFailures": [],
+          "pageErrors": [],
+          "consoleErrors": [],
+          "mounted": true,
+          "fresh": true,
+          "error": null
+        },
+        {
+          "kind": "signed",
+          "http504": 3,
+          "httpErrors": [
+            {
+              "path": "/node_modules/.vite/deps/react.js",
+              "status": 504
+            },
+            {
+              "path": "/node_modules/.vite/deps/react-dom_client.js",
+              "status": 504
+            },
+            {
+              "path": "/node_modules/.vite/deps/react_jsx-dev-runtime.js",
+              "status": 504
+            }
+          ],
+          "requestFailures": [
+            {
+              "path": "/node_modules/.vite/deps/react.js",
+              "text": "net::ERR_ABORTED"
+            },
+            {
+              "path": "/node_modules/.vite/deps/react-dom_client.js",
+              "text": "net::ERR_ABORTED"
+            },
+            {
+              "path": "/node_modules/.vite/deps/react_jsx-dev-runtime.js",
+              "text": "net::ERR_ABORTED"
+            }
+          ],
+          "pageErrors": [],
+          "consoleErrors": [
+            "Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)",
+            "Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)",
+            "Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)"
+          ],
+          "mounted": false,
+          "fresh": false,
+          "error": {
+            "name": "TimeoutError",
+            "message": "locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n  - waiting for getByTestId('signed-consumer-state')\n"
+          }
+        }
+      ],
+      "newTempCaches": [],
+      "chromiumAfter": 0,
+      "reproduced": true
+    }
+  ]
+}

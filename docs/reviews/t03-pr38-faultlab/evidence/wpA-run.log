@@ -1,0 +1,45 @@
+{"id":"A1-single-dev-cold-warm","round":1,"verdict":"PASS","expect":"PASS","matches":true,"ms":2200}
+{"id":"A1-single-dev-cold-warm","round":2,"verdict":"PASS","expect":"PASS","matches":true,"ms":1352}
+{"id":"A1-single-dev-cold-warm","round":3,"verdict":"PASS","expect":"PASS","matches":true,"ms":1285}
+{"id":"A2-single-signed-cold-warm","round":1,"verdict":"FAIL","expect":"PASS","matches":false,"ms":66}
+{"id":"A2-single-signed-cold-warm","round":2,"verdict":"FAIL","expect":"PASS","matches":false,"ms":66}
+{"id":"A2-single-signed-cold-warm","round":3,"verdict":"FAIL","expect":"PASS","matches":false,"ms":60}
+{"id":"A3-pair-mixed-parallel-shared-process","round":1,"verdict":"FAIL","expect":"PASS","matches":false,"ms":1121}
+{"id":"A3-pair-mixed-parallel-shared-process","round":2,"verdict":"FAIL","expect":"PASS","matches":false,"ms":1028}
+{"id":"A3-pair-mixed-parallel-shared-process","round":3,"verdict":"FAIL","expect":"PASS","matches":false,"ms":1068}
+{"id":"A4-pair-dev-dev-parallel-shared-process","round":1,"verdict":"PASS","expect":"PASS","matches":true,"ms":1305}
+{"id":"A4-pair-dev-dev-parallel-shared-process","round":2,"verdict":"PASS","expect":"PASS","matches":true,"ms":1294}
+{"id":"A4-pair-dev-dev-parallel-shared-process","round":3,"verdict":"PASS","expect":"PASS","matches":true,"ms":1309}
+{"id":"A5-pair-signed-signed-parallel-shared-process","round":1,"verdict":"FAIL","expect":"PASS","matches":false,"ms":305}
+{"id":"A5-pair-signed-signed-parallel-shared-process","round":2,"verdict":"FAIL","expect":"PASS","matches":false,"ms":312}
+{"id":"A5-pair-signed-signed-parallel-shared-process","round":3,"verdict":"FAIL","expect":"PASS","matches":false,"ms":313}
+{"id":"A6-quad-separate-processes","round":1,"verdict":"FAIL","expect":"PASS","matches":false,"ms":1313}
+{"id":"A6-quad-separate-processes","round":2,"verdict":"FAIL","expect":"PASS","matches":false,"ms":1236}
+{"id":"A6-quad-separate-processes","round":3,"verdict":"FAIL","expect":"PASS","matches":false,"ms":1209}
+{"id":"A7-quad-shared-process","round":1,"verdict":"FAIL","expect":"PASS","matches":false,"ms":1330}
+{"id":"A7-quad-shared-process","round":2,"verdict":"FAIL","expect":"PASS","matches":false,"ms":1272}
+{"id":"A7-quad-shared-process","round":3,"verdict":"FAIL","expect":"PASS","matches":false,"ms":1272}
+{"id":"A8-pair-sequential-shared-process","round":1,"verdict":"FAIL","expect":"PASS","matches":false,"ms":1005}
+{"id":"A8-pair-sequential-shared-process","round":2,"verdict":"FAIL","expect":"PASS","matches":false,"ms":1000}
+{"id":"A8-pair-sequential-shared-process","round":3,"verdict":"FAIL","expect":"PASS","matches":false,"ms":1030}
+{"id":"A9-midstart-shutdown","round":1,"verdict":"DIRTY","expect":"KILLED-CLEANLY","matches":false,"ms":1577}
+{"id":"A9-midstart-shutdown","round":2,"verdict":"DIRTY","expect":"KILLED-CLEANLY","matches":false,"ms":1563}
+{"id":"A9-midstart-shutdown","round":3,"verdict":"DIRTY","expect":"KILLED-CLEANLY","matches":false,"ms":1575}
+{"id":"A10-restart-after-init-failure","round":1,"verdict":"DIRTY","expect":"RESTART-PASS","matches":false,"ms":505}
+{"id":"A10-restart-after-init-failure","round":2,"verdict":"DIRTY","expect":"RESTART-PASS","matches":false,"ms":472}
+{"id":"A10-restart-after-init-failure","round":3,"verdict":"DIRTY","expect":"RESTART-PASS","matches":false,"ms":476}
+{"id":"A11-close-during-traffic","round":1,"verdict":"THREW","expect":"CLOSE-CLEAN","matches":false,"ms":62}
+{"id":"A11-close-during-traffic","round":2,"verdict":"THREW","expect":"CLOSE-CLEAN","matches":false,"ms":60}
+{"id":"A11-close-during-traffic","round":3,"verdict":"THREW","expect":"CLOSE-CLEAN","matches":false,"ms":61}
+{"id":"A12-http-before-react-mount","round":1,"verdict":"DIRTY","expect":"PASS","matches":false,"ms":1450}
+{"id":"A12-http-before-react-mount","round":2,"verdict":"DIRTY","expect":"PASS","matches":false,"ms":1385}
+{"id":"A12-http-before-react-mount","round":3,"verdict":"DIRTY","expect":"PASS","matches":false,"ms":1388}
+{"id":"A13-navigation-interruption","round":1,"verdict":"FAIL-CLOSED","expect":"FAIL-CLOSED","matches":true,"ms":15326}
+{"id":"A13-navigation-interruption","round":2,"verdict":"FAIL-CLOSED","expect":"FAIL-CLOSED","matches":true,"ms":15465}
+{"id":"A13-navigation-interruption","round":3,"verdict":"FAIL-CLOSED","expect":"FAIL-CLOSED","matches":true,"ms":15421}
+Warning: Detected unsettled top-level await at file://<redacted-home>/Projects/symgene-workspace/t02-faultlab/harness/wpA-concurrency.mjs:307
+  const outcome = await runExperiment(experiment);
+                  ^
+
+
+

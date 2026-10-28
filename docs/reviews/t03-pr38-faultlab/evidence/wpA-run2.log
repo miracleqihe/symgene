@@ -1,0 +1,99 @@
+{"id":"A2-single-signed-cold-warm","round":1,"verdict":"PASS","expect":"PASS","matches":true,"ms":1727}
+{"id":"A2-single-signed-cold-warm","round":2,"verdict":"PASS","expect":"PASS","matches":true,"ms":844}
+{"id":"A2-single-signed-cold-warm","round":3,"verdict":"PASS","expect":"PASS","matches":true,"ms":882}
+{"id":"A3-pair-mixed-parallel-shared-process","round":1,"verdict":"PASS","expect":"PASS","matches":true,"ms":1846}
+{"id":"A3-pair-mixed-parallel-shared-process","round":2,"verdict":"PASS","expect":"PASS","matches":true,"ms":1309}
+{"id":"A3-pair-mixed-parallel-shared-process","round":3,"verdict":"PASS","expect":"PASS","matches":true,"ms":1465}
+{"id":"A5-pair-signed-signed-parallel-shared-process","round":1,"verdict":"PASS","expect":"PASS","matches":true,"ms":1257}
+{"id":"A5-pair-signed-signed-parallel-shared-process","round":2,"verdict":"PASS","expect":"PASS","matches":true,"ms":1253}
+{"id":"A5-pair-signed-signed-parallel-shared-process","round":3,"verdict":"PASS","expect":"PASS","matches":true,"ms":1221}
+{"id":"A6-quad-separate-processes","round":1,"verdict":"PASS","expect":"PASS","matches":true,"ms":1641}
+{"id":"A6-quad-separate-processes","round":2,"verdict":"PASS","expect":"PASS","matches":true,"ms":1689}
+{"id":"A6-quad-separate-processes","round":3,"verdict":"PASS","expect":"PASS","matches":true,"ms":1819}
+{"id":"A7-quad-shared-process","round":1,"verdict":"PASS","expect":"PASS","matches":true,"ms":1589}
+{"id":"A7-quad-shared-process","round":2,"verdict":"PASS","expect":"PASS","matches":true,"ms":1625}
+{"id":"A7-quad-shared-process","round":3,"verdict":"PASS","expect":"PASS","matches":true,"ms":1723}
+{"id":"A8-pair-sequential-shared-process","round":1,"verdict":"PASS","expect":"PASS","matches":true,"ms":1369}
+{"id":"A8-pair-sequential-shared-process","round":2,"verdict":"PASS","expect":"PASS","matches":true,"ms":1435}
+{"id":"A8-pair-sequential-shared-process","round":3,"verdict":"PASS","expect":"PASS","matches":true,"ms":1483}
+{"id":"A9-midstart-shutdown","round":1,"verdict":"KILLED-CLEANLY","expect":"KILLED-CLEANLY","matches":true,"ms":1735}
+{"id":"A9-midstart-shutdown","round":2,"verdict":"KILLED-CLEANLY","expect":"KILLED-CLEANLY","matches":true,"ms":1426}
+{"id":"A9-midstart-shutdown","round":3,"verdict":"KILLED-CLEANLY","expect":"KILLED-CLEANLY","matches":true,"ms":1404}
+{"id":"A10-restart-after-init-failure","round":1,"verdict":"RESTART-PASS","expect":"RESTART-PASS","matches":true,"ms":922}
+{"id":"A10-restart-after-init-failure","round":2,"verdict":"RESTART-PASS","expect":"RESTART-PASS","matches":true,"ms":852}
+{"id":"A10-restart-after-init-failure","round":3,"verdict":"RESTART-PASS","expect":"RESTART-PASS","matches":true,"ms":827}
+{"id":"A11-close-during-traffic","round":1,"verdict":"DIRTY","expect":"CLOSE-CLEAN","matches":false,"ms":15360}
+{"id":"A11-close-during-traffic","round":2,"verdict":"CLOSE-CLEAN","expect":"CLOSE-CLEAN","matches":true,"ms":6613}
+{"id":"A11-close-during-traffic","round":3,"verdict":"CLOSE-CLEAN","expect":"CLOSE-CLEAN","matches":true,"ms":6483}
+{"id":"A12-http-before-react-mount","round":1,"verdict":"PASS","expect":"PASS","matches":true,"ms":1615}
+{"id":"A12-http-before-react-mount","round":2,"verdict":"PASS","expect":"PASS","matches":true,"ms":1368}
+{"id":"A12-http-before-react-mount","round":3,"verdict":"PASS","expect":"PASS","matches":true,"ms":1369}
+{"id":"A14-leader-death-orphan-reap","round":1,"verdict":"DIRTY","expect":"ORPHANS-REAPED","matches":false,"ms":2697}
+{"id":"A14-leader-death-orphan-reap","round":2,"verdict":"DIRTY","expect":"ORPHANS-REAPED","matches":false,"ms":2223}
+{"id":"A14-leader-death-orphan-reap","round":3,"verdict":"DIRTY","expect":"ORPHANS-REAPED","matches":false,"ms":2258}
+{
+  "workPackage": "A",
+  "experiments": [
+    {
+      "id": "A2-single-signed-cold-warm",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "A3-pair-mixed-parallel-shared-process",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "A5-pair-signed-signed-parallel-shared-process",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "A6-quad-separate-processes",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "A7-quad-shared-process",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "A8-pair-sequential-shared-process",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "A9-midstart-shutdown",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "A10-restart-after-init-failure",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "A11-close-during-traffic",
+      "summary": "DIVERGENT",
+      "divergent": [
+        1
+      ]
+    },
+    {
+      "id": "A12-http-before-react-mount",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "A14-leader-death-orphan-reap",
+      "summary": "DIVERGENT",
+      "divergent": [
+        1,
+        2,
+        3
+      ]
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "id": "R11B-EXP2-rm-permanent-exhaustion",
+  "title": "Node rm() contract: uchg flag held - EPERM after the full linear backoff window proves retry exhaustion",
+  "expect": "RM-RETRY-EXHAUSTION-PROVEN",
+  "rounds": [
+    {
+      "id": "R11B-EXP2-rm-permanent-exhaustion",
+      "title": "Node rm() contract: uchg flag held - EPERM after the full linear backoff window proves retry exhaustion",
+      "round": 1,
+      "expect": "RM-RETRY-EXHAUSTION-PROVEN",
+      "observed": {
+        "verdict": "RM-EXHAUSTION-UNSETTLED-OBSERVED",
+        "rejected": {
+          "name": "Error",
+          "code": "LAB_RM_UNSETTLED",
+          "message": "LAB-BOUNDED-OBSERVATION: rm did not settle within 45s"
+        },
+        "durationMs": 45001,
+        "dirStillPresent": false,
+        "labCleanupOk": true
+      },
+      "durationMs": 45119,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "RM-EXHAUSTION-UNSETTLED-OBSERVED",
+      "matchesExpectation": false
+    },
+    {
+      "id": "R11B-EXP2-rm-permanent-exhaustion",
+      "title": "Node rm() contract: uchg flag held - EPERM after the full linear backoff window proves retry exhaustion",
+      "round": 2,
+      "expect": "RM-RETRY-EXHAUSTION-PROVEN",
+      "observed": {
+        "verdict": "RM-EXHAUSTION-UNSETTLED-OBSERVED",
+        "rejected": {
+          "name": "Error",
+          "code": "LAB_RM_UNSETTLED",
+          "message": "LAB-BOUNDED-OBSERVATION: rm did not settle within 45s"
+        },
+        "durationMs": 45007,
+        "dirStillPresent": false,
+        "labCleanupOk": true
+      },
+      "durationMs": 45232,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "RM-EXHAUSTION-UNSETTLED-OBSERVED",
+      "matchesExpectation": false
+    },
+    {
+      "id": "R11B-EXP2-rm-permanent-exhaustion",
+      "title": "Node rm() contract: uchg flag held - EPERM after the full linear backoff window proves retry exhaustion",
+      "round": 3,
+      "expect": "RM-RETRY-EXHAUSTION-PROVEN",
+      "observed": {
+        "verdict": "RM-EXHAUSTION-UNSETTLED-OBSERVED",
+        "rejected": {
+          "name": "Error",
+          "code": "LAB_RM_UNSETTLED",
+          "message": "LAB-BOUNDED-OBSERVATION: rm did not settle within 45s"
+        },
+        "durationMs": 45006,
+        "dirStillPresent": false,
+        "labCleanupOk": true
+      },
+      "durationMs": 45166,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "RM-EXHAUSTION-UNSETTLED-OBSERVED",
+      "matchesExpectation": false
+    }
+  ],
+  "summary": "DIVERGENT",
+  "divergentRounds": [
+    1,
+    2,
+    3
+  ]
+}

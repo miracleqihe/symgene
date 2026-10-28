@@ -1,0 +1,87 @@
+{
+  "id": "B9R2a-transient-deletion-failure-recovered",
+  "title": "Transient deletion failure (uchg cleared at +80ms): rm retries must recover, close resolves, cache fully removed",
+  "expect": "RETRY-RECOVERED",
+  "rounds": [
+    {
+      "id": "B9R2a-transient-deletion-failure-recovered",
+      "title": "Transient deletion failure (uchg cleared at +80ms): rm retries must recover, close resolves, cache fully removed",
+      "round": 1,
+      "expect": "RETRY-RECOVERED",
+      "observed": {
+        "verdict": "RETRY-RECOVERED",
+        "transient": true,
+        "rejected": null,
+        "closeMs": 115,
+        "depsOptimized": true,
+        "endpointOpenAfterClose": false,
+        "cacheRetained": false,
+        "retryWindowNote": "linear backoff ~10/20/30/40/50ms; flag cleared at +80ms in the transient variant"
+      },
+      "durationMs": 17713,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "RETRY-RECOVERED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B9R2a-transient-deletion-failure-recovered",
+      "title": "Transient deletion failure (uchg cleared at +80ms): rm retries must recover, close resolves, cache fully removed",
+      "round": 2,
+      "expect": "RETRY-RECOVERED",
+      "observed": {
+        "verdict": "RETRY-RECOVERED",
+        "transient": true,
+        "rejected": null,
+        "closeMs": 109,
+        "depsOptimized": true,
+        "endpointOpenAfterClose": false,
+        "cacheRetained": false,
+        "retryWindowNote": "linear backoff ~10/20/30/40/50ms; flag cleared at +80ms in the transient variant"
+      },
+      "durationMs": 16925,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "RETRY-RECOVERED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B9R2a-transient-deletion-failure-recovered",
+      "title": "Transient deletion failure (uchg cleared at +80ms): rm retries must recover, close resolves, cache fully removed",
+      "round": 3,
+      "expect": "RETRY-RECOVERED",
+      "observed": {
+        "verdict": "RETRY-RECOVERED",
+        "transient": true,
+        "rejected": null,
+        "closeMs": 107,
+        "depsOptimized": true,
+        "endpointOpenAfterClose": false,
+        "cacheRetained": false,
+        "retryWindowNote": "linear backoff ~10/20/30/40/50ms; flag cleared at +80ms in the transient variant"
+      },
+      "durationMs": 16944,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "RETRY-RECOVERED",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

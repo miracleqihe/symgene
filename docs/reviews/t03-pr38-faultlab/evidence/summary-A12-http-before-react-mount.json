@@ -1,0 +1,369 @@
+{
+  "id": "A12-http-before-react-mount",
+  "title": "Node-side HTTP observed while a module is delayed and React has not mounted",
+  "expect": "PASS",
+  "rounds": [
+    {
+      "id": "A12-http-before-react-mount",
+      "title": "Node-side HTTP observed while a module is delayed and React has not mounted",
+      "round": 1,
+      "expect": "PASS",
+      "observed": {
+        "verdict": "PASS",
+        "nodeFetches": [
+          {
+            "url": "html",
+            "status": 200,
+            "duringStall": true
+          },
+          {
+            "url": "bootstrap",
+            "status": 200,
+            "bytes": 31502,
+            "duringStall": true
+          }
+        ],
+        "stallMs": 941,
+        "reactMounted": true,
+        "probe": {
+          "kind": "development",
+          "status": "PASS",
+          "complete": true,
+          "pid": 62501,
+          "durationMs": 1539,
+          "cachePolicy": "per-instance-owned",
+          "cacheDir": "<tmpdir>/symgene-t02-vite-oifDkt",
+          "port": 61872,
+          "http504Count": 0,
+          "externalRequests": 0,
+          "pageErrors": [],
+          "consoleErrors": [],
+          "requestFailures": [],
+          "httpErrors": [],
+          "cleanupErrors": [],
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "closedPorts": [
+            {
+              "port": 61872,
+              "reachable": false
+            }
+          ],
+          "timeline": [
+            {
+              "kind": "development",
+              "stage": "start",
+              "elapsedMs": 0,
+              "pid": 62501,
+              "loadavg": [
+                11.40087890625,
+                13.6142578125,
+                20.54736328125
+              ],
+              "freeMemory": 188481536
+            },
+            {
+              "kind": "development",
+              "stage": "ready",
+              "elapsedMs": 33,
+              "port": 61872,
+              "cacheDir": "<tmpdir>/symgene-t02-vite-oifDkt"
+            },
+            {
+              "kind": "development",
+              "stage": "domcontentloaded",
+              "elapsedMs": 1331
+            },
+            {
+              "kind": "development",
+              "stage": "response",
+              "elapsedMs": 1375,
+              "path": "/symgene/t02-dev/bootstrap",
+              "status": 200
+            },
+            {
+              "kind": "development",
+              "stage": "react-mount",
+              "elapsedMs": 1396
+            },
+            {
+              "kind": "development",
+              "stage": "snapshot",
+              "elapsedMs": 1458,
+              "fresh": true,
+              "sequence": 1
+            },
+            {
+              "kind": "development",
+              "stage": "closed",
+              "elapsedMs": 1539,
+              "serverClosed": true,
+              "browserClosed": true,
+              "ownedCacheRemoved": true,
+              "ports": [
+                {
+                  "port": 61872,
+                  "reachable": false
+                }
+              ],
+              "cleanupErrors": []
+            }
+          ]
+        }
+      },
+      "durationMs": 1615,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "PASS",
+      "matchesExpectation": true
+    },
+    {
+      "id": "A12-http-before-react-mount",
+      "title": "Node-side HTTP observed while a module is delayed and React has not mounted",
+      "round": 2,
+      "expect": "PASS",
+      "observed": {
+        "verdict": "PASS",
+        "nodeFetches": [
+          {
+            "url": "html",
+            "status": 200,
+            "duringStall": true
+          },
+          {
+            "url": "bootstrap",
+            "status": 200,
+            "bytes": 31502,
+            "duringStall": true
+          }
+        ],
+        "stallMs": 927,
+        "reactMounted": true,
+        "probe": {
+          "kind": "development",
+          "status": "PASS",
+          "complete": true,
+          "pid": 62501,
+          "durationMs": 1310,
+          "cachePolicy": "per-instance-owned",
+          "cacheDir": "<tmpdir>/symgene-t02-vite-x1EXMb",
+          "port": 61901,
+          "http504Count": 0,
+          "externalRequests": 0,
+          "pageErrors": [],
+          "consoleErrors": [],
+          "requestFailures": [],
+          "httpErrors": [],
+          "cleanupErrors": [],
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "closedPorts": [
+            {
+              "port": 61901,
+              "reachable": false
+            }
+          ],
+          "timeline": [
+            {
+              "kind": "development",
+              "stage": "start",
+              "elapsedMs": 0,
+              "pid": 62501,
+              "loadavg": [
+                11.40087890625,
+                13.6142578125,
+                20.54736328125
+              ],
+              "freeMemory": 132415488
+            },
+            {
+              "kind": "development",
+              "stage": "ready",
+              "elapsedMs": 26,
+              "port": 61901,
+              "cacheDir": "<tmpdir>/symgene-t02-vite-x1EXMb"
+            },
+            {
+              "kind": "development",
+              "stage": "domcontentloaded",
+              "elapsedMs": 1203
+            },
+            {
+              "kind": "development",
+              "stage": "response",
+              "elapsedMs": 1239,
+              "path": "/symgene/t02-dev/bootstrap",
+              "status": 200
+            },
+            {
+              "kind": "development",
+              "stage": "react-mount",
+              "elapsedMs": 1260
+            },
+            {
+              "kind": "development",
+              "stage": "snapshot",
+              "elapsedMs": 1293,
+              "fresh": true,
+              "sequence": 1
+            },
+            {
+              "kind": "development",
+              "stage": "closed",
+              "elapsedMs": 1310,
+              "serverClosed": true,
+              "browserClosed": true,
+              "ownedCacheRemoved": true,
+              "ports": [
+                {
+                  "port": 61901,
+                  "reachable": false
+                }
+              ],
+              "cleanupErrors": []
+            }
+          ]
+        }
+      },
+      "durationMs": 1368,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "PASS",
+      "matchesExpectation": true
+    },
+    {
+      "id": "A12-http-before-react-mount",
+      "title": "Node-side HTTP observed while a module is delayed and React has not mounted",
+      "round": 3,
+      "expect": "PASS",
+      "observed": {
+        "verdict": "PASS",
+        "nodeFetches": [
+          {
+            "url": "html",
+            "status": 200,
+            "duringStall": true
+          },
+          {
+            "url": "bootstrap",
+            "status": 200,
+            "bytes": 31502,
+            "duringStall": true
+          }
+        ],
+        "stallMs": 929,
+        "reactMounted": true,
+        "probe": {
+          "kind": "development",
+          "status": "PASS",
+          "complete": true,
+          "pid": 62501,
+          "durationMs": 1310,
+          "cachePolicy": "per-instance-owned",
+          "cacheDir": "<tmpdir>/symgene-t02-vite-IAByKj",
+          "port": 61912,
+          "http504Count": 0,
+          "externalRequests": 0,
+          "pageErrors": [],
+          "consoleErrors": [],
+          "requestFailures": [],
+          "httpErrors": [],
+          "cleanupErrors": [],
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "closedPorts": [
+            {
+              "port": 61912,
+              "reachable": false
+            }
+          ],
+          "timeline": [
+            {
+              "kind": "development",
+              "stage": "start",
+              "elapsedMs": 0,
+              "pid": 62501,
+              "loadavg": [
+                11.40087890625,
+                13.6142578125,
+                20.54736328125
+              ],
+              "freeMemory": 195837952
+            },
+            {
+              "kind": "development",
+              "stage": "ready",
+              "elapsedMs": 28,
+              "port": 61912,
+              "cacheDir": "<tmpdir>/symgene-t02-vite-IAByKj"
+            },
+            {
+              "kind": "development",
+              "stage": "domcontentloaded",
+              "elapsedMs": 1191
+            },
+            {
+              "kind": "development",
+              "stage": "response",
+              "elapsedMs": 1232,
+              "path": "/symgene/t02-dev/bootstrap",
+              "status": 200
+            },
+            {
+              "kind": "development",
+              "stage": "react-mount",
+              "elapsedMs": 1254
+            },
+            {
+              "kind": "development",
+              "stage": "snapshot",
+              "elapsedMs": 1291,
+              "fresh": true,
+              "sequence": 1
+            },
+            {
+              "kind": "development",
+              "stage": "closed",
+              "elapsedMs": 1310,
+              "serverClosed": true,
+              "browserClosed": true,
+              "ownedCacheRemoved": true,
+              "ports": [
+                {
+                  "port": 61912,
+                  "reachable": false
+                }
+              ],
+              "cleanupErrors": []
+            }
+          ]
+        }
+      },
+      "durationMs": 1369,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "PASS",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

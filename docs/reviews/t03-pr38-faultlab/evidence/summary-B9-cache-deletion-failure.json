@@ -1,0 +1,84 @@
+{
+  "id": "B9-cache-deletion-failure",
+  "title": "Cache dir made read-only before close: deletion must fail closed, never report clean",
+  "expect": "FAIL-DETECTED",
+  "rounds": [
+    {
+      "id": "B9-cache-deletion-failure",
+      "title": "Cache dir made read-only before close: deletion must fail closed, never report clean",
+      "round": 1,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "closeError": {
+          "name": "Error",
+          "code": "T02_CONSUMER_SHUTDOWN_TIMEOUT",
+          "cleanupIncomplete": true
+        },
+        "cacheSurvivedClose": true
+      },
+      "durationMs": 33782,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B9-cache-deletion-failure",
+      "title": "Cache dir made read-only before close: deletion must fail closed, never report clean",
+      "round": 2,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "closeError": {
+          "name": "Error",
+          "code": "T02_CONSUMER_SHUTDOWN_TIMEOUT",
+          "cleanupIncomplete": true
+        },
+        "cacheSurvivedClose": true
+      },
+      "durationMs": 31367,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B9-cache-deletion-failure",
+      "title": "Cache dir made read-only before close: deletion must fail closed, never report clean",
+      "round": 3,
+      "expect": "FAIL-DETECTED",
+      "observed": {
+        "verdict": "FAIL-DETECTED",
+        "closeError": {
+          "name": "Error",
+          "code": "T02_CONSUMER_SHUTDOWN_TIMEOUT",
+          "cleanupIncomplete": true
+        },
+        "cacheSurvivedClose": true
+      },
+      "durationMs": 31328,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-DETECTED",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

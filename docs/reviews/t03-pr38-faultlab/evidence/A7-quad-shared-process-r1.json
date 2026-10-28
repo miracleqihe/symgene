@@ -1,0 +1,651 @@
+{
+  "row": {
+    "id": "A7-quad-shared-process",
+    "title": "Four consumers (2 dev + 2 signed) inside one case worker, simultaneous",
+    "round": 1,
+    "expect": "PASS",
+    "observed": {
+      "verdict": "PASS",
+      "worker": {
+        "executionId": "93b12b61-50ff-4b5d-be85-c5bc6835ad77",
+        "childPid": 63190,
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "reportReceived": true,
+        "reportCount": 1,
+        "reportValid": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "supervisorDeadlineExceeded": false,
+        "status": "PASS"
+      },
+      "probes": [
+        {
+          "kind": "development",
+          "status": "PASS",
+          "complete": true,
+          "pid": 63190,
+          "durationMs": 1207,
+          "cachePolicy": "per-instance-owned",
+          "cacheDir": "<tmpdir>/symgene-t02-vite-qYO2qQ",
+          "port": 61413,
+          "http504Count": 0,
+          "externalRequests": 0,
+          "pageErrors": [],
+          "consoleErrors": [],
+          "requestFailures": [],
+          "httpErrors": [],
+          "cleanupErrors": [],
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "closedPorts": [
+            {
+              "port": 61413,
+              "reachable": false
+            }
+          ],
+          "timeline": [
+            {
+              "kind": "development",
+              "stage": "start",
+              "elapsedMs": 0,
+              "pid": 63190,
+              "loadavg": [
+                15.70068359375,
+                14.548828125,
+                21.27490234375
+              ],
+              "freeMemory": 1684291584
+            },
+            {
+              "kind": "development",
+              "stage": "ready",
+              "elapsedMs": 338,
+              "port": 61413,
+              "cacheDir": "<tmpdir>/symgene-t02-vite-qYO2qQ"
+            },
+            {
+              "kind": "development",
+              "stage": "domcontentloaded",
+              "elapsedMs": 1057
+            },
+            {
+              "kind": "development",
+              "stage": "response",
+              "elapsedMs": 1117,
+              "path": "/symgene/t02-dev/bootstrap",
+              "status": 200
+            },
+            {
+              "kind": "development",
+              "stage": "react-mount",
+              "elapsedMs": 1134
+            },
+            {
+              "kind": "development",
+              "stage": "snapshot",
+              "elapsedMs": 1165,
+              "fresh": true,
+              "sequence": 1
+            },
+            {
+              "kind": "development",
+              "stage": "closed",
+              "elapsedMs": 1207,
+              "serverClosed": true,
+              "browserClosed": true,
+              "ownedCacheRemoved": true,
+              "ports": [
+                {
+                  "port": 61413,
+                  "reachable": false
+                }
+              ],
+              "cleanupErrors": []
+            }
+          ]
+        },
+        {
+          "kind": "signed",
+          "status": "PASS",
+          "complete": true,
+          "pid": 63190,
+          "durationMs": 1246,
+          "cachePolicy": "per-instance-owned",
+          "cacheDir": "<tmpdir>/symgene-t02-vite-2ok5f6",
+          "port": 61414,
+          "http504Count": 0,
+          "externalRequests": 0,
+          "pageErrors": [],
+          "consoleErrors": [],
+          "requestFailures": [],
+          "httpErrors": [],
+          "cleanupErrors": [],
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "closedPorts": [
+            {
+              "port": 61408,
+              "reachable": false
+            },
+            {
+              "port": 61414,
+              "reachable": false
+            }
+          ],
+          "timeline": [
+            {
+              "kind": "signed",
+              "stage": "start",
+              "elapsedMs": 0,
+              "pid": 63190,
+              "loadavg": [
+                15.70068359375,
+                14.548828125,
+                21.27490234375
+              ],
+              "freeMemory": 1682440192
+            },
+            {
+              "kind": "signed",
+              "stage": "fixture-adopted",
+              "elapsedMs": 97,
+              "fixtureMode": "website-synthetic"
+            },
+            {
+              "kind": "signed",
+              "stage": "ready",
+              "elapsedMs": 355,
+              "port": 61414,
+              "cacheDir": "<tmpdir>/symgene-t02-vite-2ok5f6"
+            },
+            {
+              "kind": "signed",
+              "stage": "domcontentloaded",
+              "elapsedMs": 1136
+            },
+            {
+              "kind": "signed",
+              "stage": "response",
+              "elapsedMs": 1166,
+              "path": "/symgene/t02-signed/configuration",
+              "status": 200
+            },
+            {
+              "kind": "signed",
+              "stage": "response",
+              "elapsedMs": 1176,
+              "path": "/symgene/t02-signed/snapshot",
+              "status": 200
+            },
+            {
+              "kind": "signed",
+              "stage": "react-mount",
+              "elapsedMs": 1185
+            },
+            {
+              "kind": "signed",
+              "stage": "response",
+              "elapsedMs": 1225,
+              "path": "/symgene/t02-signed/snapshot",
+              "status": 200
+            },
+            {
+              "kind": "signed",
+              "stage": "snapshot",
+              "elapsedMs": 1228,
+              "fresh": true,
+              "sequence": 1
+            },
+            {
+              "kind": "signed",
+              "stage": "closed",
+              "elapsedMs": 1246,
+              "serverClosed": true,
+              "browserClosed": true,
+              "ownedCacheRemoved": true,
+              "ports": [
+                {
+                  "port": 61408,
+                  "reachable": false
+                },
+                {
+                  "port": 61414,
+                  "reachable": false
+                }
+              ],
+              "cleanupErrors": []
+            }
+          ]
+        },
+        {
+          "kind": "development",
+          "status": "PASS",
+          "complete": true,
+          "pid": 63190,
+          "durationMs": 1189,
+          "cachePolicy": "per-instance-owned",
+          "cacheDir": "<tmpdir>/symgene-t02-vite-iAR3Km",
+          "port": 61412,
+          "http504Count": 0,
+          "externalRequests": 0,
+          "pageErrors": [],
+          "consoleErrors": [],
+          "requestFailures": [],
+          "httpErrors": [],
+          "cleanupErrors": [],
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "closedPorts": [
+            {
+              "port": 61412,
+              "reachable": false
+            }
+          ],
+          "timeline": [
+            {
+              "kind": "development",
+              "stage": "start",
+              "elapsedMs": 0,
+              "pid": 63190,
+              "loadavg": [
+                15.70068359375,
+                14.548828125,
+                21.27490234375
+              ],
+              "freeMemory": 1682440192
+            },
+            {
+              "kind": "development",
+              "stage": "ready",
+              "elapsedMs": 126,
+              "port": 61412,
+              "cacheDir": "<tmpdir>/symgene-t02-vite-iAR3Km"
+            },
+            {
+              "kind": "development",
+              "stage": "domcontentloaded",
+              "elapsedMs": 982
+            },
+            {
+              "kind": "development",
+              "stage": "response",
+              "elapsedMs": 1075,
+              "path": "/symgene/t02-dev/bootstrap",
+              "status": 200
+            },
+            {
+              "kind": "development",
+              "stage": "react-mount",
+              "elapsedMs": 1111
+            },
+            {
+              "kind": "development",
+              "stage": "snapshot",
+              "elapsedMs": 1161,
+              "fresh": true,
+              "sequence": 1
+            },
+            {
+              "kind": "development",
+              "stage": "closed",
+              "elapsedMs": 1189,
+              "serverClosed": true,
+              "browserClosed": true,
+              "ownedCacheRemoved": true,
+              "ports": [
+                {
+                  "port": 61412,
+                  "reachable": false
+                }
+              ],
+              "cleanupErrors": []
+            }
+          ]
+        },
+        {
+          "kind": "signed",
+          "status": "PASS",
+          "complete": true,
+          "pid": 63190,
+          "durationMs": 1232,
+          "cachePolicy": "per-instance-owned",
+          "cacheDir": "<tmpdir>/symgene-t02-vite-Owlefp",
+          "port": 61415,
+          "http504Count": 0,
+          "externalRequests": 0,
+          "pageErrors": [],
+          "consoleErrors": [],
+          "requestFailures": [],
+          "httpErrors": [],
+          "cleanupErrors": [],
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "closedPorts": [
+            {
+              "port": 61409,
+              "reachable": false
+            },
+            {
+              "port": 61415,
+              "reachable": false
+            }
+          ],
+          "timeline": [
+            {
+              "kind": "signed",
+              "stage": "start",
+              "elapsedMs": 0,
+              "pid": 63190,
+              "loadavg": [
+                15.70068359375,
+                14.548828125,
+                21.27490234375
+              ],
+              "freeMemory": 1668431872
+            },
+            {
+              "kind": "signed",
+              "stage": "fixture-adopted",
+              "elapsedMs": 91,
+              "fixtureMode": "website-synthetic"
+            },
+            {
+              "kind": "signed",
+              "stage": "ready",
+              "elapsedMs": 364,
+              "port": 61415,
+              "cacheDir": "<tmpdir>/symgene-t02-vite-Owlefp"
+            },
+            {
+              "kind": "signed",
+              "stage": "domcontentloaded",
+              "elapsedMs": 1132
+            },
+            {
+              "kind": "signed",
+              "stage": "response",
+              "elapsedMs": 1158,
+              "path": "/symgene/t02-signed/configuration",
+              "status": 200
+            },
+            {
+              "kind": "signed",
+              "stage": "react-mount",
+              "elapsedMs": 1161
+            },
+            {
+              "kind": "signed",
+              "stage": "response",
+              "elapsedMs": 1168,
+              "path": "/symgene/t02-signed/snapshot",
+              "status": 200
+            },
+            {
+              "kind": "signed",
+              "stage": "response",
+              "elapsedMs": 1210,
+              "path": "/symgene/t02-signed/snapshot",
+              "status": 200
+            },
+            {
+              "kind": "signed",
+              "stage": "snapshot",
+              "elapsedMs": 1213,
+              "fresh": true,
+              "sequence": 1
+            },
+            {
+              "kind": "signed",
+              "stage": "closed",
+              "elapsedMs": 1232,
+              "serverClosed": true,
+              "browserClosed": true,
+              "ownedCacheRemoved": true,
+              "ports": [
+                {
+                  "port": 61409,
+                  "reachable": false
+                },
+                {
+                  "port": 61415,
+                  "reachable": false
+                }
+              ],
+              "cleanupErrors": []
+            }
+          ]
+        }
+      ]
+    },
+    "durationMs": 1589,
+    "leakCheck": {
+      "chromiumBefore": 0,
+      "chromiumAfter": 0,
+      "newChromiumPids": [],
+      "newTempCaches": [],
+      "verdict": "no-orphan-chromium"
+    },
+    "verdict": "PASS",
+    "matchesExpectation": true
+  },
+  "before": {
+    "tag": "before A7-quad-shared-process r1",
+    "at": "2026-10-24T16:25:22.146Z",
+    "chromiumPids": [],
+    "chromiumComms": [],
+    "loadavg": [
+      15.7,
+      14.55,
+      21.27
+    ],
+    "freeMemory": 1893449728,
+    "symgeneTempCaches": [
+      "symgene-t02-probe-0fIGHE",
+      "symgene-t02-probe-0kzNvA",
+      "symgene-t02-probe-1DolHT",
+      "symgene-t02-probe-1tf6aj",
+      "symgene-t02-probe-2L1aY2",
+      "symgene-t02-probe-2VdlRC",
+      "symgene-t02-probe-3VUKWJ",
+      "symgene-t02-probe-4T9anE",
+      "symgene-t02-probe-5D11oW",
+      "symgene-t02-probe-5hlPbJ",
+      "symgene-t02-probe-6KpH3V",
+      "symgene-t02-probe-A6zaZn",
+      "symgene-t02-probe-AbSh37",
+      "symgene-t02-probe-B93nJC",
+      "symgene-t02-probe-BDnj2d",
+      "symgene-t02-probe-BeXfFu",
+      "symgene-t02-probe-FXEwxX",
+      "symgene-t02-probe-GRkke9",
+      "symgene-t02-probe-IX7srS",
+      "symgene-t02-probe-InBW9H",
+      "symgene-t02-probe-JJxGnY",
+      "symgene-t02-probe-Jgddvw",
+      "symgene-t02-probe-KXpmVy",
+      "symgene-t02-probe-MpQ98O",
+      "symgene-t02-probe-N4Ba4n",
+      "symgene-t02-probe-NNg2DS",
+      "symgene-t02-probe-OAwjZi",
+      "symgene-t02-probe-OQb7mH",
+      "symgene-t02-probe-Oh2TxN",
+      "symgene-t02-probe-OtwZyb",
+      "symgene-t02-probe-QUWctk",
+      "symgene-t02-probe-R8ATlQ",
+      "symgene-t02-probe-RBhMRu",
+      "symgene-t02-probe-RVldaf",
+      "symgene-t02-probe-SastjJ",
+      "symgene-t02-probe-UXtBUA",
+      "symgene-t02-probe-Voc08q",
+      "symgene-t02-probe-WXQLmq",
+      "symgene-t02-probe-a3zyu6",
+      "symgene-t02-probe-afijMV",
+      "symgene-t02-probe-b1jeXB",
+      "symgene-t02-probe-dATLge",
+      "symgene-t02-probe-dlVuah",
+      "symgene-t02-probe-e4fgxa",
+      "symgene-t02-probe-gQX7h5",
+      "symgene-t02-probe-hsVOks",
+      "symgene-t02-probe-i0EhtT",
+      "symgene-t02-probe-iiJgwg",
+      "symgene-t02-probe-jgSzOg",
+      "symgene-t02-probe-lYOIzQ",
+      "symgene-t02-probe-lzIaUE",
+      "symgene-t02-probe-mpXFEX",
+      "symgene-t02-probe-nHtXFU",
+      "symgene-t02-probe-ocksY3",
+      "symgene-t02-probe-pJHRiM",
+      "symgene-t02-probe-s593tq",
+      "symgene-t02-probe-syIMjP",
+      "symgene-t02-probe-t1K1AT",
+      "symgene-t02-probe-tJuP4h",
+      "symgene-t02-probe-vkZ1jI",
+      "symgene-t02-probe-xBt8Ih",
+      "symgene-t02-probe-xPh8op",
+      "symgene-t02-probe-zoH2u8",
+      "symgene-t02-probe-zuV3wm",
+      "symgene-t02-vite-1QY47X",
+      "symgene-t02-vite-3KTtRn",
+      "symgene-t02-vite-6giVJI",
+      "symgene-t02-vite-7GzVyl",
+      "symgene-t02-vite-C5U0xU",
+      "symgene-t02-vite-DZXkC3",
+      "symgene-t02-vite-G3azv2",
+      "symgene-t02-vite-IsreSG",
+      "symgene-t02-vite-Ss9kwR",
+      "symgene-t02-vite-Tw9a7O",
+      "symgene-t02-vite-UJb3Bf",
+      "symgene-t02-vite-V2Hk7y",
+      "symgene-t02-vite-VBQSy5",
+      "symgene-t02-vite-VnKGGO",
+      "symgene-t02-vite-YNYghK",
+      "symgene-t02-vite-apXwhd",
+      "symgene-t02-vite-cOWip7",
+      "symgene-t02-vite-dg7O5F",
+      "symgene-t02-vite-e5fJUD",
+      "symgene-t02-vite-hkuxV3",
+      "symgene-t02-vite-hqspkN",
+      "symgene-t02-vite-julqg3",
+      "symgene-t02-vite-kVnZKY",
+      "symgene-t02-vite-npoOrN",
+      "symgene-t02-vite-peRYpo",
+      "symgene-t02-vite-s2IkX3",
+      "symgene-t02-vite-txqxOk",
+      "symgene-t02-vite-ydW3fX",
+      "symgene-t02-vite-z21v0h"
+    ]
+  },
+  "after": {
+    "tag": "after A7-quad-shared-process r1",
+    "at": "2026-10-24T16:25:23.735Z",
+    "chromiumPids": [],
+    "chromiumComms": [],
+    "loadavg": [
+      15.16,
+      14.46,
+      21.2
+    ],
+    "freeMemory": 1595523072,
+    "symgeneTempCaches": [
+      "symgene-t02-probe-0fIGHE",
+      "symgene-t02-probe-0kzNvA",
+      "symgene-t02-probe-1DolHT",
+      "symgene-t02-probe-1tf6aj",
+      "symgene-t02-probe-2L1aY2",
+      "symgene-t02-probe-2VdlRC",
+      "symgene-t02-probe-3VUKWJ",
+      "symgene-t02-probe-4T9anE",
+      "symgene-t02-probe-5D11oW",
+      "symgene-t02-probe-5hlPbJ",
+      "symgene-t02-probe-6KpH3V",
+      "symgene-t02-probe-A6zaZn",
+      "symgene-t02-probe-AbSh37",
+      "symgene-t02-probe-B93nJC",
+      "symgene-t02-probe-BDnj2d",
+      "symgene-t02-probe-BeXfFu",
+      "symgene-t02-probe-FXEwxX",
+      "symgene-t02-probe-GRkke9",
+      "symgene-t02-probe-IX7srS",
+      "symgene-t02-probe-InBW9H",
+      "symgene-t02-probe-JJxGnY",
+      "symgene-t02-probe-Jgddvw",
+      "symgene-t02-probe-KXpmVy",
+      "symgene-t02-probe-MpQ98O",
+      "symgene-t02-probe-N4Ba4n",
+      "symgene-t02-probe-NNg2DS",
+      "symgene-t02-probe-OAwjZi",
+      "symgene-t02-probe-OQb7mH",
+      "symgene-t02-probe-Oh2TxN",
+      "symgene-t02-probe-OtwZyb",
+      "symgene-t02-probe-QUWctk",
+      "symgene-t02-probe-R8ATlQ",
+      "symgene-t02-probe-RBhMRu",
+      "symgene-t02-probe-RVldaf",
+      "symgene-t02-probe-SastjJ",
+      "symgene-t02-probe-UXtBUA",
+      "symgene-t02-probe-Voc08q",
+      "symgene-t02-probe-WXQLmq",
+      "symgene-t02-probe-a3zyu6",
+      "symgene-t02-probe-afijMV",
+      "symgene-t02-probe-b1jeXB",
+      "symgene-t02-probe-dATLge",
+      "symgene-t02-probe-dlVuah",
+      "symgene-t02-probe-e4fgxa",
+      "symgene-t02-probe-gQX7h5",
+      "symgene-t02-probe-hsVOks",
+      "symgene-t02-probe-i0EhtT",
+      "symgene-t02-probe-iiJgwg",
+      "symgene-t02-probe-jgSzOg",
+      "symgene-t02-probe-lYOIzQ",
+      "symgene-t02-probe-lzIaUE",
+      "symgene-t02-probe-mpXFEX",
+      "symgene-t02-probe-nHtXFU",
+      "symgene-t02-probe-ocksY3",
+      "symgene-t02-probe-pJHRiM",
+      "symgene-t02-probe-s593tq",
+      "symgene-t02-probe-syIMjP",
+      "symgene-t02-probe-t1K1AT",
+      "symgene-t02-probe-tJuP4h",
+      "symgene-t02-probe-vkZ1jI",
+      "symgene-t02-probe-xBt8Ih",
+      "symgene-t02-probe-xPh8op",
+      "symgene-t02-probe-zoH2u8",
+      "symgene-t02-probe-zuV3wm",
+      "symgene-t02-vite-1QY47X",
+      "symgene-t02-vite-3KTtRn",
+      "symgene-t02-vite-6giVJI",
+      "symgene-t02-vite-7GzVyl",
+      "symgene-t02-vite-C5U0xU",
+      "symgene-t02-vite-DZXkC3",
+      "symgene-t02-vite-G3azv2",
+      "symgene-t02-vite-IsreSG",
+      "symgene-t02-vite-Ss9kwR",
+      "symgene-t02-vite-Tw9a7O",
+      "symgene-t02-vite-UJb3Bf",
+      "symgene-t02-vite-V2Hk7y",
+      "symgene-t02-vite-VBQSy5",
+      "symgene-t02-vite-VnKGGO",
+      "symgene-t02-vite-YNYghK",
+      "symgene-t02-vite-apXwhd",
+      "symgene-t02-vite-cOWip7",
+      "symgene-t02-vite-dg7O5F",
+      "symgene-t02-vite-e5fJUD",
+      "symgene-t02-vite-hkuxV3",
+      "symgene-t02-vite-hqspkN",
+      "symgene-t02-vite-julqg3",
+      "symgene-t02-vite-kVnZKY",
+      "symgene-t02-vite-npoOrN",
+      "symgene-t02-vite-peRYpo",
+      "symgene-t02-vite-s2IkX3",
+      "symgene-t02-vite-txqxOk",
+      "symgene-t02-vite-ydW3fX",
+      "symgene-t02-vite-z21v0h"
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+{"id":"B9R2a-transient-deletion-failure-recovered","round":1,"verdict":"RETRY-RECOVERED","expect":"RETRY-RECOVERED","matches":true,"ms":17713}
+{"id":"B9R2a-transient-deletion-failure-recovered","round":2,"verdict":"RETRY-RECOVERED","expect":"RETRY-RECOVERED","matches":true,"ms":16925}
+{"id":"B9R2a-transient-deletion-failure-recovered","round":3,"verdict":"RETRY-RECOVERED","expect":"RETRY-RECOVERED","matches":true,"ms":16944}
+{"id":"B9R2b-permanent-deletion-failure-eperm","round":1,"verdict":"RETRY-EXHAUSTED-FAIL","expect":"RETRY-EXHAUSTED-FAIL","matches":true,"ms":23739}
+{"id":"B9R2b-permanent-deletion-failure-eperm","round":2,"verdict":"RETRY-EXHAUSTED-FAIL","expect":"RETRY-EXHAUSTED-FAIL","matches":true,"ms":24104}
+{"id":"B9R2b-permanent-deletion-failure-eperm","round":3,"verdict":"RETRY-EXHAUSTED-FAIL","expect":"RETRY-EXHAUSTED-FAIL","matches":true,"ms":23993}
+{
+  "workPackage": "B9-R1",
+  "experiments": [
+    {
+      "id": "B9R2a-transient-deletion-failure-recovered",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "B9R2b-permanent-deletion-failure-eperm",
+      "summary": "CONFIRMED",
+      "divergent": []
+    }
+  ]
+}

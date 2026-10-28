@@ -1,0 +1,2664 @@
+{
+  "meta": {
+    "generatedAt": "2026-10-24T18:29:07.798Z",
+    "repository": "miracleqihe/symgene",
+    "pullRequest": 38,
+    "newImplementation": {
+      "worktree": "<redacted-home>/Projects/symgene-workspace/.worktrees/t03-t02-concurrency",
+      "commit": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89",
+      "branch": "codex/t03-t02-concurrency"
+    },
+    "oldImplementation": {
+      "worktree": "<redacted-home>/Projects/symgene-workspace/.worktrees/t02-faultlab-old",
+      "commit": "6a3eea2f679fa8979c66edcba2724675ee74aa93",
+      "role": "merge-base of PR #38 (pre-fix baseline)"
+    },
+    "producer": "<redacted-home>/Projects/symgene-workspace/.t02-worktrees/<private-producer-checkout>",
+    "versions": {
+      "node": "v22.23.4",
+      "vite": "8.1.6",
+      "playwright": "1.62.1",
+      "react": "19.2.8"
+    },
+    "machine": "Apple M2 Pro, 10 cores, 16 GB (shared with unrelated system load)",
+    "scope": "synthetic loopback only; fictional content; production BLOCKED",
+    "chromiumConcurrencyCap": 4
+  },
+  "workPackageA": [
+    {
+      "id": "A1-single-dev-cold-warm",
+      "title": "One development consumer; cold owned cache, then two warm runs on one explicit cache",
+      "expect": "PASS",
+      "roundsRun": 3,
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "A1-single-dev-cold-warm-r1.json",
+          "round": 1,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 2200,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A1-single-dev-cold-warm-r2.json",
+          "round": 2,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1352,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A1-single-dev-cold-warm-r3.json",
+          "round": 3,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1285,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A2-single-signed-cold-warm",
+      "title": "One signed consumer on the website-synthetic gateway; cold then warm",
+      "expect": "PASS",
+      "roundsRun": 3,
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "A2-single-signed-cold-warm-r1.json",
+          "round": 1,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1727,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A2-single-signed-cold-warm-r2.json",
+          "round": 2,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 844,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A2-single-signed-cold-warm-r3.json",
+          "round": 3,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 882,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A3-pair-mixed-parallel-shared-process",
+      "title": "Mixed pair starting simultaneously inside one worker; isolated caches",
+      "expect": "PASS",
+      "roundsRun": 3,
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "A3-pair-mixed-parallel-shared-process-r1.json",
+          "round": 1,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1846,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A3-pair-mixed-parallel-shared-process-r2.json",
+          "round": 2,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1309,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A3-pair-mixed-parallel-shared-process-r3.json",
+          "round": 3,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1465,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A4-pair-dev-dev-parallel-shared-process",
+      "title": "Two identical development consumers, simultaneous, one worker",
+      "expect": "PASS",
+      "roundsRun": 3,
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "A4-pair-dev-dev-parallel-shared-process-r1.json",
+          "round": 1,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1305,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A4-pair-dev-dev-parallel-shared-process-r2.json",
+          "round": 2,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1294,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A4-pair-dev-dev-parallel-shared-process-r3.json",
+          "round": 3,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1309,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A5-pair-signed-signed-parallel-shared-process",
+      "title": "Two identical signed consumers, simultaneous, one worker",
+      "expect": "PASS",
+      "roundsRun": 3,
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "A5-pair-signed-signed-parallel-shared-process-r1.json",
+          "round": 1,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1257,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A5-pair-signed-signed-parallel-shared-process-r2.json",
+          "round": 2,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1253,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A5-pair-signed-signed-parallel-shared-process-r3.json",
+          "round": 3,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1221,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A6-quad-separate-processes",
+      "title": "Four consumers (2 dev + 2 signed) each in its own supervised worker, simultaneous",
+      "expect": "PASS",
+      "roundsRun": 3,
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "A6-quad-separate-processes-r1.json",
+          "round": 1,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1641,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A6-quad-separate-processes-r2.json",
+          "round": 2,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1689,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A6-quad-separate-processes-r3.json",
+          "round": 3,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1819,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A7-quad-shared-process",
+      "title": "Four consumers (2 dev + 2 signed) inside one case worker, simultaneous",
+      "expect": "PASS",
+      "roundsRun": 3,
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "A7-quad-shared-process-r1.json",
+          "round": 1,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1589,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A7-quad-shared-process-r2.json",
+          "round": 2,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1625,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A7-quad-shared-process-r3.json",
+          "round": 3,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1723,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A8-pair-sequential-shared-process",
+      "title": "Mixed pair started back-to-back inside one worker",
+      "expect": "PASS",
+      "roundsRun": 3,
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "A8-pair-sequential-shared-process-r1.json",
+          "round": 1,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1369,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A8-pair-sequential-shared-process-r2.json",
+          "round": 2,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1435,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A8-pair-sequential-shared-process-r3.json",
+          "round": 3,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1483,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A9-midstart-shutdown",
+      "title": "SIGTERM the case worker the moment its first server reports ready",
+      "expect": "KILLED-CLEANLY",
+      "roundsRun": 3,
+      "verdicts": [
+        "KILLED-CLEANLY",
+        "KILLED-CLEANLY",
+        "KILLED-CLEANLY"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "A9-midstart-shutdown-r1.json",
+          "round": 1,
+          "verdict": "KILLED-CLEANLY",
+          "matchesExpectation": true,
+          "durationMs": 1735,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [
+              "symgene-t02-probe-O51w8x",
+              "symgene-t02-vite-YITuxZ"
+            ],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A9-midstart-shutdown-r2.json",
+          "round": 2,
+          "verdict": "KILLED-CLEANLY",
+          "matchesExpectation": true,
+          "durationMs": 1426,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [
+              "symgene-t02-probe-O7BZR2",
+              "symgene-t02-vite-PCungi"
+            ],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A9-midstart-shutdown-r3.json",
+          "round": 3,
+          "verdict": "KILLED-CLEANLY",
+          "matchesExpectation": true,
+          "durationMs": 1404,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [
+              "symgene-t02-probe-Ta04bK",
+              "symgene-t02-vite-YFNh4I"
+            ],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A10-restart-after-init-failure",
+      "title": "Fixed-port conflict then restart on the same port; fictional producer then valid signed probe",
+      "expect": "RESTART-PASS",
+      "roundsRun": 3,
+      "verdicts": [
+        "RESTART-PASS",
+        "RESTART-PASS",
+        "RESTART-PASS"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "A10-restart-after-init-failure-r1.json",
+          "round": 1,
+          "verdict": "RESTART-PASS",
+          "matchesExpectation": true,
+          "durationMs": 922,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A10-restart-after-init-failure-r2.json",
+          "round": 2,
+          "verdict": "RESTART-PASS",
+          "matchesExpectation": true,
+          "durationMs": 852,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A10-restart-after-init-failure-r3.json",
+          "round": 3,
+          "verdict": "RESTART-PASS",
+          "matchesExpectation": true,
+          "durationMs": 827,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A11-close-during-traffic",
+      "title": "app.close() while Chromium is mid-navigation and the optimizer is live",
+      "expect": "CLOSE-CLEAN",
+      "roundsRun": 5,
+      "verdicts": [
+        "CLOSE-CLEAN",
+        "CLOSE-CLEAN",
+        "CLOSE-CLEAN",
+        "CLOSE-BOUNDED-FAIL",
+        "CLOSE-CLEAN"
+      ],
+      "summary": "DIVERGENT",
+      "divergentRounds": [
+        4
+      ],
+      "rounds": [
+        {
+          "evidence": "A11-close-during-traffic-r1.json",
+          "round": 1,
+          "verdict": "CLOSE-CLEAN",
+          "matchesExpectation": true,
+          "durationMs": 7040,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A11-close-during-traffic-r2.json",
+          "round": 2,
+          "verdict": "CLOSE-CLEAN",
+          "matchesExpectation": true,
+          "durationMs": 6504,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A11-close-during-traffic-r3.json",
+          "round": 3,
+          "verdict": "CLOSE-CLEAN",
+          "matchesExpectation": true,
+          "durationMs": 6545,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A11-close-during-traffic-r4.json",
+          "round": 4,
+          "verdict": "CLOSE-BOUNDED-FAIL",
+          "matchesExpectation": false,
+          "durationMs": 15477,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [
+              "symgene-t02-vite-5cBdrg"
+            ],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A11-close-during-traffic-r5.json",
+          "round": 5,
+          "verdict": "CLOSE-CLEAN",
+          "matchesExpectation": true,
+          "durationMs": 6577,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A12-http-before-react-mount",
+      "title": "Node-side HTTP observed while a module is delayed and React has not mounted",
+      "expect": "PASS",
+      "roundsRun": 3,
+      "verdicts": [
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "A12-http-before-react-mount-r1.json",
+          "round": 1,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1615,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A12-http-before-react-mount-r2.json",
+          "round": 2,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1368,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A12-http-before-react-mount-r3.json",
+          "round": 3,
+          "verdict": "PASS",
+          "matchesExpectation": true,
+          "durationMs": 1369,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A13-navigation-interruption",
+      "title": "A blocked module request must fail the probe and still clean every resource",
+      "expect": "FAIL-CLOSED",
+      "roundsRun": 3,
+      "verdicts": [
+        "FAIL-CLOSED",
+        "FAIL-CLOSED",
+        "FAIL-CLOSED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "A13-navigation-interruption-r1.json",
+          "round": 1,
+          "verdict": "FAIL-CLOSED",
+          "matchesExpectation": true,
+          "durationMs": 15326,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A13-navigation-interruption-r2.json",
+          "round": 2,
+          "verdict": "FAIL-CLOSED",
+          "matchesExpectation": true,
+          "durationMs": 15465,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A13-navigation-interruption-r3.json",
+          "round": 3,
+          "verdict": "FAIL-CLOSED",
+          "matchesExpectation": true,
+          "durationMs": 15421,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "A14-leader-death-orphan-reap",
+      "title": "SIGKILL the probe worker at react-mount; Chromium orphans must be reaped by the group kill",
+      "expect": "ORPHANS-REAPED",
+      "roundsRun": 5,
+      "verdicts": [
+        "ORPHANS-REAPED",
+        "ORPHANS-REAPED",
+        "ORPHANS-REAPED",
+        "ORPHANS-REAPED",
+        "ORPHANS-REAPED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "A14-leader-death-orphan-reap-r1.json",
+          "round": 1,
+          "verdict": "ORPHANS-REAPED",
+          "matchesExpectation": true,
+          "durationMs": 2432,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [
+              "symgene-t02-vite-kkSN1m"
+            ],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A14-leader-death-orphan-reap-r2.json",
+          "round": 2,
+          "verdict": "ORPHANS-REAPED",
+          "matchesExpectation": true,
+          "durationMs": 2561,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [
+              "symgene-t02-vite-hq5uEb"
+            ],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A14-leader-death-orphan-reap-r3.json",
+          "round": 3,
+          "verdict": "ORPHANS-REAPED",
+          "matchesExpectation": true,
+          "durationMs": 2328,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [
+              "symgene-t02-vite-cBJbh7"
+            ],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A14-leader-death-orphan-reap-r4.json",
+          "round": 4,
+          "verdict": "ORPHANS-REAPED",
+          "matchesExpectation": true,
+          "durationMs": 2321,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [
+              "symgene-t02-vite-KKB5e6"
+            ],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "A14-leader-death-orphan-reap-r5.json",
+          "round": 5,
+          "verdict": "ORPHANS-REAPED",
+          "matchesExpectation": true,
+          "durationMs": 2349,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [
+              "symgene-t02-vite-RIWdMK"
+            ],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    }
+  ],
+  "workPackageB": [
+    {
+      "id": "B1-close-joins-delayed-writer",
+      "title": "close() must join a writer held for 300ms before removing the cache",
+      "expect": "JOINED",
+      "roundsRun": 3,
+      "verdicts": [
+        "JOINED",
+        "JOINED",
+        "JOINED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B1-close-joins-delayed-writer-r1.json",
+          "round": 1,
+          "verdict": "JOINED",
+          "matchesExpectation": true,
+          "durationMs": 742,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B1-close-joins-delayed-writer-r2.json",
+          "round": 2,
+          "verdict": "JOINED",
+          "matchesExpectation": true,
+          "durationMs": 647,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B1-close-joins-delayed-writer-r3.json",
+          "round": 3,
+          "verdict": "JOINED",
+          "matchesExpectation": true,
+          "durationMs": 572,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B2a-close-joins-writer-released-after-close-start",
+      "title": "Writer released only after close() began: late write must land inside the drain, before cache removal",
+      "expect": "JOINED",
+      "roundsRun": 3,
+      "verdicts": [
+        "JOINED",
+        "JOINED",
+        "JOINED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B2a-close-joins-writer-released-after-close-start-r1.json",
+          "round": 1,
+          "verdict": "JOINED",
+          "matchesExpectation": true,
+          "durationMs": 414,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B2a-close-joins-writer-released-after-close-start-r2.json",
+          "round": 2,
+          "verdict": "JOINED",
+          "matchesExpectation": true,
+          "durationMs": 423,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B2a-close-joins-writer-released-after-close-start-r3.json",
+          "round": 3,
+          "verdict": "JOINED",
+          "matchesExpectation": true,
+          "durationMs": 407,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B2b-detached-writer-escapes-drain",
+      "title": "Out-of-contract writer scheduling work outside its processing promise (observational)",
+      "expect": "RESIDUE-RECORDED",
+      "roundsRun": 3,
+      "verdicts": [
+        "RESIDUE-RECORDED",
+        "RESIDUE-RECORDED",
+        "RESIDUE-RECORDED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B2b-detached-writer-escapes-drain-r1.json",
+          "round": 1,
+          "verdict": "RESIDUE-RECORDED",
+          "matchesExpectation": true,
+          "durationMs": 478,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B2b-detached-writer-escapes-drain-r2.json",
+          "round": 2,
+          "verdict": "RESIDUE-RECORDED",
+          "matchesExpectation": true,
+          "durationMs": 484,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B2b-detached-writer-escapes-drain-r3.json",
+          "round": 3,
+          "verdict": "RESIDUE-RECORDED",
+          "matchesExpectation": true,
+          "durationMs": 848,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B3-http504-then-mount",
+      "title": "Real Chromium: 504 Outdated Optimize Dep first, successful React mount after - must FAIL",
+      "expect": "FAIL-DETECTED",
+      "roundsRun": 3,
+      "verdicts": [
+        "FAIL-DETECTED",
+        "FAIL-DETECTED",
+        "FAIL-DETECTED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B3-http504-then-mount-r1.json",
+          "round": 1,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 1217,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B3-http504-then-mount-r2.json",
+          "round": 2,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 689,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B3-http504-then-mount-r3.json",
+          "round": 3,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 532,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B4-pass-report-then-sigterm",
+      "title": "Worker emits a PASS report, then receives SIGTERM: supervisor must fail the run",
+      "expect": "FAIL-DETECTED",
+      "roundsRun": 3,
+      "verdicts": [
+        "FAIL-DETECTED",
+        "FAIL-DETECTED",
+        "FAIL-DETECTED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B4-pass-report-then-sigterm-r1.json",
+          "round": 1,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 123,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B4-pass-report-then-sigterm-r2.json",
+          "round": 2,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 125,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B4-pass-report-then-sigterm-r3.json",
+          "round": 3,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 122,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B5a-pass-then-nonzero-exit",
+      "title": "PASS report then exit code 7 must fail",
+      "expect": "FAIL-DETECTED",
+      "roundsRun": 3,
+      "verdicts": [
+        "FAIL-DETECTED",
+        "FAIL-DETECTED",
+        "FAIL-DETECTED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B5a-pass-then-nonzero-exit-r1.json",
+          "round": 1,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 123,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B5a-pass-then-nonzero-exit-r2.json",
+          "round": 2,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 127,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B5a-pass-then-nonzero-exit-r3.json",
+          "round": 3,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 134,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B5b-pass-then-uncaught",
+      "title": "PASS report then uncaught exception must fail",
+      "expect": "FAIL-DETECTED",
+      "roundsRun": 3,
+      "verdicts": [
+        "FAIL-DETECTED",
+        "FAIL-DETECTED",
+        "FAIL-DETECTED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B5b-pass-then-uncaught-r1.json",
+          "round": 1,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 126,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B5b-pass-then-uncaught-r2.json",
+          "round": 2,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 123,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B5b-pass-then-uncaught-r3.json",
+          "round": 3,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 128,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B6a-report-missing",
+      "title": "No report at all must fail",
+      "expect": "FAIL-DETECTED",
+      "roundsRun": 3,
+      "verdicts": [
+        "FAIL-DETECTED",
+        "FAIL-DETECTED",
+        "FAIL-DETECTED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B6a-report-missing-r1.json",
+          "round": 1,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 134,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B6a-report-missing-r2.json",
+          "round": 2,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 231,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B6a-report-missing-r3.json",
+          "round": 3,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 147,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B6b-report-duplicate-second-fails",
+      "title": "Duplicate reports invalidate the worker even when the first was PASS",
+      "expect": "FAIL-DETECTED",
+      "roundsRun": 3,
+      "verdicts": [
+        "FAIL-DETECTED",
+        "FAIL-DETECTED",
+        "FAIL-DETECTED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B6b-report-duplicate-second-fails-r1.json",
+          "round": 1,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 145,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B6b-report-duplicate-second-fails-r2.json",
+          "round": 2,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 127,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B6b-report-duplicate-second-fails-r3.json",
+          "round": 3,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 130,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B6c-report-wrong-kind",
+      "title": "Report kind mismatch must fail",
+      "expect": "FAIL-DETECTED",
+      "roundsRun": 3,
+      "verdicts": [
+        "FAIL-DETECTED",
+        "FAIL-DETECTED",
+        "FAIL-DETECTED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B6c-report-wrong-kind-r1.json",
+          "round": 1,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 129,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B6c-report-wrong-kind-r2.json",
+          "round": 2,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 129,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B6c-report-wrong-kind-r3.json",
+          "round": 3,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 121,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B6d-report-wrong-execution",
+      "title": "Foreign execution id must fail",
+      "expect": "FAIL-DETECTED",
+      "roundsRun": 3,
+      "verdicts": [
+        "FAIL-DETECTED",
+        "FAIL-DETECTED",
+        "FAIL-DETECTED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B6d-report-wrong-execution-r1.json",
+          "round": 1,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 121,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B6d-report-wrong-execution-r2.json",
+          "round": 2,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 129,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B6d-report-wrong-execution-r3.json",
+          "round": 3,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 125,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B6e-report-wrong-pid",
+      "title": "Foreign pid must fail",
+      "expect": "FAIL-DETECTED",
+      "roundsRun": 3,
+      "verdicts": [
+        "FAIL-DETECTED",
+        "FAIL-DETECTED",
+        "FAIL-DETECTED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B6e-report-wrong-pid-r1.json",
+          "round": 1,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 128,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B6e-report-wrong-pid-r2.json",
+          "round": 2,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 128,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B6e-report-wrong-pid-r3.json",
+          "round": 3,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 128,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B6f-report-mode-mismatch",
+      "title": "Mode mismatch must fail",
+      "expect": "FAIL-DETECTED",
+      "roundsRun": 3,
+      "verdicts": [
+        "FAIL-DETECTED",
+        "FAIL-DETECTED",
+        "FAIL-DETECTED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B6f-report-mode-mismatch-r1.json",
+          "round": 1,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 132,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B6f-report-mode-mismatch-r2.json",
+          "round": 2,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 132,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B6f-report-mode-mismatch-r3.json",
+          "round": 3,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 148,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B6g-report-incomplete-result",
+      "title": "Incomplete probe result must fail",
+      "expect": "FAIL-DETECTED",
+      "roundsRun": 3,
+      "verdicts": [
+        "FAIL-DETECTED",
+        "FAIL-DETECTED",
+        "FAIL-DETECTED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B6g-report-incomplete-result-r1.json",
+          "round": 1,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 164,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B6g-report-incomplete-result-r2.json",
+          "round": 2,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 135,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B6g-report-incomplete-result-r3.json",
+          "round": 3,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 127,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B7a-gateway-close-rejects",
+      "title": "Gateway close() rejects after a fully successful signed probe",
+      "expect": "FAIL-DETECTED",
+      "roundsRun": 3,
+      "verdicts": [
+        "FAIL-DETECTED",
+        "FAIL-DETECTED",
+        "FAIL-DETECTED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B7a-gateway-close-rejects-r1.json",
+          "round": 1,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 575,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B7a-gateway-close-rejects-r2.json",
+          "round": 2,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 532,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B7a-gateway-close-rejects-r3.json",
+          "round": 3,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 518,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B7b-fixture-close-rejects",
+      "title": "Fixture close() rejects after a fully successful signed probe",
+      "expect": "FAIL-DETECTED",
+      "roundsRun": 3,
+      "verdicts": [
+        "FAIL-DETECTED",
+        "FAIL-DETECTED",
+        "FAIL-DETECTED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B7b-fixture-close-rejects-r1.json",
+          "round": 1,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 850,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B7b-fixture-close-rejects-r2.json",
+          "round": 2,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 557,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B7b-fixture-close-rejects-r3.json",
+          "round": 3,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 532,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B8-shutdown-timeout",
+      "title": "Writer held past the 15s shutdown deadline: bounded reject, endpoint closed, cache retained",
+      "expect": "DEADLINE-ENFORCED",
+      "roundsRun": 3,
+      "verdicts": [
+        "DEADLINE-ENFORCED",
+        "DEADLINE-ENFORCED",
+        "DEADLINE-ENFORCED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B8-shutdown-timeout-r1.json",
+          "round": 1,
+          "verdict": "DEADLINE-ENFORCED",
+          "matchesExpectation": true,
+          "durationMs": 15984,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B8-shutdown-timeout-r2.json",
+          "round": 2,
+          "verdict": "DEADLINE-ENFORCED",
+          "matchesExpectation": true,
+          "durationMs": 15423,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B8-shutdown-timeout-r3.json",
+          "round": 3,
+          "verdict": "DEADLINE-ENFORCED",
+          "matchesExpectation": true,
+          "durationMs": 15823,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B9-cache-deletion-failure",
+      "title": "Cache dir made read-only before close: deletion must fail closed, never report clean",
+      "expect": "FAIL-DETECTED",
+      "roundsRun": 3,
+      "verdicts": [
+        "FAIL-DETECTED",
+        "FAIL-DETECTED",
+        "FAIL-DETECTED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B9-cache-deletion-failure-r1.json",
+          "round": 1,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 33782,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B9-cache-deletion-failure-r2.json",
+          "round": 2,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 31367,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B9-cache-deletion-failure-r3.json",
+          "round": 3,
+          "verdict": "FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 31328,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B10-sigterm-midrun-browser-interrupt",
+      "title": "SIGTERM during a live probe: probeConsumer interrupts the browser and the worker must still fail closed",
+      "expect": "FAIL-CLOSED",
+      "roundsRun": 3,
+      "verdicts": [
+        "FAIL-CLOSED",
+        "FAIL-CLOSED",
+        "FAIL-CLOSED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B10-sigterm-midrun-browser-interrupt-r1.json",
+          "round": 1,
+          "verdict": "FAIL-CLOSED",
+          "matchesExpectation": true,
+          "durationMs": 2339,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B10-sigterm-midrun-browser-interrupt-r2.json",
+          "round": 2,
+          "verdict": "FAIL-CLOSED",
+          "matchesExpectation": true,
+          "durationMs": 1889,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B10-sigterm-midrun-browser-interrupt-r3.json",
+          "round": 3,
+          "verdict": "FAIL-CLOSED",
+          "matchesExpectation": true,
+          "durationMs": 1786,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B9R1-deletion-failure-isolated",
+      "title": "Owned-cache rm() fails via a locked subdir while the optimizer drain completes: close must reject with the deletion error (distinct from the shutdown deadline), endpoint closed, cache retained",
+      "expect": "DELETE-FAIL-DETECTED",
+      "roundsRun": 3,
+      "verdicts": [
+        "DELETE-FAIL-DETECTED",
+        "DELETE-FAIL-DETECTED",
+        "DELETE-FAIL-DETECTED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B9R1-deletion-failure-isolated-r1.json",
+          "round": 1,
+          "verdict": "DELETE-FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 17454,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B9R1-deletion-failure-isolated-r2.json",
+          "round": 2,
+          "verdict": "DELETE-FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 16785,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B9R1-deletion-failure-isolated-r3.json",
+          "round": 3,
+          "verdict": "DELETE-FAIL-DETECTED",
+          "matchesExpectation": true,
+          "durationMs": 16726,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B9R2a-transient-deletion-failure-recovered",
+      "title": "Transient deletion failure (uchg cleared at +80ms): rm retries must recover, close resolves, cache fully removed",
+      "expect": "RETRY-RECOVERED",
+      "roundsRun": 3,
+      "verdicts": [
+        "RETRY-RECOVERED",
+        "RETRY-RECOVERED",
+        "RETRY-RECOVERED"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B9R2a-transient-deletion-failure-recovered-r1.json",
+          "round": 1,
+          "verdict": "RETRY-RECOVERED",
+          "matchesExpectation": true,
+          "durationMs": 17713,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B9R2a-transient-deletion-failure-recovered-r2.json",
+          "round": 2,
+          "verdict": "RETRY-RECOVERED",
+          "matchesExpectation": true,
+          "durationMs": 16925,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B9R2a-transient-deletion-failure-recovered-r3.json",
+          "round": 3,
+          "verdict": "RETRY-RECOVERED",
+          "matchesExpectation": true,
+          "durationMs": 16944,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B9R2b-permanent-deletion-failure-eperm",
+      "title": "Permanent deletion failure (uchg held): rm retries must exhaust, close rejects with EPERM after the retry window, cache retained",
+      "expect": "RETRY-EXHAUSTED-FAIL",
+      "roundsRun": 3,
+      "verdicts": [
+        "RETRY-EXHAUSTED-FAIL",
+        "RETRY-EXHAUSTED-FAIL",
+        "RETRY-EXHAUSTED-FAIL"
+      ],
+      "summary": "CONFIRMED",
+      "divergentRounds": [],
+      "rounds": [
+        {
+          "evidence": "B9R2b-permanent-deletion-failure-eperm-r1.json",
+          "round": 1,
+          "verdict": "RETRY-EXHAUSTED-FAIL",
+          "matchesExpectation": true,
+          "durationMs": 23739,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B9R2b-permanent-deletion-failure-eperm-r2.json",
+          "round": 2,
+          "verdict": "RETRY-EXHAUSTED-FAIL",
+          "matchesExpectation": true,
+          "durationMs": 24104,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        },
+        {
+          "evidence": "B9R2b-permanent-deletion-failure-eperm-r3.json",
+          "round": 3,
+          "verdict": "RETRY-EXHAUSTED-FAIL",
+          "matchesExpectation": true,
+          "durationMs": 23993,
+          "leakCheck": {
+            "chromiumBefore": 0,
+            "chromiumAfter": 0,
+            "newChromiumPids": [],
+            "newTempCaches": [],
+            "verdict": "no-orphan-chromium"
+          }
+        }
+      ]
+    }
+  ],
+  "workPackageC": {
+    "c1OldSharedRootCache": {
+      "rounds": [
+        {
+          "evidence": "C-old-r1.json",
+          "round": 1,
+          "reproduced": false,
+          "http504": [
+            0,
+            0
+          ],
+          "mounted": [
+            true,
+            true
+          ],
+          "fresh": [
+            true,
+            true
+          ],
+          "newTempCaches": 0,
+          "chromiumAfter": 0
+        },
+        {
+          "evidence": "C-old-r2.json",
+          "round": 2,
+          "reproduced": true,
+          "http504": [
+            3,
+            0
+          ],
+          "mounted": [
+            false,
+            true
+          ],
+          "fresh": [
+            false,
+            true
+          ],
+          "newTempCaches": 0,
+          "chromiumAfter": 0
+        },
+        {
+          "evidence": "C-old-r3.json",
+          "round": 3,
+          "reproduced": true,
+          "http504": [
+            0,
+            3
+          ],
+          "mounted": [
+            true,
+            false
+          ],
+          "fresh": [
+            true,
+            false
+          ],
+          "newTempCaches": 0,
+          "chromiumAfter": 0
+        }
+      ],
+      "conclusion": "原始 504(Outdated Optimize Dep)+ 挂载失败在旧版共享根缓存下复现(3 轮中 2 轮);复现为竞态,非每轮必现。"
+    },
+    "c2NewIsolatedCaches": {
+      "rounds": [
+        {
+          "evidence": "C-new-r1.json",
+          "round": 1,
+          "reproduced": false,
+          "http504": [
+            0,
+            0
+          ],
+          "mounted": [
+            true,
+            true
+          ],
+          "fresh": [
+            true,
+            true
+          ],
+          "newTempCaches": 0,
+          "chromiumAfter": 0
+        },
+        {
+          "evidence": "C-new-r2.json",
+          "round": 2,
+          "reproduced": false,
+          "http504": [
+            0,
+            0
+          ],
+          "mounted": [
+            true,
+            true
+          ],
+          "fresh": [
+            true,
+            true
+          ],
+          "newTempCaches": 0,
+          "chromiumAfter": 0
+        },
+        {
+          "evidence": "C-new-r3.json",
+          "round": 3,
+          "reproduced": false,
+          "http504": [
+            0,
+            0
+          ],
+          "mounted": [
+            true,
+            true
+          ],
+          "fresh": [
+            true,
+            true
+          ],
+          "newTempCaches": 0,
+          "chromiumAfter": 0
+        }
+      ],
+      "conclusion": "新版隔离缓存下 3/3 轮 0×504、双挂载、双 fresh。"
+    },
+    "c3NewSharedExplicitCache": {
+      "rounds": [
+        {
+          "evidence": "C-new-shared-r1.json",
+          "round": 1,
+          "reproduced": false,
+          "http504": [
+            0,
+            0
+          ],
+          "mounted": [
+            true,
+            true
+          ],
+          "fresh": [
+            true,
+            true
+          ],
+          "newTempCaches": 0,
+          "chromiumAfter": 0
+        },
+        {
+          "evidence": "C-new-shared-r2.json",
+          "round": 2,
+          "reproduced": false,
+          "http504": [
+            0,
+            0
+          ],
+          "mounted": [
+            true,
+            true
+          ],
+          "fresh": [
+            true,
+            true
+          ],
+          "newTempCaches": 0,
+          "chromiumAfter": 0
+        },
+        {
+          "evidence": "C-new-shared-r3.json",
+          "round": 3,
+          "reproduced": false,
+          "http504": [
+            0,
+            0
+          ],
+          "mounted": [
+            true,
+            true
+          ],
+          "fresh": [
+            true,
+            true
+          ],
+          "newTempCaches": 0,
+          "chromiumAfter": 0
+        }
+      ],
+      "conclusion": "新版共享显式缓存(调用方误用,契约外)3 轮未复现 504;如实记录为未复现,不写成已修复。若发生,探针观测层会像 B3 一样判 FAIL。"
+    },
+    "c5aCleanupOnFailure": {
+      "old": {
+        "impl": "old",
+        "rejected": {
+          "name": "Error",
+          "code": "ERR_MODULE_NOT_FOUND",
+          "message": "Cannot find module '<tmpdir>/t02-faultlab-diff-producer-FJ30o4/missing-playwrigh"
+        },
+        "leakedListeners": 3,
+        "listenersAfter": [
+          "node    93274 <redacted-user>   14u  IPv4 0x1326be5b72cecbb5      0t0  TCP 127.0.0.1:52830",
+          "node    93274 <redacted-user>   15u  IPv4 0x3ae89b193426d146      0t0  TCP 127.0.0.1:52831",
+          "node    93274 <redacted-user>   28u  IPv4  0xed85c589ed3920c      0t0  TCP 127.0.0.1:52832"
+        ],
+        "closesRecorded": [],
+        "staleReportLeft": false
+      },
+      "new": {
+        "impl": "new",
+        "rejected": {
+          "name": "Error",
+          "code": "ERR_MODULE_NOT_FOUND",
+          "message": "Cannot find module '<tmpdir>/t02-faultlab-diff-producer-BBolKH/missing-playwrigh"
+        },
+        "leakedListeners": 0,
+        "listenersAfter": [],
+        "closesRecorded": [
+          {
+            "name": "gateway",
+            "port": 52834,
+            "listening": false
+          },
+          {
+            "name": "checkpoint",
+            "port": 52833,
+            "listening": false
+          }
+        ],
+        "staleReportLeft": false
+      },
+      "conclusion": "同一 Playwright 导入失败:旧版泄漏 3 个监听端口(gateway/checkpoint/vite)且零关闭记录;新版 0 泄漏,gateway/checkpoint 记录 listening:false 后关闭。"
+    },
+    "c5bSignedBrowserDrill": {
+      "status": "SIGNED_REACT_BROWSER_LOCAL_PASS",
+      "checks": 30,
+      "drills": [
+        {
+          "scenario": "network-interruption-and-cache",
+          "initial": "Signed release visible with details and v4 edits",
+          "action": "Chromium network goes offline",
+          "expected": "All rendered/search/detail content hidden; original edits retained",
+          "observed": {
+            "fresh": false,
+            "counts": {
+              "drugs": 0,
+              "disorders": 0,
+              "cases": 0,
+              "resources": 0
+            },
+            "detailVisible": false,
+            "cacheScope": "denial-only-no-offline-authority"
+          },
+          "recovery": "Network restored; gateway reread restores verified visibility"
+        },
+        {
+          "scenario": "checkpoint-unavailable",
+          "initial": "Signed release visible",
+          "action": "Independent checkpoint HTTP service fails or serves stale signed checkpoint",
+          "expected": "503 no-store and React hides all content",
+          "observed": {
+            "fresh": false,
+            "counts": {
+              "drugs": 0,
+              "disorders": 0,
+              "cases": 0,
+              "resources": 0
+            },
+            "error": "SIGNED_GATEWAY_UNAVAILABLE"
+          },
+          "recovery": "Independent latest checkpoint restored; gateway reread succeeds"
+        },
+        {
+          "scenario": "checkpoint-stale",
+          "initial": "Signed release visible",
+          "action": "Independent checkpoint HTTP service fails or serves stale signed checkpoint",
+          "expected": "503 no-store and React hides all content",
+          "observed": {
+            "fresh": false,
+            "counts": {
+              "drugs": 0,
+              "disorders": 0,
+              "cases": 0,
+              "resources": 0
+            },
+            "error": "SIGNED_GATEWAY_UNAVAILABLE"
+          },
+          "recovery": "Independent latest checkpoint restored; gateway reread succeeds"
+        },
+        {
+          "scenario": "signed-retraction-dependency-and-rollback",
+          "initial": "Disease, dependent seed and custom cases displayed before signed retraction",
+          "action": "Retraction operator signs next event and independent checkpoint; website rolls back archive and restores backup",
+          "expected": "Disease/dependencies/search/detail remain hidden; user overrides/tombstone/backups retained",
+          "observed": {
+            "withdrawn": {
+              "sequence": 2,
+              "counts": {
+                "drugs": 1,
+                "disorders": 0,
+                "cases": 0,
+                "resources": 0
+              },
+              "rawCounts": {
+                "drugs": 1,
+                "disorders": 1,
+                "cases": 2,
+                "resources": 0
+              }
+            },
+            "rollback": {
+              "version": "signed-test-1",
+              "counts": {
+                "drugs": 1,
+                "disorders": 0,
+                "cases": 0,
+                "resources": 0
+              },
+              "sequence": 2
+            }
+          },
+          "recovery": "Refresh verifies the latest ledger and retains rejection history across the configured archive versions"
+        },
+        {
+          "scenario": "checkpoint-regression",
+          "initial": "Sequence after retraction accepted",
+          "action": "Independent service returns earlier signed checkpoint",
+          "expected": "Gateway rejects regression and React hides all content",
+          "observed": {
+            "fresh": false,
+            "sequence": 2,
+            "counts": {
+              "drugs": 0,
+              "disorders": 0,
+              "cases": 0,
+              "resources": 0
+            }
+          },
+          "recovery": "Latest checkpoint restored"
+        },
+        {
+          "scenario": "service-restart-and-durable-recovery",
+          "initial": "Withdrawn content hidden after rollback",
+          "action": "Stop gateway, recreate runtime from same ledger/archive/audit directories, restart gateway and independent checkpoint service",
+          "expected": "Failure hides content; recovery retains highest retraction and hidden dependencies",
+          "observed": {
+            "unavailable": false,
+            "recoveredSequence": 2,
+            "recoveredCounts": {
+              "drugs": 1,
+              "disorders": 0,
+              "cases": 0,
+              "resources": 0
+            }
+          },
+          "recovery": "Browser refresh reconfirms persisted state"
+        },
+        {
+          "scenario": "signed-event-expiry-and-recovery",
+          "initial": "Valid signed retraction retains hidden dependencies",
+          "action": "Sign a short-lived next event and observe actual wall-clock expiry",
+          "expected": "Gateway refuses expired event; browser hides everything and preserves storage",
+          "observed": {
+            "fresh": false,
+            "counts": {
+              "drugs": 0,
+              "disorders": 0,
+              "cases": 0,
+              "resources": 0
+            },
+            "recoveredSequence": 4,
+            "recoveredCounts": {
+              "drugs": 1,
+              "disorders": 0,
+              "cases": 0,
+              "resources": 0
+            }
+          },
+          "recovery": "Operator signs a fresh next event and independent checkpoint; prior retractions remain effective"
+        },
+        {
+          "scenario": "emergency-close-survives-restart",
+          "initial": "Withdrawn release still available for remaining safe content",
+          "action": "Signed emergency shutdown and runtime restart",
+          "expected": "All content hidden across restart",
+          "observed": {
+            "fresh": false,
+            "counts": {
+              "drugs": 0,
+              "disorders": 0,
+              "cases": 0,
+              "resources": 0
+            },
+            "sequence": 4
+          },
+          "recovery": "Signed operator recovery is required; runtime restart alone does not reopen"
+        }
+      ],
+      "pageErrors": 0,
+      "externalRequests": 0,
+      "responses503": 7,
+      "responses200": 15
+    },
+    "c5cSignedAssertionDiff": {
+      "oldCount": 31,
+      "newCount": 32,
+      "removed": [],
+      "added": [
+        "SIGNED_BROWSER_CLEANUP_FAILED"
+      ]
+    }
+  },
+  "finalRegression": {
+    "date": "2026-10-24T16:49:11.223Z",
+    "steps": [
+      {
+        "name": "unit-content-concurrency",
+        "command": "node --test tests/content-concurrency.test.mjs",
+        "exitCode": 0,
+        "tests": 8,
+        "pass": 8,
+        "fail": 0
+      },
+      {
+        "name": "browser-504-regression",
+        "command": "node --test tests/browser/content-concurrency.test.mjs",
+        "exitCode": 0
+      },
+      {
+        "name": "matrix-ci-profile",
+        "command": "node scripts/t02/consumer-concurrency.mjs --producer-root <producer> --evidence-dir <evidence>/matrix-ci --profile ci",
+        "exitCode": 0,
+        "result": {
+          "status": "LOCAL TEST PASS",
+          "cases": 3,
+          "probes": 6,
+          "errorStatistics": {
+            "http504Count": 0,
+            "httpErrors": 0,
+            "consoleErrors": 0,
+            "requestFailures": 0,
+            "pageErrors": 0,
+            "externalRequests": 0,
+            "cleanupErrors": 0
+          },
+          "workersClean": true
+        }
+      }
+    ],
+    "failedSteps": 0,
+    "note": "Bounded regression: T02 concurrency unit suite, real-Chromium 504 regression, CI-profile matrix (3 cases / 6 probes, website-synthetic). Full verify (423+37) was out of lab scope; see PR description CI run 40005458722."
+  },
+  "r1Corrections": {
+    "date": "2026-10-24",
+    "trigger": "independent review of the evidence-only draft PR #41",
+    "a11DeadlineStatistics": {
+      "priorClaim": "1/8 rounds hit the 15s shutdown deadline",
+      "corrected": {
+        "totalAttempts": 11,
+        "invalidHarnessDefectAttempts": 3,
+        "validAttempts": 8,
+        "deadlineHitsAmongValidAttempts": 2,
+        "fractionAmongValidAttempts": "2/8",
+        "formalFinalSemanticsRounds": 5,
+        "deadlineHitsAmongFormalRounds": 1,
+        "fractionAmongFormalRounds": "1/5"
+      },
+      "loadCaveat": "Every valid attempt ran under elevated system load. run2 proxies: 1-min loadavg ~14-15 on 10 cores. run3 (formal): 1-min loadavg 80.28-105.19 recorded in the rounds' own audits; no lab work was concurrent with run3 A11 (verified by artifact timestamps), so the spike is external system load. There is no normal-load sample, and n is far too small for any probability statement. The bounded-fail rate must not be read as a normal-load timeout probability for PR #38.",
+      "ledger": "evidence/A11-ATTEMPTS.json + A11-RECONCILIATION.md"
+    },
+    "tempDirLedger": {
+      "priorClaim": "20 temp directories left by killed processes",
+      "corrected": {
+        "formalRoundNamedRecords": 12,
+        "lostRecordAnonymousEntries": 8,
+        "diskDelta": 20,
+        "unverifiedIdentityEntries": 8,
+        "cleanupProof": {
+          "method": "find <tmpdir> -maxdepth 1 -name 'symgene-t02-*' -newermt 2026-10-24 -exec rm -rf {} +",
+          "matchedBeforeSweep": 20,
+          "removed": 20,
+          "postSweepCount": 92,
+          "postSweepEqualsBaseline": true,
+          "reverifiedDuringR1": "symgene-t02-* count re-checked at the start of the R1 session: 92; t02-faultlab-* count: 0",
+          "nonLabResourcesTouched": 0,
+          "note": "the sweep pattern matched only directories with a 2026-10-24 timestamp; the 92 pre-existing directories from earlier sessions were never touched"
+        }
+      },
+      "ledger": "evidence/TEMP-DIR-LEDGER.json + TEMP-DIR-CLEANUP-PROOF.md"
+    },
+    "b9ScopeClarification": "The original B9 (chmod 555 on the whole cache) obstructed optimizer writes and exercised the 15s shutdown-deadline path, not the removeOwnedCache() deletion-retry mechanism. Targeted follow-ups B9R1 (EACCES: non-retryable, immediate close rejection), B9R2a (transient EPERM: retries recover, close resolves, cache fully removed - proving the retry mechanism) and B9R2b (permanent EPERM: retries exhausted, close rejects) now cover the deletion path. All four failure paths are fail-closed with distinct signatures."
+  },
+  "resourceLifecycle": {
+    "orphanChromiumViolations": [],
+    "note": "每轮实验前后 osAudit 对比 pgrep(ms-playwright) 与 $TMPDIR/symgene-t02-* 目录;任何孤儿 Chromium 都会记录在这里。实验自身显式创建的缓存目录在记录后由 harness 删除。"
+  },
+  "counts": {
+    "experiments": 36,
+    "confirmed": 35,
+    "divergent": 1,
+    "roundsTotal": 112
+  }
+}

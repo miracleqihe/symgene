@@ -1,0 +1,122 @@
+{
+  "id": "B9R1-deletion-failure-isolated",
+  "title": "Owned-cache rm() fails via a locked subdir while the optimizer drain completes: close must reject with the deletion error (distinct from the shutdown deadline), endpoint closed, cache retained",
+  "expect": "DELETE-FAIL-DETECTED",
+  "rounds": [
+    {
+      "id": "B9R1-deletion-failure-isolated",
+      "title": "Owned-cache rm() fails via a locked subdir while the optimizer drain completes: close must reject with the deletion error (distinct from the shutdown deadline), endpoint closed, cache retained",
+      "round": 1,
+      "expect": "DELETE-FAIL-DETECTED",
+      "observed": {
+        "verdict": "DELETE-FAIL-DETECTED",
+        "rejected": {
+          "name": "Error",
+          "code": "EACCES",
+          "message": "EACCES: permission denied, unlink '<tmpdir>/symgene-t02-vite-vqgD0Z/faultlab-locked/x'",
+          "cleanupIncomplete": false
+        },
+        "closeMs": 10,
+        "depsOptimizedBeforeInjection": true,
+        "endpointOpenAfterClose": false,
+        "cacheRetained": true,
+        "leftovers": {
+          "lockedSubdirStillPresent": true,
+          "depsStillPresent": false,
+          "topEntries": [
+            "faultlab-locked"
+          ]
+        },
+        "labCleanupOk": true
+      },
+      "durationMs": 17454,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "DELETE-FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B9R1-deletion-failure-isolated",
+      "title": "Owned-cache rm() fails via a locked subdir while the optimizer drain completes: close must reject with the deletion error (distinct from the shutdown deadline), endpoint closed, cache retained",
+      "round": 2,
+      "expect": "DELETE-FAIL-DETECTED",
+      "observed": {
+        "verdict": "DELETE-FAIL-DETECTED",
+        "rejected": {
+          "name": "Error",
+          "code": "EACCES",
+          "message": "EACCES: permission denied, unlink '<tmpdir>/symgene-t02-vite-4rCXPR/faultlab-locked/x'",
+          "cleanupIncomplete": false
+        },
+        "closeMs": 1,
+        "depsOptimizedBeforeInjection": true,
+        "endpointOpenAfterClose": false,
+        "cacheRetained": true,
+        "leftovers": {
+          "lockedSubdirStillPresent": true,
+          "depsStillPresent": true,
+          "topEntries": [
+            "deps",
+            "faultlab-locked"
+          ]
+        },
+        "labCleanupOk": true
+      },
+      "durationMs": 16785,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "DELETE-FAIL-DETECTED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B9R1-deletion-failure-isolated",
+      "title": "Owned-cache rm() fails via a locked subdir while the optimizer drain completes: close must reject with the deletion error (distinct from the shutdown deadline), endpoint closed, cache retained",
+      "round": 3,
+      "expect": "DELETE-FAIL-DETECTED",
+      "observed": {
+        "verdict": "DELETE-FAIL-DETECTED",
+        "rejected": {
+          "name": "Error",
+          "code": "EACCES",
+          "message": "EACCES: permission denied, unlink '<tmpdir>/symgene-t02-vite-3Of9Yl/faultlab-locked/x'",
+          "cleanupIncomplete": false
+        },
+        "closeMs": 1,
+        "depsOptimizedBeforeInjection": true,
+        "endpointOpenAfterClose": false,
+        "cacheRetained": true,
+        "leftovers": {
+          "lockedSubdirStillPresent": true,
+          "depsStillPresent": true,
+          "topEntries": [
+            "deps",
+            "faultlab-locked"
+          ]
+        },
+        "labCleanupOk": true
+      },
+      "durationMs": 16726,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "DELETE-FAIL-DETECTED",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

@@ -1,0 +1,27 @@
+{"id":"A11-close-during-traffic","round":1,"verdict":"CLOSE-CLEAN","expect":"CLOSE-CLEAN","matches":true,"ms":7040}
+{"id":"A11-close-during-traffic","round":2,"verdict":"CLOSE-CLEAN","expect":"CLOSE-CLEAN","matches":true,"ms":6504}
+{"id":"A11-close-during-traffic","round":3,"verdict":"CLOSE-CLEAN","expect":"CLOSE-CLEAN","matches":true,"ms":6545}
+{"id":"A11-close-during-traffic","round":4,"verdict":"CLOSE-BOUNDED-FAIL","expect":"CLOSE-CLEAN","matches":false,"ms":15477}
+{"id":"A11-close-during-traffic","round":5,"verdict":"CLOSE-CLEAN","expect":"CLOSE-CLEAN","matches":true,"ms":6577}
+{"id":"A14-leader-death-orphan-reap","round":1,"verdict":"ORPHANS-REAPED","expect":"ORPHANS-REAPED","matches":true,"ms":2432}
+{"id":"A14-leader-death-orphan-reap","round":2,"verdict":"ORPHANS-REAPED","expect":"ORPHANS-REAPED","matches":true,"ms":2561}
+{"id":"A14-leader-death-orphan-reap","round":3,"verdict":"ORPHANS-REAPED","expect":"ORPHANS-REAPED","matches":true,"ms":2328}
+{"id":"A14-leader-death-orphan-reap","round":4,"verdict":"ORPHANS-REAPED","expect":"ORPHANS-REAPED","matches":true,"ms":2321}
+{"id":"A14-leader-death-orphan-reap","round":5,"verdict":"ORPHANS-REAPED","expect":"ORPHANS-REAPED","matches":true,"ms":2349}
+{
+  "workPackage": "A",
+  "experiments": [
+    {
+      "id": "A11-close-during-traffic",
+      "summary": "DIVERGENT",
+      "divergent": [
+        4
+      ]
+    },
+    {
+      "id": "A14-leader-death-orphan-reap",
+      "summary": "CONFIRMED",
+      "divergent": []
+    }
+  ]
+}

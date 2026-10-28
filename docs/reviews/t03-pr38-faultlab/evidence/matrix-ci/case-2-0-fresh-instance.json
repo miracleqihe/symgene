@@ -1,0 +1,645 @@
+{
+  "id": "2-0-fresh-instance",
+  "configuration": {
+    "order": "parallel",
+    "processes": "separate",
+    "cache": "default",
+    "ports": "ephemeral",
+    "consumers": [
+      "development",
+      "development"
+    ]
+  },
+  "temperature": "fresh-instance",
+  "round": 0,
+  "results": [
+    {
+      "kind": "development",
+      "status": "PASS",
+      "complete": true,
+      "pid": 8685,
+      "cachePolicy": "per-instance-owned",
+      "externalRequests": 0,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "requestFailures": [],
+      "httpErrors": [],
+      "http504Count": 0,
+      "timeline": [
+        {
+          "kind": "development",
+          "stage": "start",
+          "elapsedMs": 0,
+          "pid": 8685,
+          "loadavg": [
+            14.642578125,
+            14.32080078125,
+            19.7978515625
+          ],
+          "freeMemory": 734822400
+        },
+        {
+          "kind": "development",
+          "stage": "ready",
+          "elapsedMs": 71,
+          "port": 53258,
+          "cacheDir": "<tmpdir>/symgene-t02-vite-mUKsJq"
+        },
+        {
+          "kind": "development",
+          "stage": "domcontentloaded",
+          "elapsedMs": 1026
+        },
+        {
+          "kind": "development",
+          "stage": "response",
+          "elapsedMs": 1085,
+          "path": "/symgene/t02-dev/bootstrap",
+          "status": 200
+        },
+        {
+          "kind": "development",
+          "stage": "react-mount",
+          "elapsedMs": 1100
+        },
+        {
+          "kind": "development",
+          "stage": "snapshot",
+          "elapsedMs": 1137,
+          "fresh": true,
+          "sequence": 1
+        },
+        {
+          "kind": "development",
+          "stage": "closed",
+          "elapsedMs": 1158,
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "ports": [
+            {
+              "port": 53258,
+              "reachable": false
+            }
+          ],
+          "cleanupErrors": []
+        }
+      ],
+      "cleanupErrors": [],
+      "serverClosed": true,
+      "browserClosed": true,
+      "closedPorts": [
+        {
+          "port": 53258,
+          "reachable": false
+        }
+      ],
+      "ownedCacheRemoved": true,
+      "durationMs": 1158,
+      "executionId": "7dfd520b-00f5-4d89-a981-8c94f18c48a1",
+      "childPid": 8685,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "exitObserved": true,
+      "closeObserved": true,
+      "supervisorDeadlineExceeded": false,
+      "reportReceived": true,
+      "reportValid": true,
+      "reportCount": 1,
+      "output": "",
+      "progress": [
+        {
+          "kind": "development",
+          "stage": "start",
+          "elapsedMs": 0,
+          "pid": 8685,
+          "loadavg": [
+            14.642578125,
+            14.32080078125,
+            19.7978515625
+          ],
+          "freeMemory": 734822400
+        },
+        {
+          "kind": "development",
+          "stage": "ready",
+          "elapsedMs": 71,
+          "port": 53258,
+          "cacheDir": "<tmpdir>/symgene-t02-vite-mUKsJq"
+        },
+        {
+          "kind": "development",
+          "stage": "domcontentloaded",
+          "elapsedMs": 1026
+        },
+        {
+          "kind": "development",
+          "stage": "response",
+          "elapsedMs": 1085,
+          "path": "/symgene/t02-dev/bootstrap",
+          "status": 200
+        },
+        {
+          "kind": "development",
+          "stage": "react-mount",
+          "elapsedMs": 1100
+        },
+        {
+          "kind": "development",
+          "stage": "snapshot",
+          "elapsedMs": 1137,
+          "fresh": true,
+          "sequence": 1
+        },
+        {
+          "kind": "development",
+          "stage": "closed",
+          "elapsedMs": 1158,
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "ports": [
+            {
+              "port": 53258,
+              "reachable": false
+            }
+          ],
+          "cleanupErrors": []
+        }
+      ]
+    },
+    {
+      "kind": "development",
+      "status": "PASS",
+      "complete": true,
+      "pid": 8686,
+      "cachePolicy": "per-instance-owned",
+      "externalRequests": 0,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "requestFailures": [],
+      "httpErrors": [],
+      "http504Count": 0,
+      "timeline": [
+        {
+          "kind": "development",
+          "stage": "start",
+          "elapsedMs": 0,
+          "pid": 8686,
+          "loadavg": [
+            14.642578125,
+            14.32080078125,
+            19.7978515625
+          ],
+          "freeMemory": 736755712
+        },
+        {
+          "kind": "development",
+          "stage": "ready",
+          "elapsedMs": 71,
+          "port": 53259,
+          "cacheDir": "<tmpdir>/symgene-t02-vite-0TmZlD"
+        },
+        {
+          "kind": "development",
+          "stage": "domcontentloaded",
+          "elapsedMs": 1031
+        },
+        {
+          "kind": "development",
+          "stage": "response",
+          "elapsedMs": 1088,
+          "path": "/symgene/t02-dev/bootstrap",
+          "status": 200
+        },
+        {
+          "kind": "development",
+          "stage": "react-mount",
+          "elapsedMs": 1101
+        },
+        {
+          "kind": "development",
+          "stage": "snapshot",
+          "elapsedMs": 1144,
+          "fresh": true,
+          "sequence": 1
+        },
+        {
+          "kind": "development",
+          "stage": "closed",
+          "elapsedMs": 1170,
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "ports": [
+            {
+              "port": 53259,
+              "reachable": false
+            }
+          ],
+          "cleanupErrors": []
+        }
+      ],
+      "cleanupErrors": [],
+      "serverClosed": true,
+      "browserClosed": true,
+      "closedPorts": [
+        {
+          "port": 53259,
+          "reachable": false
+        }
+      ],
+      "ownedCacheRemoved": true,
+      "durationMs": 1170,
+      "executionId": "1753084e-e506-4cd0-a5de-ed22cb7536d9",
+      "childPid": 8686,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "exitObserved": true,
+      "closeObserved": true,
+      "supervisorDeadlineExceeded": false,
+      "reportReceived": true,
+      "reportValid": true,
+      "reportCount": 1,
+      "output": "",
+      "progress": [
+        {
+          "kind": "development",
+          "stage": "start",
+          "elapsedMs": 0,
+          "pid": 8686,
+          "loadavg": [
+            14.642578125,
+            14.32080078125,
+            19.7978515625
+          ],
+          "freeMemory": 736755712
+        },
+        {
+          "kind": "development",
+          "stage": "ready",
+          "elapsedMs": 71,
+          "port": 53259,
+          "cacheDir": "<tmpdir>/symgene-t02-vite-0TmZlD"
+        },
+        {
+          "kind": "development",
+          "stage": "domcontentloaded",
+          "elapsedMs": 1031
+        },
+        {
+          "kind": "development",
+          "stage": "response",
+          "elapsedMs": 1088,
+          "path": "/symgene/t02-dev/bootstrap",
+          "status": 200
+        },
+        {
+          "kind": "development",
+          "stage": "react-mount",
+          "elapsedMs": 1101
+        },
+        {
+          "kind": "development",
+          "stage": "snapshot",
+          "elapsedMs": 1144,
+          "fresh": true,
+          "sequence": 1
+        },
+        {
+          "kind": "development",
+          "stage": "closed",
+          "elapsedMs": 1170,
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "ports": [
+            {
+              "port": 53259,
+              "reachable": false
+            }
+          ],
+          "cleanupErrors": []
+        }
+      ]
+    }
+  ],
+  "workers": [
+    {
+      "kind": "development",
+      "status": "PASS",
+      "complete": true,
+      "pid": 8685,
+      "cachePolicy": "per-instance-owned",
+      "externalRequests": 0,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "requestFailures": [],
+      "httpErrors": [],
+      "http504Count": 0,
+      "timeline": [
+        {
+          "kind": "development",
+          "stage": "start",
+          "elapsedMs": 0,
+          "pid": 8685,
+          "loadavg": [
+            14.642578125,
+            14.32080078125,
+            19.7978515625
+          ],
+          "freeMemory": 734822400
+        },
+        {
+          "kind": "development",
+          "stage": "ready",
+          "elapsedMs": 71,
+          "port": 53258,
+          "cacheDir": "<tmpdir>/symgene-t02-vite-mUKsJq"
+        },
+        {
+          "kind": "development",
+          "stage": "domcontentloaded",
+          "elapsedMs": 1026
+        },
+        {
+          "kind": "development",
+          "stage": "response",
+          "elapsedMs": 1085,
+          "path": "/symgene/t02-dev/bootstrap",
+          "status": 200
+        },
+        {
+          "kind": "development",
+          "stage": "react-mount",
+          "elapsedMs": 1100
+        },
+        {
+          "kind": "development",
+          "stage": "snapshot",
+          "elapsedMs": 1137,
+          "fresh": true,
+          "sequence": 1
+        },
+        {
+          "kind": "development",
+          "stage": "closed",
+          "elapsedMs": 1158,
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "ports": [
+            {
+              "port": 53258,
+              "reachable": false
+            }
+          ],
+          "cleanupErrors": []
+        }
+      ],
+      "cleanupErrors": [],
+      "serverClosed": true,
+      "browserClosed": true,
+      "closedPorts": [
+        {
+          "port": 53258,
+          "reachable": false
+        }
+      ],
+      "ownedCacheRemoved": true,
+      "durationMs": 1158,
+      "executionId": "7dfd520b-00f5-4d89-a981-8c94f18c48a1",
+      "childPid": 8685,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "exitObserved": true,
+      "closeObserved": true,
+      "supervisorDeadlineExceeded": false,
+      "reportReceived": true,
+      "reportValid": true,
+      "reportCount": 1,
+      "output": "",
+      "progress": [
+        {
+          "kind": "development",
+          "stage": "start",
+          "elapsedMs": 0,
+          "pid": 8685,
+          "loadavg": [
+            14.642578125,
+            14.32080078125,
+            19.7978515625
+          ],
+          "freeMemory": 734822400
+        },
+        {
+          "kind": "development",
+          "stage": "ready",
+          "elapsedMs": 71,
+          "port": 53258,
+          "cacheDir": "<tmpdir>/symgene-t02-vite-mUKsJq"
+        },
+        {
+          "kind": "development",
+          "stage": "domcontentloaded",
+          "elapsedMs": 1026
+        },
+        {
+          "kind": "development",
+          "stage": "response",
+          "elapsedMs": 1085,
+          "path": "/symgene/t02-dev/bootstrap",
+          "status": 200
+        },
+        {
+          "kind": "development",
+          "stage": "react-mount",
+          "elapsedMs": 1100
+        },
+        {
+          "kind": "development",
+          "stage": "snapshot",
+          "elapsedMs": 1137,
+          "fresh": true,
+          "sequence": 1
+        },
+        {
+          "kind": "development",
+          "stage": "closed",
+          "elapsedMs": 1158,
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "ports": [
+            {
+              "port": 53258,
+              "reachable": false
+            }
+          ],
+          "cleanupErrors": []
+        }
+      ]
+    },
+    {
+      "kind": "development",
+      "status": "PASS",
+      "complete": true,
+      "pid": 8686,
+      "cachePolicy": "per-instance-owned",
+      "externalRequests": 0,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "requestFailures": [],
+      "httpErrors": [],
+      "http504Count": 0,
+      "timeline": [
+        {
+          "kind": "development",
+          "stage": "start",
+          "elapsedMs": 0,
+          "pid": 8686,
+          "loadavg": [
+            14.642578125,
+            14.32080078125,
+            19.7978515625
+          ],
+          "freeMemory": 736755712
+        },
+        {
+          "kind": "development",
+          "stage": "ready",
+          "elapsedMs": 71,
+          "port": 53259,
+          "cacheDir": "<tmpdir>/symgene-t02-vite-0TmZlD"
+        },
+        {
+          "kind": "development",
+          "stage": "domcontentloaded",
+          "elapsedMs": 1031
+        },
+        {
+          "kind": "development",
+          "stage": "response",
+          "elapsedMs": 1088,
+          "path": "/symgene/t02-dev/bootstrap",
+          "status": 200
+        },
+        {
+          "kind": "development",
+          "stage": "react-mount",
+          "elapsedMs": 1101
+        },
+        {
+          "kind": "development",
+          "stage": "snapshot",
+          "elapsedMs": 1144,
+          "fresh": true,
+          "sequence": 1
+        },
+        {
+          "kind": "development",
+          "stage": "closed",
+          "elapsedMs": 1170,
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "ports": [
+            {
+              "port": 53259,
+              "reachable": false
+            }
+          ],
+          "cleanupErrors": []
+        }
+      ],
+      "cleanupErrors": [],
+      "serverClosed": true,
+      "browserClosed": true,
+      "closedPorts": [
+        {
+          "port": 53259,
+          "reachable": false
+        }
+      ],
+      "ownedCacheRemoved": true,
+      "durationMs": 1170,
+      "executionId": "1753084e-e506-4cd0-a5de-ed22cb7536d9",
+      "childPid": 8686,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "exitObserved": true,
+      "closeObserved": true,
+      "supervisorDeadlineExceeded": false,
+      "reportReceived": true,
+      "reportValid": true,
+      "reportCount": 1,
+      "output": "",
+      "progress": [
+        {
+          "kind": "development",
+          "stage": "start",
+          "elapsedMs": 0,
+          "pid": 8686,
+          "loadavg": [
+            14.642578125,
+            14.32080078125,
+            19.7978515625
+          ],
+          "freeMemory": 736755712
+        },
+        {
+          "kind": "development",
+          "stage": "ready",
+          "elapsedMs": 71,
+          "port": 53259,
+          "cacheDir": "<tmpdir>/symgene-t02-vite-0TmZlD"
+        },
+        {
+          "kind": "development",
+          "stage": "domcontentloaded",
+          "elapsedMs": 1031
+        },
+        {
+          "kind": "development",
+          "stage": "response",
+          "elapsedMs": 1088,
+          "path": "/symgene/t02-dev/bootstrap",
+          "status": 200
+        },
+        {
+          "kind": "development",
+          "stage": "react-mount",
+          "elapsedMs": 1101
+        },
+        {
+          "kind": "development",
+          "stage": "snapshot",
+          "elapsedMs": 1144,
+          "fresh": true,
+          "sequence": 1
+        },
+        {
+          "kind": "development",
+          "stage": "closed",
+          "elapsedMs": 1170,
+          "serverClosed": true,
+          "browserClosed": true,
+          "ownedCacheRemoved": true,
+          "ports": [
+            {
+              "port": 53259,
+              "reachable": false
+            }
+          ],
+          "cleanupErrors": []
+        }
+      ]
+    }
+  ],
+  "independentCaches": true,
+  "status": "PASS"
+}

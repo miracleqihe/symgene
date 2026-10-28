@@ -1,0 +1,170 @@
+{
+  "status": "SIGNED_REACT_BROWSER_LOCAL_PASS",
+  "checks": 30,
+  "drills": [
+    {
+      "scenario": "network-interruption-and-cache",
+      "initial": "Signed release visible with details and v4 edits",
+      "action": "Chromium network goes offline",
+      "expected": "All rendered/search/detail content hidden; original edits retained",
+      "observed": {
+        "fresh": false,
+        "counts": {
+          "drugs": 0,
+          "disorders": 0,
+          "cases": 0,
+          "resources": 0
+        },
+        "detailVisible": false,
+        "cacheScope": "denial-only-no-offline-authority"
+      },
+      "recovery": "Network restored; gateway reread restores verified visibility"
+    },
+    {
+      "scenario": "checkpoint-unavailable",
+      "initial": "Signed release visible",
+      "action": "Independent checkpoint HTTP service fails or serves stale signed checkpoint",
+      "expected": "503 no-store and React hides all content",
+      "observed": {
+        "fresh": false,
+        "counts": {
+          "drugs": 0,
+          "disorders": 0,
+          "cases": 0,
+          "resources": 0
+        },
+        "error": "SIGNED_GATEWAY_UNAVAILABLE"
+      },
+      "recovery": "Independent latest checkpoint restored; gateway reread succeeds"
+    },
+    {
+      "scenario": "checkpoint-stale",
+      "initial": "Signed release visible",
+      "action": "Independent checkpoint HTTP service fails or serves stale signed checkpoint",
+      "expected": "503 no-store and React hides all content",
+      "observed": {
+        "fresh": false,
+        "counts": {
+          "drugs": 0,
+          "disorders": 0,
+          "cases": 0,
+          "resources": 0
+        },
+        "error": "SIGNED_GATEWAY_UNAVAILABLE"
+      },
+      "recovery": "Independent latest checkpoint restored; gateway reread succeeds"
+    },
+    {
+      "scenario": "signed-retraction-dependency-and-rollback",
+      "initial": "Disease, dependent seed and custom cases displayed before signed retraction",
+      "action": "Retraction operator signs next event and independent checkpoint; website rolls back archive and restores backup",
+      "expected": "Disease/dependencies/search/detail remain hidden; user overrides/tombstone/backups retained",
+      "observed": {
+        "withdrawn": {
+          "sequence": 2,
+          "counts": {
+            "drugs": 1,
+            "disorders": 0,
+            "cases": 0,
+            "resources": 0
+          },
+          "rawCounts": {
+            "drugs": 1,
+            "disorders": 1,
+            "cases": 2,
+            "resources": 0
+          }
+        },
+        "rollback": {
+          "version": "signed-test-1",
+          "counts": {
+            "drugs": 1,
+            "disorders": 0,
+            "cases": 0,
+            "resources": 0
+          },
+          "sequence": 2
+        }
+      },
+      "recovery": "Refresh verifies the latest ledger and retains rejection history across the configured archive versions"
+    },
+    {
+      "scenario": "checkpoint-regression",
+      "initial": "Sequence after retraction accepted",
+      "action": "Independent service returns earlier signed checkpoint",
+      "expected": "Gateway rejects regression and React hides all content",
+      "observed": {
+        "fresh": false,
+        "sequence": 2,
+        "counts": {
+          "drugs": 0,
+          "disorders": 0,
+          "cases": 0,
+          "resources": 0
+        }
+      },
+      "recovery": "Latest checkpoint restored"
+    },
+    {
+      "scenario": "service-restart-and-durable-recovery",
+      "initial": "Withdrawn content hidden after rollback",
+      "action": "Stop gateway, recreate runtime from same ledger/archive/audit directories, restart gateway and independent checkpoint service",
+      "expected": "Failure hides content; recovery retains highest retraction and hidden dependencies",
+      "observed": {
+        "unavailable": false,
+        "recoveredSequence": 2,
+        "recoveredCounts": {
+          "drugs": 1,
+          "disorders": 0,
+          "cases": 0,
+          "resources": 0
+        }
+      },
+      "recovery": "Browser refresh reconfirms persisted state"
+    },
+    {
+      "scenario": "signed-event-expiry-and-recovery",
+      "initial": "Valid signed retraction retains hidden dependencies",
+      "action": "Sign a short-lived next event and observe actual wall-clock expiry",
+      "expected": "Gateway refuses expired event; browser hides everything and preserves storage",
+      "observed": {
+        "fresh": false,
+        "counts": {
+          "drugs": 0,
+          "disorders": 0,
+          "cases": 0,
+          "resources": 0
+        },
+        "recoveredSequence": 4,
+        "recoveredCounts": {
+          "drugs": 1,
+          "disorders": 0,
+          "cases": 0,
+          "resources": 0
+        }
+      },
+      "recovery": "Operator signs a fresh next event and independent checkpoint; prior retractions remain effective"
+    },
+    {
+      "scenario": "emergency-close-survives-restart",
+      "initial": "Withdrawn release still available for remaining safe content",
+      "action": "Signed emergency shutdown and runtime restart",
+      "expected": "All content hidden across restart",
+      "observed": {
+        "fresh": false,
+        "counts": {
+          "drugs": 0,
+          "disorders": 0,
+          "cases": 0,
+          "resources": 0
+        },
+        "sequence": 4
+      },
+      "recovery": "Signed operator recovery is required; runtime restart alone does not reopen"
+    }
+  ],
+  "pageErrors": 0,
+  "externalRequests": 0,
+  "responses503": 7,
+  "responses200": 15
+}

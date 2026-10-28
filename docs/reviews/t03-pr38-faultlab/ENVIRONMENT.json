@@ -1,0 +1,43 @@
+{
+  "generatedAt": "2026-10-24T19:44:52.896Z",
+  "scope": "synthetic loopback only; fictional content; production BLOCKED; evidence-only review package",
+  "repository": "miracleqihe/symgene",
+  "boundSources": {
+    "newImplementation": {
+      "commit": "9dfc403f89cfe539eb7584c87eddcbda6efe0a89",
+      "branch": "codex/t03-t02-concurrency (PR #38 head, unmodified)"
+    },
+    "oldImplementation": {
+      "commit": "6a3eea2f679fa8979c66edcba2724675ee74aa93",
+      "role": "merge-base of PR #38 = origin/dev head at experiment time"
+    }
+  },
+  "producer": {
+    "kind": "private data-pipeline checkout providing src/release-test-fixture.mjs",
+    "localPath": "WITHHELD (PRIVATE_EVIDENCE_REQUIRED)",
+    "note": "only its runtime outputs (statuses/counts) appear in evidence; no producer source code, keys or business data is included"
+  },
+  "versions": {
+    "node": "v22.23.4",
+    "vite": "8.1.6",
+    "playwright": "1.62.1",
+    "react": "19.2.8"
+  },
+  "nodeNote": "repository .nvmrc pins 22.23.3; experiments used 22.23.4 (brew node@22) — patch-level difference only",
+  "machine": {
+    "cpu": "Apple M2 Pro (arm64, 10 cores)",
+    "memory": "16 GB shared with unrelated system load",
+    "os": "macOS (darwin arm64)",
+    "loadCaveat": "R1.1 window-explicit: the 15-min loadavg average was ~33 early in the session (uptime); the five FORMAL A11 rounds recorded 1-min loadavg 80-105 in their own audits (external system load, no lab concurrency verified by artifact timestamps); the run2 window recorded 1-min ~14-15. Metrics and windows are not interchangeable; no normal-load probability claim is made for A11"
+  },
+  "browserRuntime": "Playwright-managed Chromium (headless), ~/Library/Caches/ms-playwright",
+  "chromiumConcurrencyCap": 4,
+  "labHarness": {
+    "localOnly": true,
+    "reason": "harness scripts contain local absolute paths and were not part of the reviewed deliverable set; reproduction commands are published in REPRODUCTION-COMMANDS.md"
+  },
+  "sanitizedPaths": {
+    "personalHome": "<redacted-home> (= the personal home prefix, username withheld)",
+    "perUserTmpdir": "<tmpdir> (= the per-user macOS temp root)"
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "id": "B8-shutdown-timeout",
+  "title": "Writer held past the 15s shutdown deadline: bounded reject, endpoint closed, cache retained",
+  "expect": "DEADLINE-ENFORCED",
+  "rounds": [
+    {
+      "id": "B8-shutdown-timeout",
+      "title": "Writer held past the 15s shutdown deadline: bounded reject, endpoint closed, cache retained",
+      "round": 1,
+      "expect": "DEADLINE-ENFORCED",
+      "observed": {
+        "verdict": "DEADLINE-ENFORCED",
+        "rejected": {
+          "name": "Error",
+          "code": "T02_CONSUMER_SHUTDOWN_TIMEOUT",
+          "cleanupIncomplete": true,
+          "cacheDir": "<tmpdir>/symgene-t02-vite-rqsdP0"
+        },
+        "elapsedMs": 15002,
+        "endpointOpenAfterDeadline": false,
+        "cacheRetainedAtDeadline": true
+      },
+      "durationMs": 15984,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "DEADLINE-ENFORCED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B8-shutdown-timeout",
+      "title": "Writer held past the 15s shutdown deadline: bounded reject, endpoint closed, cache retained",
+      "round": 2,
+      "expect": "DEADLINE-ENFORCED",
+      "observed": {
+        "verdict": "DEADLINE-ENFORCED",
+        "rejected": {
+          "name": "Error",
+          "code": "T02_CONSUMER_SHUTDOWN_TIMEOUT",
+          "cleanupIncomplete": true,
+          "cacheDir": "<tmpdir>/symgene-t02-vite-u8mYGV"
+        },
+        "elapsedMs": 15001,
+        "endpointOpenAfterDeadline": false,
+        "cacheRetainedAtDeadline": true
+      },
+      "durationMs": 15423,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "DEADLINE-ENFORCED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B8-shutdown-timeout",
+      "title": "Writer held past the 15s shutdown deadline: bounded reject, endpoint closed, cache retained",
+      "round": 3,
+      "expect": "DEADLINE-ENFORCED",
+      "observed": {
+        "verdict": "DEADLINE-ENFORCED",
+        "rejected": {
+          "name": "Error",
+          "code": "T02_CONSUMER_SHUTDOWN_TIMEOUT",
+          "cleanupIncomplete": true,
+          "cacheDir": "<tmpdir>/symgene-t02-vite-DkEq4u"
+        },
+        "elapsedMs": 15003,
+        "endpointOpenAfterDeadline": false,
+        "cacheRetainedAtDeadline": true
+      },
+      "durationMs": 15823,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "DEADLINE-ENFORCED",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

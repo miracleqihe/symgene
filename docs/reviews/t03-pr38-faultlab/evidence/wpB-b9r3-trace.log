@@ -1,0 +1,45 @@
+{"id":"R11B-EXP1-rm-transient-recovery","round":1,"verdict":"THREW","expect":"RM-RETRIES-PROVEN","matches":false,"ms":60229}
+{"id":"R11B-EXP1-rm-transient-recovery","round":2,"verdict":"THREW","expect":"RM-RETRIES-PROVEN","matches":false,"ms":60224}
+{"id":"R11B-EXP1-rm-transient-recovery","round":3,"verdict":"THREW","expect":"RM-RETRIES-PROVEN","matches":false,"ms":60215}
+{"id":"R11B-EXP2-rm-permanent-exhaustion","round":1,"verdict":"THREW","expect":"RM-RETRY-EXHAUSTION-PROVEN","matches":false,"ms":60273}
+{"id":"R11B-EXP2-rm-permanent-exhaustion","round":2,"verdict":"THREW","expect":"RM-RETRY-EXHAUSTION-PROVEN","matches":false,"ms":60234}
+{"id":"R11B-EXP2-rm-permanent-exhaustion","round":3,"verdict":"THREW","expect":"RM-RETRY-EXHAUSTION-PROVEN","matches":false,"ms":60231}
+{"id":"R11B-EXP3-close-decomposition-control","round":1,"verdict":"RECORDED","expect":"RECORDED","matches":true,"ms":17586}
+{"id":"R11B-EXP3-close-decomposition-control","round":2,"verdict":"RECORDED","expect":"RECORDED","matches":true,"ms":16854}
+{"id":"R11B-EXP3-close-decomposition-control","round":3,"verdict":"RECORDED","expect":"RECORDED","matches":true,"ms":16898}
+{"id":"R11B-EXP3-close-decomposition-flagged","round":1,"verdict":"RECORDED","expect":"RECORDED","matches":true,"ms":24031}
+{"id":"R11B-EXP3-close-decomposition-flagged","round":2,"verdict":"RECORDED","expect":"RECORDED","matches":true,"ms":24271}
+{"id":"R11B-EXP3-close-decomposition-flagged","round":3,"verdict":"RECORDED","expect":"RECORDED","matches":true,"ms":23634}
+{
+  "workPackage": "R1.1-B",
+  "experiments": [
+    {
+      "id": "R11B-EXP1-rm-transient-recovery",
+      "summary": "DIVERGENT",
+      "divergent": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "R11B-EXP2-rm-permanent-exhaustion",
+      "summary": "DIVERGENT",
+      "divergent": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "R11B-EXP3-close-decomposition-control",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "R11B-EXP3-close-decomposition-flagged",
+      "summary": "CONFIRMED",
+      "divergent": []
+    }
+  ]
+}

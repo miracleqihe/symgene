@@ -1,0 +1,75 @@
+{
+  "id": "B2b-detached-writer-escapes-drain",
+  "title": "Out-of-contract writer scheduling work outside its processing promise (observational)",
+  "expect": "RESIDUE-RECORDED",
+  "rounds": [
+    {
+      "id": "B2b-detached-writer-escapes-drain",
+      "title": "Out-of-contract writer scheduling work outside its processing promise (observational)",
+      "round": 1,
+      "expect": "RESIDUE-RECORDED",
+      "observed": {
+        "verdict": "RESIDUE-RECORDED",
+        "cacheRemovedAtClose": true,
+        "residueAfterClose": true,
+        "classification": "OUT-OF-CONTRACT-WRITER-LEAVES-RESIDUE"
+      },
+      "durationMs": 478,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "RESIDUE-RECORDED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B2b-detached-writer-escapes-drain",
+      "title": "Out-of-contract writer scheduling work outside its processing promise (observational)",
+      "round": 2,
+      "expect": "RESIDUE-RECORDED",
+      "observed": {
+        "verdict": "RESIDUE-RECORDED",
+        "cacheRemovedAtClose": true,
+        "residueAfterClose": true,
+        "classification": "OUT-OF-CONTRACT-WRITER-LEAVES-RESIDUE"
+      },
+      "durationMs": 484,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "RESIDUE-RECORDED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B2b-detached-writer-escapes-drain",
+      "title": "Out-of-contract writer scheduling work outside its processing promise (observational)",
+      "round": 3,
+      "expect": "RESIDUE-RECORDED",
+      "observed": {
+        "verdict": "RESIDUE-RECORDED",
+        "cacheRemovedAtClose": true,
+        "residueAfterClose": true,
+        "classification": "OUT-OF-CONTRACT-WRITER-LEAVES-RESIDUE"
+      },
+      "durationMs": 848,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "RESIDUE-RECORDED",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}

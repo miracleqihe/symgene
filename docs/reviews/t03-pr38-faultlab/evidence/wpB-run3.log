@@ -1,0 +1,24 @@
+9:42:27 AM [vite] (client) [optimizer] bundling dependencies...
+{"id":"B8-shutdown-timeout","round":1,"verdict":"DEADLINE-ENFORCED","expect":"DEADLINE-ENFORCED","matches":true,"ms":15984}
+9:42:43 AM [vite] (client) [optimizer] bundling dependencies...
+{"id":"B8-shutdown-timeout","round":2,"verdict":"DEADLINE-ENFORCED","expect":"DEADLINE-ENFORCED","matches":true,"ms":15423}
+9:42:59 AM [vite] (client) [optimizer] bundling dependencies...
+{"id":"B8-shutdown-timeout","round":3,"verdict":"DEADLINE-ENFORCED","expect":"DEADLINE-ENFORCED","matches":true,"ms":15823}
+{"id":"B9-cache-deletion-failure","round":1,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":33782}
+{"id":"B9-cache-deletion-failure","round":2,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":31367}
+{"id":"B9-cache-deletion-failure","round":3,"verdict":"FAIL-DETECTED","expect":"FAIL-DETECTED","matches":true,"ms":31328}
+{
+  "workPackage": "B",
+  "experiments": [
+    {
+      "id": "B8-shutdown-timeout",
+      "summary": "CONFIRMED",
+      "divergent": []
+    },
+    {
+      "id": "B9-cache-deletion-failure",
+      "summary": "CONFIRMED",
+      "divergent": []
+    }
+  ]
+}

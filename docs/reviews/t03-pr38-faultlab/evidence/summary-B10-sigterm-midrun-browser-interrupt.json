@@ -1,0 +1,90 @@
+{
+  "id": "B10-sigterm-midrun-browser-interrupt",
+  "title": "SIGTERM during a live probe: probeConsumer interrupts the browser and the worker must still fail closed",
+  "expect": "FAIL-CLOSED",
+  "rounds": [
+    {
+      "id": "B10-sigterm-midrun-browser-interrupt",
+      "title": "SIGTERM during a live probe: probeConsumer interrupts the browser and the worker must still fail closed",
+      "round": 1,
+      "expect": "FAIL-CLOSED",
+      "observed": {
+        "verdict": "FAIL-CLOSED",
+        "exit": {
+          "exitCode": 143,
+          "signal": null
+        },
+        "workerReportStatus": null,
+        "workerReportError": null,
+        "chromiumPidsAfter": [],
+        "outputTail": ""
+      },
+      "durationMs": 2339,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-CLOSED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B10-sigterm-midrun-browser-interrupt",
+      "title": "SIGTERM during a live probe: probeConsumer interrupts the browser and the worker must still fail closed",
+      "round": 2,
+      "expect": "FAIL-CLOSED",
+      "observed": {
+        "verdict": "FAIL-CLOSED",
+        "exit": {
+          "exitCode": 143,
+          "signal": null
+        },
+        "workerReportStatus": null,
+        "workerReportError": null,
+        "chromiumPidsAfter": [],
+        "outputTail": ""
+      },
+      "durationMs": 1889,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-CLOSED",
+      "matchesExpectation": true
+    },
+    {
+      "id": "B10-sigterm-midrun-browser-interrupt",
+      "title": "SIGTERM during a live probe: probeConsumer interrupts the browser and the worker must still fail closed",
+      "round": 3,
+      "expect": "FAIL-CLOSED",
+      "observed": {
+        "verdict": "FAIL-CLOSED",
+        "exit": {
+          "exitCode": 143,
+          "signal": null
+        },
+        "workerReportStatus": null,
+        "workerReportError": null,
+        "chromiumPidsAfter": [],
+        "outputTail": ""
+      },
+      "durationMs": 1786,
+      "leakCheck": {
+        "chromiumBefore": 0,
+        "chromiumAfter": 0,
+        "newChromiumPids": [],
+        "newTempCaches": [],
+        "verdict": "no-orphan-chromium"
+      },
+      "verdict": "FAIL-CLOSED",
+      "matchesExpectation": true
+    }
+  ],
+  "summary": "CONFIRMED",
+  "divergentRounds": []
+}
